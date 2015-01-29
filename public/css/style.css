@@ -10,6 +10,11 @@ a {
 	color: #00B7FF;
 }
 
+rect.placeholder{
+	fill: none;
+	opacity: 0.4;
+}
+
 #floor-nav-wrapper-background{
 	position: absolute;
 	left: 0;
@@ -56,6 +61,17 @@ a {
 	position: relative;	
 }
 
+#aps-wrapper{}
+#aps-wrapper circle{
+	fill: #468507;
+}
+
+#path-wrapper{}
+#path-wrapper path{
+	fill: red;
+	stroke: blue;
+	stroke-width: 4;
+}
 /*
  * timeline
  */
