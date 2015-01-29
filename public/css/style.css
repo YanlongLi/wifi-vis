@@ -1,0 +1,126 @@
+body {
+	padding: 50px;
+	font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+/*
+ *
+ */
+a {
+	color: #00B7FF;
+}
+
+#floor-nav-wrapper-background{
+	position: absolute;
+	left: 0;
+	top: 2%;
+	width: 1%;
+	height: 65%;
+	background-color: #C1B5B5;
+}
+
+#floor-nav-wrapper{
+	position: absolute;
+	left: 1%;
+	top: 2%;
+	width: 20%;
+	height: 65%;
+	background-color: #CCC3C3;
+}
+
+#floor-wrapper{
+	width: 100%;
+	height: 100%;
+}
+
+.floor{
+	background-color: #C0C0C0;	
+	border: 1px solid #6F5252;
+	border-radius: 3px;
+}
+
+/*
+ * floor detail
+ */
+
+#floor-detail-wrapper{
+	position: absolute;
+	left: 30%;
+	right: 1;
+	top: 2%;
+	height: 65%;
+	background-color: #523D3D;
+}
+
+#floor-background{
+	position: relative;	
+}
+
+/*
+ * timeline
+ */
+#timeline-wrapper{
+	position: absolute;
+	left: 10%;
+	bottom: 4%;
+	width: 80%;
+	height: 25%;
+	margin: auto;
+	background-color: #CCC3C3;
+}
+
+#timeline-wrapper-inner{
+	width: 100%;
+	height: 100%;
+	background-color: #3C3C3C;	
+	border: 1px solid #6F5252;
+	border-radius: 3px;
+}
+
+/*
+ * For timeline general
+ */
+.timeline{
+
+}
+.timeline .axis path,
+.timeline .axis line{
+	fill: none;
+	stroke: #727272;
+	shape-rendering: crispEdges;
+}
+.timeline .axis text{
+	fill: #CCCCCC;
+}
+.timeline .x.axis{
+}
+.timeline .y.axis{
+
+}
+.timeline-dot .dot{
+	stroke: #37957D;
+	fill: #FF7F16;
+}
+.timeline .basic-timeline{
+	stroke-width: 2;
+}
+.timeline .timeline-title{
+
+}
+/*
+ * for Brush
+ */
+.brush{ }
+.brush.active{
+
+}
+.brush rect.extent{
+
+}
+.brush .brush-tag{}
+.brush .brush-tag text{
+
+}
+.brush .brush-tag path{
+
+}
