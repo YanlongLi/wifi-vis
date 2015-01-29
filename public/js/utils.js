@@ -1,5 +1,5 @@
 var utils = utils ? utils : {};
-
+utils.DEBUG = true;
 utils.getSize = function(sel){
 	var tc = $(sel);
 	return {
@@ -24,9 +24,10 @@ utils.initSVG = function(sel, mgs){
 	var w = size.width() - mg[1] - mg[3];
 			h = size.height() - mg[0] - mg[2];
 	var g = svg.append("g").attr("transform", "translate("+mg[3]+","+mg[0]+")");
-	g.append("rect").attr("width", w).attr("height", h).attr("fill", "none");
+	g.append("rect").attr("class", "placeholder")
+		.attr("width", w).attr("height", h);
 
-	return { g: g, w: w, h: h };
+	return {svg:svg, g: g, w: w, h: h };
 };
 utils.identity = function(x){return x};
 
@@ -74,5 +75,9 @@ utils.error = function(d,lev){
 		console.error(d);
 	}
 };
-
+utils.debug = function(){
+	if(!this.DEBUG) return;
+	var arr = Array.prototype.slice.call(arguments, 0);
+	console.log.apply(console, arr);
+}
 //module.exports = utils;

@@ -5,7 +5,6 @@ WifiVis.FloorsNav = function(gName){
 	//
 	//
 	var size = utils.getSize(gName);
-	console.log(d3.select(gName));
 	var floorDivs = d3.select(gName).selectAll("div.floor")
 		.data(d3.range(0, nFloors));
 		floorDivs.enter().append("div").attr("class","floor");

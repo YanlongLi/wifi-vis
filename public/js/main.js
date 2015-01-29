@@ -1,15 +1,18 @@
 
 var DATA_PATH = WifiVis.DATA_PATH;
 var dataCenter = WifiVis.DataCenter("all-data"), 
+		pathDataCenter = WifiVis.PathDataCenter("path-data"),
 		FloorsNav = WifiVis.FloorsNav,
 		FloorDetail = WifiVis.FloorDetail;
 
 // load aps and records
 d3.csv(DATA_PATH+"APS.csv", function(err, _aps){
 	err && (utils.error(err));
-	d3.csv(DATA_PATH+"September/"+"2013-09-01.csv", function(err, _records){
+	d3.csv(DATA_PATH+"September/"+"2013-09-02.csv", function(err, _records){
 		err && (utils.error(err));
 		dataCenter.init(_aps, _records);
+		var records = dataCenter.find_records();
+		pathDataCenter.init(records);
 		init();
 	});
 });
@@ -17,7 +20,7 @@ d3.csv(DATA_PATH+"APS.csv", function(err, _aps){
 function init(){
 	var floorsNav = FloorsNav("#floor-wrapper");
 	//
-	var floorDetail = FloorDetail("#floor-detail-wrapper", 1);
+	var floorDetail = FloorDetail("#floor-detail-wrapper", 8);
 	//
 	var tlSize = utils.getSize("#timeline-wrapper-inner");
 	var svg = d3.select("#timeline-wrapper-inner").select("svg")
@@ -33,6 +36,9 @@ function init(){
 	var tlBrush = TimelineBrush(timeline).onBrushEnd(onEnd);
 	function onEnd(extent){
 		var tl = this.timeline, shownData = tl.shownData;
-		
+		var e0 = extent[0], e1 = extent[1];
+		utils.log(["on bursh end:", e0, e1]);
+		var allPath = pathDataCenter.findAllPath(e0, e1);
+		console.log(allPath);
 	}
 }
