@@ -8,7 +8,7 @@
  * opt.tid: timeline id
  * opt.style: element style class
  */
-var Timeline = function(_data, id, opt){
+WifiVis.Timeline = function(id, opt, _data){
 	function Timeline(){}
 	//
 	var data = _data;
@@ -17,18 +17,45 @@ var Timeline = function(_data, id, opt){
 			size;
 	g.attr("class", opt.style || "timeline");
 	var x = d3.time.scale(), y = d3.scale.linear(),
-			xAxis, yAxis,line,
+			xAxis = d3.svg.axis(), yAxis = d3.svg.axis(),line,
 			extent;
+	xAxis = d3.svg.axis().scale(x).orient("bottom")
+		.tickSize(2,0,4).tickSubdivide(0);
+	yAxis = d3.svg.axis().scale(y).orient("left").ticks(4);
+
+	g.append("g").attr("id", "timeline-x-axis-"+ tid).attr("class","x axis");
+//		.attr("transform", "translate(0,"+size.height+")")
+	g.append("g").attr("id", "timeline-y-axis-"+ tid).attr("class","y axis");
+
+	g.append("path").attr("class", "basic-timeline");
+	g.append("g").attr("class","timeline-dot");
 	var binNum = 200,
 			binSize;
-	var shownData;
+	var shownData, strokeColor;
 	var brushLst = [];
 	//
-	updateData(data);
+	if(_data){
+		updateData(data);
+	}
 	//
 	Timeline.updateData = updateData;
 	Timeline.renderTimeline = renderTimeline;
 	Timeline.addBrush = addBrush;
+	Timeline.setSize = function(_){
+		if(_){
+			size = _;
+			console.log("init timeline size:", _);
+			return Timeline;
+		}
+		return size;
+	};
+	Timeline.strokeColor = function(_){
+		if(_){
+			strokeColor = _;
+			return Timeline;
+		}
+		return strokeColor;
+	};
 	//
 	// getters and setters
 	(function(){
@@ -53,6 +80,7 @@ var Timeline = function(_data, id, opt){
 	})();
 	//
 	function updateData(_data){
+		data = _data;
 		extent = d3.extent(data, function(d){return d.dateTime});
 		//utils.log(["extent:", extent], 1);
 		binSize = (extent[1].getTime() - extent[0].getTime())/binNum;
@@ -71,6 +99,7 @@ var Timeline = function(_data, id, opt){
 		y.domain(d3.extent(shownData.map(function(d){return d.value})));
 		//
 		//utils.log(["Timeline update_data:", shownData], 1);
+		return Timeline;
 	}
 	/*
 	 * reanderTimelien()
@@ -78,35 +107,36 @@ var Timeline = function(_data, id, opt){
 	 * strokeColor: line color
 	 * title:
 	 */
-	function renderTimeline(_size, strokeColor, title){
-		size = _size;
+	function renderTimeline(_size, _strokeColor, title){
+		size = _size || size;
+		if(!size){
+			console.warn("renderTimeline: no render size");
+		}
+		strokeColor = _strokeColor || strokeColor;
 		// init scale and axis
 		x.range([0,size.width]);
-		y.range([size.height,0]),
-		xAxis = d3.svg.axis().scale(x).orient("bottom")
-			.tickSize(2,0,4).tickSubdivide(0);
-		yAxis = d3.svg.axis().scale(y).orient("left").ticks(4);
-		g.append("g").attr("id", "timeline-x-axis-"+ tid)
-			.attr("transform", "translate(0,"+size.height+")")
-			.attr("class","x axis").call(xAxis);
-		g.append("g").attr("id", "timeline-y-axis-"+ tid)
-			.attr("class","y axis").call(yAxis);
+		y.range([size.height,0]);
 		line = d3.svg.line().interpolate("monotone")
 			.x(function(d){return x(d.dateTime)})
 			.y(function(d){return y(d.value)});
+		g.select("#timeline-x-axis-"+ tid)
+			.attr("transform", "translate(0,"+size.height+")").call(xAxis);
+		g.select("#timeline-y-axis-"+ tid).call(yAxis);
 		// draw line
-		var sel = g.append("path").attr("class", "basic-timeline")
-			.datum(shownData);
+		g.selectAll("path.basic-timeline").remove();
+		var sel = g.append("path").attr("class","basic-timeline").datum(shownData);
 		sel.attr("d", line).style("stroke", strokeColor)
-			.attr("fill","none");
+			.attr("fill","none").attr("opacity",0.7);
 		// draw dots
-		var circles = g.append("g").attr("class","timeline-dot").selectAll("circle").data(shownData);
-		circles.enter().append("circle").attr("class","dot")
-			.attr("cx",function(d){return x(d.dateTime)})
+		var circles = g.select("g.timeline-dot").selectAll("circle").data(shownData);
+		circles.enter().append("circle").attr("class","dot");
+		circles.attr("cx",function(d){return x(d.dateTime)})
 			.attr("cy",function(d){return y(d.value)})
 			.attr("r", 2);
+		circles.exit().remove();
 		// title
 		title && (renderTitle(title));
+		return Timeline;
 	}
 	/*
 	 *
@@ -115,6 +145,7 @@ var Timeline = function(_data, id, opt){
 		var gTitle = g.append("g").attr("class","timeline-title")
 			.attr("transform","translate(-10,"+size.height/2+")");
 		gTitle.append("text").text(title);
+		return Timeline;
 	}
 	function addBrush(brush){
 		brushLst.push(brush);
@@ -128,7 +159,7 @@ var Timeline = function(_data, id, opt){
  * timeline: Timeline object
  * opt.brushClass
  */
-var TimelineBrush = function(timeline, opt){
+WifiVis.TimelineBrush = function(timeline, opt){
 	function TimelineBrush(){};
 	//
 	var g = timeline.g, x = timeline.x, y = timeline.y, tl = timeline;
@@ -162,8 +193,7 @@ var TimelineBrush = function(timeline, opt){
 	// clear odl brush
 	g.select("g.brush").remove();
 	g.select("g."+brushClass).remove();
-	var brush, extent,
-		gBrush = g.append("g").attr("class", brushClass);
+	var brush, extent, gBrush = g.append("g").attr("class", brushClass);
 
 	setBrush();
 	/*
@@ -181,11 +211,13 @@ var TimelineBrush = function(timeline, opt){
 	 * call back function for brush
 	 */
 	function cbBrushStart(){
+		console.log("brush begin");
 		gBrush.classed("active", true);
 		BRUSH_LOCK = true;
 		extent = null;
 	}
 	function cbBrushMove(){
+		console.log("brush move");
 		var e = d3.event.target.extent();
 		if(adjustExtent){
 			e = adjustExtent(e);
@@ -194,6 +226,7 @@ var TimelineBrush = function(timeline, opt){
 		onBrushEnd(e);
 	}
 	function cbBrushEnd(){
+		console.log("brush end");
 		var e = d3.event.target.extent();	
 		//utils.log(["brush extent:", e]);
 		//utils.log(["extent distence",e[1] - e[0]], 1);
