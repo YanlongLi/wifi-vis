@@ -42,6 +42,10 @@ rect.placeholder{
 	background-color: #C0C0C0;	
 	border: 1px solid #6F5252;
 	border-radius: 3px;
+	position: relative;
+}
+
+.floor *{
 }
 
 /*
@@ -132,7 +136,7 @@ rect.placeholder{
 
 }
 .brush rect.extent{
-
+	opacity: 0.5;
 }
 .brush .brush-tag{}
 .brush .brush-tag text{
