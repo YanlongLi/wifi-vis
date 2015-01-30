@@ -133,7 +133,7 @@ var TimelineBrush = function(timeline, opt){
 	//
 	var g = timeline.g, x = timeline.x, y = timeline.y, tl = timeline;
 	var brushClass = opt && opt.brushClass || "brush",
-			BRUSH_LOCK = false, IN_SELECTION = false;
+			BRUSH_LOCK = false, IN_SELECTION = false, ALL_DEFAULT = true;
 	// some functiion
 	var validateExtent = defaultValidateExtent,
 			adjustExtent, onBrushEnd;
@@ -204,10 +204,14 @@ var TimelineBrush = function(timeline, opt){
 			//d3.select(this).transition().call(brush.extent(e)).call(brush.event);
 		}
 		if(!validateExtent(e)){
-			IN_SELECTION = false;
-			utils.log(["brush, no selection"], 1);
-			updateBrushTag(true);
-			return;
+			if(ALL_DEFAULT){
+				e = x.domain();
+			}else{
+				IN_SELECTION = false;
+				utils.log(["brush, no selection"], 1);
+				updateBrushTag(true);
+				return;
+			}
 		}
 		extent = e;
 		//

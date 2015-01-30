@@ -63,14 +63,15 @@ rect.placeholder{
 
 #aps-wrapper{}
 #aps-wrapper circle{
-	fill: #468507;
+	fill: rgb(255, 73, 6);
 }
 
 #path-wrapper{}
 #path-wrapper path{
-	fill: red;
+	fill: none;
 	stroke: blue;
-	stroke-width: 4;
+	stroke-width: 2;
+	opacity: 0.2;
 }
 /*
  * timeline

@@ -69,6 +69,7 @@ WifiVis.DataCenter = function(key){
 		var rRecords = [];
 		var floors = option.floors, recordFilter = option.recordFilter;
 		if(floors && floors.length){
+			utils.log(["filter record by floor, floors:", floors]);
 			floors.forEach(function(iF){
 				if(!recordsByFloor[iF]){
 					utils.warn(["there is no floor No.",iF]);
@@ -80,7 +81,9 @@ WifiVis.DataCenter = function(key){
 			rRecords = aps.map(utils.identity);
 		}
 		if(recordFilter){
+			utils.log(['filter record before:', rRecords.length]);
 			rRecords = rRecords.filter(recordFilter);
+			utils.log(['filter record after:', rRecords.length]);
 		}
 		return rRecords;
 	}
@@ -139,25 +142,44 @@ WifiVis.PathDataCenter = function(key){
 	utils.log(["init path data center:"+key]);
 	function PathDataCenter(){};
 
-	var records, recordsByMac = d3.map();
+	var records, recordsByMac, recordsByFloor;
 	
 	PathDataCenter.init = init;
+	PathDataCenter.groupByMac = groupByMac;
 	PathDataCenter.findPathByMac = findPathByMac;
 	PathDataCenter.findAllPath = findAllPath;
+	//PathDataCenter.groupByMac = groupByMac;
+	//PathDataCenter.groupByFloor = groupByFloor;
 
 	function init(_records){
 		records = _records;	
-		groupByMac(records);
+		//recordsByMac = groupByMac(records);
+		//recordsByFloor = groupByFloor(records);
 	}
 	function groupByMac(records){
+		var map = d3.map();
 		var nested = d3.nest().key(function(record){return record.mac})
+			.sortValues(function(r1,r2){return r1.dateTime - r2.dateTime})
+			.entries(records);
+		utils.log(["recordsByMac:", nested.length]);
+		nested.forEach(function(o){
+			if(o.values.length){
+				map.set(o.key, o.values);
+			}
+		});
+		return map;
+	}
+	function groupByFloor(records){
+		var map = d3.map();
+		var nested = d3.nest().key(function(record){return record.ap.floor})
 			.sortValues(function(r1,r2){return r1.dateTime - r2.dateTime})
 			.entries(records);
 		utils.log(["recordsByFloor:"]);
 		nested.forEach(function(o){
 			utils.log([o.key, o.values.length]);
-			recordsByMac.set(o.key, o.values);
+			map.set(o.key, o.values);
 		});
+		return map;
 	}
 	function findPathByMac(mac){
 		return recordsByMac.get(mac);
@@ -189,7 +211,7 @@ WifiVis.PathDataCenter = function(key){
 			return r.dateTime >= t1 && r.dateTime <= t2;
 		});	
 	}
-	function _groupPathByFloor(path){
+	function _cutPathByFloor(path){
 		var pathByFloor = [], len = path.length,
 				i = -1, curF = -1, curPath, r;
 		while(++i < len){

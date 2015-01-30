@@ -2,6 +2,7 @@
  *
  */
 floor_image_size = WifiVis.FLOOR_IMG_SIZE;
+
 WifiVis.FloorDetail = function(selector, _iF){
 	function FloorDetail(){}
 	//
@@ -14,7 +15,9 @@ WifiVis.FloorDetail = function(selector, _iF){
 	var aps;
 	var gAps = g.append("g").attr("id","aps-wrapper"),
 			gPath = g.append("g").attr("id", "path-wrapper"),
-			pathF = d3.svg.line().x(function(d){return d.x}).y(function(d){return d.y});
+			pathF = d3.svg.line()
+				.x(function(d){return x(d.ap.x)})
+				.y(function(d){return y(d.ap.y)});
 	gAps.append("rect").attr("class","placeholder");
 	gPath.append("rect").attr("class","placeholder");
 	var imgOffset = [20,20];
@@ -73,17 +76,19 @@ WifiVis.FloorDetail = function(selector, _iF){
 			.attr("r",4);
 		apSel.attr("title",function(ap){return ap.name});
 		apSel.on("mouseon", function(ap){console.log(ap.name)});
+		apSel.exit().remove();
 	}
 	function drawPath(pathByMac){
 		utils.log(["draw path, path number:", pathByMac.length]);
 		var selPath = gPath.selectAll("path").data(pathByMac);
 		var selPathEnter = selPath.enter().append("path");
 		selPath.attr("d", pathF);
+		selPath.exit().remove();
 	}
 	function moveImage(offset){
 		imgOffset = offset;
 		img.transition().attr("x", imgOffset[0]).attr("y", imgOffset[1]);
-		d3.select("#aps-wrapper, #path-wrapper").transition()
+		d3.selectAll("#path-wrapper, #aps-wrapper").transition()
 			.attr('transform', "translate("+imgOffset[0]+","+imgOffset[1]+")");
 		//
 		utils.log(["move image:", imgOffset]);
@@ -96,4 +101,4 @@ WifiVis.FloorDetail = function(selector, _iF){
 	}
 	//
 	return FloorDetail;
-}
+};
