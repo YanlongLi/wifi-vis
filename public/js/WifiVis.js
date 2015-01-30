@@ -1,5 +1,5 @@
 var WifiVis = {};
-WifiVis.NUMF_LOOR = 17;
+WifiVis.NUM_FLOOR = 17;
 WifiVis.DATA_PATH = "data/";
 WifiVis.FLOOR_IMG_SIZE = [
 	[0,0], [1003,519], [680,698], [680,700], [1001,510], [1000,509],
