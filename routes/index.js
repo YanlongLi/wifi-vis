@@ -13,10 +13,11 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/getApsByFloors', function(req, res, next) {
-	var floor = req.query.floor;
-	console.log(floors);
+	var str = req.query.floor;
+	var floor = str.split(",");
 	var apCenter = req.dataCenter.apCenter;
 	var result = apCenter.getApsByFloors(floor);
+	console.log("getApsByFloors:", floor);
 	console.log("result:", result.length);
 	res.contentType('application/json');
 	res.send(JSON.stringify(result));
@@ -26,6 +27,7 @@ router.get('/getApsByFloor', function(req, res, next) {
 	var iF = req.query.floor;
 	var apCenter = req.dataCenter.apCenter;
 	var result = apCenter.getApsByFloor(iF);
+	console.log("getApsByFloor:", floor);
 	console.log("result:", result.length);
 	res.contentType('application/json');
 	res.send(JSON.stringify(result));

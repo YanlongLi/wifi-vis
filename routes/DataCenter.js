@@ -54,9 +54,9 @@ DataCenter.ApCenter = function(){
 		return arr;
 	}
 	function getApsByFloors(floors){
-		var arr, i = -1;
-		while(++i){
-			arr = arr.concat(getApsByFloor(floors[i]));
+		var arr = [], i = -1, len = floors.length;
+		while(++i < len){
+			arr = arr.concat(getApsByFloor(+floors[i]));
 		}
 		return arr;
 	}
