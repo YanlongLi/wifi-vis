@@ -148,12 +148,14 @@ WifiVis.PathDataCenter = function(key){
 	PathDataCenter.groupByMac = groupByMac;
 	PathDataCenter.findPathByMac = findPathByMac;
 	PathDataCenter.findAllPath = findAllPath;
+	PathDataCenter.pathToForceNodeLink = pathToForceNodeLink;
+
 	//PathDataCenter.groupByMac = groupByMac;
 	//PathDataCenter.groupByFloor = groupByFloor;
 
 	function init(_records){
 		records = _records;	
-		//recordsByMac = groupByMac(records);
+		recordsByMac = groupByMac(records);
 		//recordsByFloor = groupByFloor(records);
 	}
 	function groupByMac(records){
@@ -223,6 +225,22 @@ WifiVis.PathDataCenter = function(key){
 			}
 		}
 		return pathByFloor;	
+	}
+	function pathToForceNodeLink(allPath){
+		var links = [], nodes = d3.set();
+		allPath.forEach(function(path){
+			var i = -1, len = path.length;
+			while(++i < len - 1){
+				var source = path[i].apid,
+					target = path[i+1].apid;
+				nodes.add(path[i].apid);
+				links.push({source:source, target:target});
+			}
+			nodes.add(path[i].apid);
+		});
+		console.log("links:", links.length);
+		console.log("nodes:", nodes.values().length);
+		return {nodes:nodes.values(),links:links};
 	}
 	return PathDataCenter;
 };
