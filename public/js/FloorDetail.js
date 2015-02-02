@@ -2,6 +2,7 @@
  *
  */
 floor_image_size = WifiVis.FLOOR_IMG_SIZE;
+
 WifiVis.FloorDetail = function(selector, _iF){
 	function FloorDetail(){}
 	//
@@ -14,7 +15,9 @@ WifiVis.FloorDetail = function(selector, _iF){
 	var aps;
 	var gAps = g.append("g").attr("id","aps-wrapper"),
 			gPath = g.append("g").attr("id", "path-wrapper"),
-			pathF = d3.svg.line().x(function(d){return d.x}).y(function(d){return d.y});
+			pathF = d3.svg.line()
+				.x(function(d){return x(d.ap.x)})
+				.y(function(d){return y(d.ap.y)});
 	gAps.append("rect").attr("class","placeholder");
 	gPath.append("rect").attr("class","placeholder");
 	var imgOffset = [20,20];
@@ -46,44 +49,43 @@ WifiVis.FloorDetail = function(selector, _iF){
 		imgOriSize.h = floor_image_size[iF][1];
 		img.attr("width", imgOriSize.w);
 		img.attr("height",imgOriSize.h);
-		utils.log(["floor image original size:",imgOriSize.w,imgOriSize.h]);
+		console.log("floor image original size:",imgOriSize.w,imgOriSize.h);
+		// compute new size
+		var ratioW, ratioH, ratio;
+		ratio = (ratioW = imgOriSize.w / o.w) > (ratioH = imgOriSize.h / o.h)?
+			ratioW:ratioH;
+		imgSize.w = imgOriSize.w / ratio;
+		imgSize.h = imgOriSize.h / ratio;
+		console.log("floor image shown size:",imgSize.w,imgSize.h);
 		//
-		if(!imgSize.w || !imgSize.h){
-			var ratioW, ratioH, ratio;
-			ratio = (ratioW = imgOriSize.w / o.w) > (ratioH = imgOriSize.h / o.h)?
-				ratioW:ratioH;
-			imgSize.w = imgOriSize.w / ratio;
-			imgSize.h = imgOriSize.h / ratio;
-			utils.log(["floor image shown size:", imgSize.w, imgSize.h]);
-		}else{
-			imgSize.h = imgOriSize.h * imgSize.w / imgOriSize.w; 
-		}
 		_resizeImg();
 		moveImage(imgOffset);
 
 		aps = dataCenter.find_aps({floors:[iF]});
 		_drawAps(aps);
+		return FloorDetail;
 	}
 	function _drawAps(aps){
 		utils.log(["draw_aps:",aps.length]);
 		apSel = gAps.selectAll("circle").data(aps);
-		apSelEnter = apSel.enter().append("circle")
-			.attr("cx", function(ap){return x(ap.x)})
+		apSelEnter = apSel.enter().append("circle");
+		apSel.attr("cx", function(ap){return x(ap.x)})
 			.attr("cy", function(ap){return y(ap.y)})
 			.attr("r",4);
 		apSel.attr("title",function(ap){return ap.name});
-		apSel.on("mouseon", function(ap){console.log(ap.name)});
+		apSel.exit().remove();
 	}
 	function drawPath(pathByMac){
 		utils.log(["draw path, path number:", pathByMac.length]);
 		var selPath = gPath.selectAll("path").data(pathByMac);
 		var selPathEnter = selPath.enter().append("path");
 		selPath.attr("d", pathF);
+		selPath.exit().remove();
 	}
 	function moveImage(offset){
 		imgOffset = offset;
 		img.transition().attr("x", imgOffset[0]).attr("y", imgOffset[1]);
-		d3.select("#aps-wrapper, #path-wrapper").transition()
+		d3.selectAll("#path-wrapper, #aps-wrapper").transition()
 			.attr('transform', "translate("+imgOffset[0]+","+imgOffset[1]+")");
 		//
 		utils.log(["move image:", imgOffset]);
@@ -96,4 +98,4 @@ WifiVis.FloorDetail = function(selector, _iF){
 	}
 	//
 	return FloorDetail;
-}
+};

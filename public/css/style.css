@@ -42,6 +42,10 @@ rect.placeholder{
 	background-color: #C0C0C0;	
 	border: 1px solid #6F5252;
 	border-radius: 3px;
+	position: relative;
+}
+
+.floor *{
 }
 
 /*
@@ -63,14 +67,15 @@ rect.placeholder{
 
 #aps-wrapper{}
 #aps-wrapper circle{
-	fill: #468507;
+	fill: rgb(255, 73, 6);
 }
 
 #path-wrapper{}
 #path-wrapper path{
-	fill: red;
+	fill: none;
 	stroke: blue;
-	stroke-width: 4;
+	stroke-width: 2;
+	opacity: 0.2;
 }
 /*
  * timeline
@@ -131,7 +136,7 @@ rect.placeholder{
 
 }
 .brush rect.extent{
-
+	opacity: 0.5;
 }
 .brush .brush-tag{}
 .brush .brush-tag text{
