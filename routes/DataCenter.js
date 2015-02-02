@@ -81,6 +81,9 @@ DataCenter.PathCenter = function(){
 		return pathByMac.get(mac);
 	};
 	PathCenter.findAllPathBetween = findAllPathBetween;
+	PathCenter.findAllPath = function(){
+		return pathByMac.values();
+	};
 
 	function initPathCenter(){
 		var rPath = '../public/data/September/2013-09-02.csv';
@@ -135,9 +138,44 @@ DataCenter.PathCenter = function(){
 			return r.dateTime >= t1 && r.dateTime <= t2;
 		});	
 	}
+	PathCenter.pathToForceNodeLink = pathToForceNodeLink;
+	function pathToForceNodeLink(allPath){
+		var links = [], nodes = d3.map();
+		allPath.forEach(function(path){
+			var i = -1, len = path.length;
+			while(++i < len - 1){
+				var source = path[i].ap,
+					target = path[i+1].ap;
+				if(!nodes.has(path[i].apid)){
+					nodes.set(path[i].apid, path[i].ap);
+				}
+				links.push({source:source, target:target});
+			}
+			if(!nodes.has(path[i].apid)){
+				nodes.set(path[i].apid, path[i].ap);
+			}
+		});
+		console.log("links:", links.length);
+		console.log("nodes:", nodes.size());
+		return {nodes:nodes.values(),links:links};
+	}
+	PathCenter.pathToForceNodeLinkWithWeight = pathToForceNodeLinkWithWeight;
+	function pathToForceNodeLinkWithWeight(allPath){
+		var o = pathToForceNodeLink(allPath);
+		var nest = d3.nest().key(function(d){return d.source+","+d.target})
+			.rollup(function(leaves){return leaves.length})
+			.entries(o.links);
+		var links = nest.map(function(d){
+			console.log(d);
+			var arr = d.key.split(",");
+			return {source:arr[0], target:arr[1], weight:d.values};
+		});
+		console.log("nodes:", o.nodes.length);
+		console.log("links:", links.length);
+		return {nodes:o.nodes,links:links};
+	}
 	return PathCenter;
 };
-
 DataCenter.pathCenter = DataCenter.PathCenter();
 
 module.exports = DataCenter;
