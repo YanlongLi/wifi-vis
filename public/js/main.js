@@ -47,7 +47,7 @@ function init(){
 
 	var timelineData = dataCenter.find_records({floors:[curF]});
 	timeline = Timeline("#timeline-g",{tid:1}, timelineData)
-		.renderTimeline(tlSize, "#1C98F3");
+		.renderTimeline(tlSize, "#000000");
 	// tlBrush
 	tlBrush = TimelineBrush(timeline).onBrushEnd(onEnd);
 	// floor detail
