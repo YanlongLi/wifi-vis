@@ -7,7 +7,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 	function FloorDetail(){}
 	//
 	var iF;
-	var o = utils.initSVG(selector, [40]), g = o.g;
+	var o = utils.initSVG(selector, [0]), g = o.g;
 	var imgOriSize = {}, imgSize = {},
 			x = d3.scale.linear(), y = d3.scale.linear(),
 			img = g.append("image").attr("id","floor-background"),
@@ -37,6 +37,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 		y.domain([0, imgOriSize.h]).range([0, imgSize.h]);
 		img.attr('width', imgSize.w);
 		img.attr('height', imgSize.h);
+		img.attr('opacity', 0.4);
 		gAps.select("rect.placeholder").attr("width",imgSize.w).attr("height", imgSize.h);
 		gPath.select("rect.placeholder").attr("width",imgSize.w).attr("height", imgSize.h);
 	}

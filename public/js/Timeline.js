@@ -125,8 +125,8 @@ WifiVis.Timeline = function(id, opt, _data){
 		// draw line
 		g.selectAll("path.basic-timeline").remove();
 		var sel = g.append("path").attr("class","basic-timeline").datum(shownData);
-		sel.attr("d", line).style("stroke", strokeColor)
-			.attr("fill","none").attr("opacity",0.7);
+		sel.attr("d", line).style("stroke", strokeColor);
+//.attr("fill","#302F2F").attr("opacity",0.4);
 		// draw dots
 		var circles = g.select("g.timeline-dot").selectAll("circle").data(shownData);
 		circles.enter().append("circle").attr("class","dot");
@@ -205,7 +205,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 			.on("brush", cbBrushMove)
 			.on("brushend", cbBrushEnd);
 		gBrush.call(brush).selectAll("rect").attr("height", tl.size.height);
-		gBrush.selectAll("rect.extent").style("fill", "rgba(255,255,255,0.5)");
+		//gBrush.selectAll("rect.extent").style("fill", "rgba(255,255,255,0.5)");
 	}
 	/*
 	 * call back function for brush

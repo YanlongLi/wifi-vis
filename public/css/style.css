@@ -16,21 +16,22 @@ rect.placeholder{
 }
 
 #floor-nav-wrapper-background{
-	position: absolute;
+/*	position: absolute;
 	left: 0;
 	top: 2%;
-	width: 1%;
-	height: 65%;
-	background-color: #C1B5B5;
+	width: 100%;
+	height: 100%;
+	background-color: #C1B5B5;*/
 }
 
 #floor-nav-wrapper{
-	position: absolute;
+	/*position: absolute;
 	left: 1%;
 	top: 2%;
 	width: 20%;
-	height: 65%;
-	background-color: #CCC3C3;
+	height: 65%;*/
+	height: 300px;
+	/*background-color: #CCC3C3;*/
 }
 
 #floor-wrapper{
@@ -49,16 +50,27 @@ rect.placeholder{
 }
 
 /*
+ * aps force layout
+ */
+#aps-forcelayout-wrapper{
+	width:  100%;
+	height: 300px;
+	/*background-color: #FF00FF;*/
+}
+
+/*
  * floor detail
  */
 
 #floor-detail-wrapper{
-	position: absolute;
+	/*position: absolute;
 	left: 30%;
 	right: 1;
 	top: 2%;
-	height: 65%;
-	background-color: #523D3D;
+	height: 65%;*/
+	width: 100%;
+	height: 300px;
+	/*background-color: #523D3D;*/
 }
 
 #floor-background{
@@ -81,20 +93,20 @@ rect.placeholder{
  * timeline
  */
 #timeline-wrapper{
-	position: absolute;
+	/*position: absolute;
 	left: 10%;
-	bottom: 4%;
-	width: 80%;
-	height: 25%;
+	bottom: 4%;*/
+	width: 98%;
+	height: 200px;
 	margin: auto;
-	background-color: #CCC3C3;
+	/*background-color: #CCC3C3;*/
 }
 
 #timeline-wrapper-inner{
 	width: 100%;
 	height: 100%;
-	background-color: #3C3C3C;	
-	border: 1px solid #6F5252;
+	/*background-color: #3C3C3C;	
+	border: 1px solid #6F5252;*/
 	border-radius: 3px;
 }
 
@@ -111,7 +123,7 @@ rect.placeholder{
 	shape-rendering: crispEdges;
 }
 .timeline .axis text{
-	fill: #CCCCCC;
+	/*fill: #CCCCCC;*/
 }
 .timeline .x.axis{
 }
@@ -119,11 +131,13 @@ rect.placeholder{
 
 }
 .timeline-dot .dot{
-	stroke: #37957D;
-	fill: #FF7F16;
+	/*stroke: #37957D;*/
+	fill: #FFFFFF;
 }
 .timeline .basic-timeline{
-	stroke-width: 2;
+	stroke-width: 3;
+	fill: #302F2F;
+	opacity: 0.4;
 }
 .timeline .timeline-title{
 
@@ -137,6 +151,7 @@ rect.placeholder{
 }
 .brush rect.extent{
 	opacity: 0.5;
+	fill: #000000;
 }
 .brush .brush-tag{}
 .brush .brush-tag text{
