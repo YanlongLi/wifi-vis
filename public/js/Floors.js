@@ -25,7 +25,7 @@ WifiVis.Floor = function(div, index, w, h){
 	div.attr("id", "floor-"+index).style({
 		"width": w,
 		"height": h - mgBot,
-		"margin": "0 0 "+mgBot+" 0"
+		"margin": "0 0 "+mgBot+" 0",
 	});
 	btn.on("click", changeToFloor);
 	function changeToFloor(){

@@ -7,7 +7,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 	function FloorDetail(){}
 	//
 	var iF;
-	var o = utils.initSVG(selector, [40]), g = o.g;
+	var o = utils.initSVG(selector, [0]), g = o.g;
 	var imgOriSize = {}, imgSize = {},
 			x = d3.scale.linear(), y = d3.scale.linear(),
 			img = g.append("image").attr("id","floor-background"),
