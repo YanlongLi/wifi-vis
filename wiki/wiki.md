@@ -1,5 +1,15 @@
 # Wiki Update
 
+## 2015-02-03
+
+### need to change
+
+1. Floor Detail View: remove floor label and hilight floor button with similar color.
+2. Force Layout: **color as floor**, set **threshold** to node (ap) and link (path).
+
+	![current version](_img/0203-img.png)
+
+
 ## 2015-02-02
 
 ### Data Detail
