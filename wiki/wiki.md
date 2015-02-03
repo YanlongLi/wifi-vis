@@ -49,14 +49,19 @@ What other events canbe shown in this data?
 
 ### What have been done so far
 
-- floor overview: _IMAGE_
-- timeline view: show the mac number over time _IMAGE_
+compared to version of Saturday, I changed the layout and color scheme, 
+some data process were move to server end;
+
+![overview](_img/wifi-vis-1.png)
+
+records on 2013-09-02 and 2013-09-03 are loaded
+
+- timeline view: show the mac number over time
 - floor detail view: show the aps and path in this floor.
-		_IMAGE_
 
 ### What to do next
 
-- to show all the aps in one view, using force layout.
+- to show all the aps in one view, using force layout
+- seperate path of different direction.
 - show the mac number change overtime in selected ap.
 
-### Problems
