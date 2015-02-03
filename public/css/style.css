@@ -57,7 +57,7 @@ rect.placeholder{
 }
 
 .floor .btn-pushed{
-	background-color:rgb(162, 168, 152);
+	background-color: #A8D704;
 }
 
 .floor *{
@@ -73,7 +73,7 @@ rect.placeholder{
 }
 
 #aps-graph-wrapper circle.node{
-	fill: #265D26;
+	/*fill: #265D26;*/
 }
 
 #aps-graph-wrapper line.link{

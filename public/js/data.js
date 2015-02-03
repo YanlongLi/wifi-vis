@@ -1,49 +1,67 @@
-WifiVis.dataCenterManager = d3.map();
+WifiVis.ApCenter = function(){
+	function ApCenter(){}
+	
+	var aps, apsByFloor = d3.map();
 
-WifiVis.DataCenter = function(key){
-	var dCenter;
-	if((dCenter = this.dataCenterManager.get(key))){
-		return dCenter;
+	ApCenter.init = init;
+	ApCenter.findAps = findAps;
+	ApCenter.findAllAps = findAllAps;
+	ApCenter.findApById = findApById;
+
+	function init(_aps){
+		aps = _aps.map(function(ap){
+			ap.apid = +ap.apid;
+			ap.floor = +ap.floor;
+			ap.pos_x = +ap.x;
+			ap.pos_y = +ap.y;
+			delete ap.x;
+			delete ap.y;
+			return ap;
+		});
+		aps.sort(function(a1, a2){
+			return a1.id > a2.id;
+		});
+		console.log("load aps:", aps.length);
+		//
+		aps.forEach(function(ap){
+			if(!apsByFloor.has(ap.floor)){
+				apsByFloor.set(ap.floor, []);
+			}
+			var v = apsByFloor.get(ap.floor);
+			v.push(ap);
+		});
+		//
+		apsByFloor.forEach(function(key, val){
+			console.log("aps at floor "+key+":",val.length);
+		});
 	}
-	utils.log(["init data center:"+key]);
 
-	function DataCenter(){}
+	function findAllAps(){
+		return aps.map(function(d){return d});
+	};
 
-	var apsByFloor = {}, aps, IS_AP_LOADED = false;
-	var recordsByFloor = {}, records, IS_RECORD_LOADED = false;
-	//
-	DataCenter.init = init;
-	DataCenter.find_ap_by_id = find_ap_by_id;
-	DataCenter.find_aps = find_aps;
-	DataCenter.find_records = find_records;
-	function init(_aps, _records){
-		_load_aps(_aps);
-		_load_records(_records);
-		return DataCenter;
-	}
-
-	function find_ap_by_id(apid){
+	function findApById(apid){
 		var opt = {};
-		opt.apFilter = function(ap){return +ap.apid === +apid};
-		return find_aps(opt);
+		opt.apFilter = function(ap){return ap.apid === apid};
+		return findAps(opt);
 	}
 	/*
 	 * find_aps(option)
 	 * option.floors: floor array
 	 * option.apFilter:
 	 */
-	function find_aps(option){
+	function findAps(option){
 		if(!option){
-			utils.log(["find all aps:", aps.length]);
+			console.log("find all aps:", aps.length);
 			return aps.map(utils.identity);
 		}
 		var rAps = [];
 		var floors = option.floors, apFilter = option.apFilter;
 		if(floors && floors.length){
-			utils.log(["find aps on floor:", floors]);
+			console.log("find aps on floor:", floors);
 			floors.forEach(function(iF){
 				if(!apsByFloor[iF]){
-					utils.warn(["there is no floor No.",iF]);
+					console.warn("there is no floor No.",iF);
 				}else{
 					rAps = rAps.concat(apsByFloor[iF]);
 				}
@@ -54,86 +72,138 @@ WifiVis.DataCenter = function(key){
 		if(apFilter){
 			rAps = rAps.filter(apFilter);
 		}
-		utils.log(["find aps:", rAps.length]);
+		console.log("find aps:", rAps.length);
 		return rAps;
 	}
-	/*
-	 * find_records(option)
-	 */
-	function find_records(option){
-		if(!option){
-			var r = records.map(utils.identity);
-			utils.log(["find all records:", r.length]);
-			return r;
-		}
-		var rRecords = [];
-		var floors = option.floors, recordFilter = option.recordFilter;
-		if(floors && floors.length){
-			utils.log(["filter record by floor, floors:", floors]);
-			floors.forEach(function(iF){
-				if(!recordsByFloor[iF]){
-					utils.warn(["there is no floor No.",iF]);
-				}else{
-					rRecords = rRecords.concat(recordsByFloor[iF]);
-				}
-			});
-		}else{
-			rRecords = aps.map(utils.identity);
-		}
-		if(recordFilter){
-			utils.log(['filter record before:', rRecords.length]);
-			rRecords = rRecords.filter(recordFilter);
-			utils.log(['filter record after:', rRecords.length]);
-		}
-		return rRecords;
-	}
-	//  help function
-	function _load_records(_records){
-		var format = d3.time.format("%Y-%m-%d %H:%M:%S");
-		IS_RECORD_LOADED = false;
-		var i = -1, len = (records = _records).length;
-		while(++i < len){
-			var record = records[i];
-			//record.dateTime = format.parse(record.date_time);
-			record.dateTime = format.parse(record.date_time);
-			var ap = aps.filter(function(ap){return +ap.apid === +record.apid})[0];
-			if(!ap){
-				utils.warn("apid not exist");
-				continue;
-			} 
-			record.ap = ap;
-			var iF = ap.floor;
-			recordsByFloor[iF] = recordsByFloor[iF]?recordsByFloor[iF]:[];
-			recordsByFloor[iF].push(record);
-		}
-		IS_RECORD_LOADED = true;
-		//
-		utils.log(["load records:", records.length],1);
-		for(floor in recordsByFloor){
-			utils.log(["records at floor ", floor, recordsByFloor[floor].length], 1);
-		}
-	}
-	function _load_aps(_aps){
-		var i = -1, len = (aps = _aps).length,
-		arr, iFloor, ap;
-		while(++i < len){
-			ap = aps[i];
-			arr = apsByFloor[ap.floor] || [];
-			arr.push(ap);
-			apsByFloor[ap.floor] = arr;
-		}
-		IS_AP_LOADED = true;
-		//
-		utils.log(["load aps:", aps.length], 1);
-		for(floor in apsByFloor){
-			utils.log(["aps at", floor, apsByFloor[floor].length], 1);
-		}
-	}
-
-	this.dataCenterManager.set(key, DataCenter);
-	return DataCenter;
+	return ApCenter;
 };
 
+WifiVis.RecordCenter = function(apCenter){
+	function RecordCenter(){}
+	var records;
+	var format = d3.time.format("%Y-%m-%d %H:%M:%S");
+	
+	RecordCenter.init = init;
+	RecordCenter.findAllRecords = findAllRecords;
+	RecordCenter.findRecords = findRecords;
+	//
+	RecordCenter.findAllRecordsOnFloor = function(f){
+		return records.filter(function(r){
+			if(!r.ap || !r.ap.floor){
+				console.warn("no ap or no ap.floor", r);
+			}
+			return r.ap.floor == f;
+		})
+	}
+
+	function init(_records){
+		var aps = apCenter.findAllAps();
+		records = _records.map(function(r){
+			r.apid = +r.apid;
+			r.dateTime = format.parse(r.date_time);
+			//
+			var ap = aps.filter(function(ap){return ap.apid === r.apid})[0];
+			if(!ap) utils.warn("apid not exist");
+			//
+			r.ap = ap;
+			return r;
+		});
+		console.log("load records:", records.length);
+	}
+	function findRecords(filter){
+		if(!filter){
+			return records.map(utils.identity);
+		}else{
+			return records.filter(filter);
+		}
+	}
+	function findAllRecords(){
+		return findRecords();
+	}
+	return RecordCenter;
+};
+
+WifiVis.DataHelper = (function(){
+	var Helper = {};
+	Helper.groupRecordsByMac = groupRecordsByMac;
+	Helper.recordsToNodeLink = recordsToNodeLink;
+	Helper.sortRecordsByMacAndTime = sortRecordsByMacAndTime;
+	Helper.removeDuplicateRecords = removeDuplicateRecords;
+	function groupRecordsByMac(records){
+		var map = d3.map();
+		var nested = d3.nest().key(function(record){return record.mac})
+			.sortValues(function(r1,r2){return r1.dateTime - r2.dateTime})
+			.entries(records);
+		console.log("groupRecordsByMac:", nested.length);
+		return nested.map(function(ent){
+			return ent.values;
+		});
+	}
+	/*
+	 *  records are sorted by mac and date_time
+	 */
+	function recordsToNodeLink(records){
+		var nodeMap = d3.map(), linkMap = d3.map();
+		var i = 0, len = records.length, cur, pre;
+		if(len == 0){
+			return {nodes:[],links:[]}
+		}else{
+			var r = records[0];
+			nodeMap.set(r.apid, r.ap);
+			r.ap.weight = 1;
+			pre = r.ap;
+		}
+		while(++i < len){
+			var r = records[i];
+			cur = nodeMap.get(r.apid);
+			if(!cur){
+				cur = r.ap;
+				cur.weight = 1;
+				nodeMap.set(r.apid, cur);
+			}else{
+				cur.weight ++;
+			}
+			if(records[i].mac == records[i-1].mac){
+				var key = pre.apid + "," + cur.apid;
+				if(linkMap.has(key)){
+					var l = linkMap.get(key);
+					l.weight = l.weight+1;
+					linkMap.set(key,l);
+				}else{
+					linkMap.set(key,{source:pre, target:cur, weight:1});
+				}
+			}
+			pre = cur;
+		}
+		return {nodes:nodeMap.values(),links:linkMap.values()}
+	}
+	function sortRecordsByMacAndTime(records){
+		records.sort(function(r1, r2){
+			if(r1.mac != r2.mac){
+				return r1.mac > r2.mac;
+			}
+			return r1.date_time > r2.date_time;
+		});
+		return records;
+	}
+	function removeDuplicateRecords(records){
+		var res = [], i = 0, len = records.length, pre, cur;
+		if(len == 0) return [];
+		res.push(records[0]);
+		pre = records[0];
+		while(++i < len){
+			cur = records[i];
+			if(cur.mac != pre.mac || cur.apid != pre.apid){
+				res.push(cur);
+				pre = cur;
+			}
+		}
+		return res;
+	}
+	return Helper;
+})();
+
+/*
 WifiVis.PathDataCenter = function(key){
 	var dCenter;
 	if((dCenter = this.dataCenterManager.get(key))){
@@ -244,3 +314,4 @@ WifiVis.PathDataCenter = function(key){
 	}
 	return PathDataCenter;
 };
+*/

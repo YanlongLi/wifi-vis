@@ -1,7 +1,8 @@
 
 var DATA_PATH = WifiVis.DATA_PATH;
-var dataCenter = WifiVis.DataCenter("all-data"), 
-		pathDataCenter = WifiVis.PathDataCenter("path-data"),
+var apCenter = WifiVis.ApCenter(), 
+		recordCenter = WifiVis.RecordCenter(apCenter),
+		dataHelper = WifiVis.DataHelper;
 		FloorsNav = WifiVis.FloorsNav,
 		FloorDetail = WifiVis.FloorDetail,
 		Timeline = WifiVis.Timeline,
@@ -10,33 +11,35 @@ var dataCenter = WifiVis.DataCenter("all-data"),
 var curF = 1;
 var floorsNav, floorDetail;
 var tlSize, timeline, tlBrush;
-//var apG = WifiVis.ApGraph();
+var apGraph = WifiVis.ApGraph();
 
 function onEnd(extent){
-	var tl = this.timeline, shownData = tl.shownData;
+	var tl = this.timeline,
+		shownData = tl.shownData, data = tl.data;
 	var e0 = extent[0], e1 = extent[1];
-	utils.log(["on bursh end:", e0, e1]);
-	var recs = dataCenter.find_records({floors:[curF], recordFilter: function(r){
-		return r.dateTime >= e0 && r.dateTime <= e1;	
-	}});
-	var rMap = pathDataCenter.groupByMac(recs);
-	floorDetail.drawPath(rMap.values());
-//	apG.draw(recs);
+	console.log("on bursh end:", e0, e1);
+	/*var records = recordCenter.findRecords(function(r){
+		return r.ap.floor == curF
+			&& r.dateTime >= e0
+			&& r.dateTime <= e1;	
+	});*/
+	var records = data.filter(function(r){
+		return r.dateTime >= e0
+			&& r.dateTime <= e1;	
+	});
+	var pathes = dataHelper.groupRecordsByMac(records)
+		.map(dataHelper.removeDuplicateRecords);
+	floorDetail.drawPath(pathes);
 }
-
-d3.csv("data/2013-09-02_.csv", function(err, records){
-	var apG = WifiVis.ApGraph();
-	apG.draw(records.slice(0,700), true);
-});
 
 // load aps and records
 d3.csv(DATA_PATH+"APS.csv", function(err, _aps){
-	err && (utils.error(err));
+	err && (console.error(err));
 	d3.csv(DATA_PATH+"September/"+"2013-09-02.csv", function(err, _records){
-		err && (utils.error(err));
-		dataCenter.init(_aps, _records);
-		var records = dataCenter.find_records();
-		pathDataCenter.init(records);
+		err && (console.error(err));
+		apCenter.init(_aps);
+		recordCenter.init(_records);
+		var records = recordCenter.findAllRecords();
 		init();
 	});
 });
@@ -53,13 +56,17 @@ function init(){
 	tlSize = {width: _tlG.w, height: _tlG.h};
 	_tlG.g.attr("id","timeline-g");
 
-	var timelineData = dataCenter.find_records({floors:[curF]});
+	var timelineData = recordCenter.findAllRecordsOnFloor(curF);
 	timeline = Timeline("#timeline-g",{tid:1}, timelineData)
 		.renderTimeline(tlSize, "#05FD70");
 	// tlBrush
 	tlBrush = TimelineBrush(timeline).onBrushEnd(onEnd);
 	// floor detail
-	var recs = dataCenter.find_records({floors:[curF]});
-	var rMaps = pathDataCenter.groupByMac(recs);
-	floorDetail.drawPath(rMaps.values());
+	var recs = recordCenter.findAllRecordsOnFloor(curF);
+	var pathes = dataHelper.groupRecordsByMac(recs)
+		.map(dataHelper.removeDuplicateRecords);
+	floorDetail.drawPath(pathes);
+	// apGraph
+	var allRecords = recordCenter.findAllRecords();
+	apGraph.draw(allRecords);
 }
