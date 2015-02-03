@@ -6,13 +6,13 @@ var mongo = require('mongodb');
 var monk = require('monk');
 var db = monk('localhost:27017/wifi-vis');
 
-var aps = db.get('aps_collection');
-var records = db.get('records_collecton');
+var aps = db.get('aps');
+var records = db.get('records');
 
 
 var AP_FILE_PATH = path.join(__dirname, '../public/data/APS.csv');
+
 var apStream = fs.createReadStream(AP_FILE_PATH);
-batchInsert(apStream, aps, function(c){console.log("insert aps done:", c)});
 
 var rcFileName = ["2013-09-01.csv", "2013-09-02.csv", "2013-09-03.csv", "2013-09-04.csv",
 "2013-09-05.csv", "2013-09-06.csv", "2013-09-07.csv", "2013-09-08.csv",
@@ -23,19 +23,45 @@ var rcFileName = ["2013-09-01.csv", "2013-09-02.csv", "2013-09-03.csv", "2013-09
 "2013-09-25.csv", "2013-09-26.csv", "2013-09-27.csv", "2013-09-28.csv",
 "2013-09-29.csv", "2013-09-30.csv"];
 
+batchInsert(apStream, aps, function(c){
+	console.log("insert aps done:", c);
+	help(0, rcFileName.length, function(){
+		console.log("All Done");
+	});
+});
+
+function help(index, len, cb){
+	if(index == len){
+		cb();
+	}else{
+		var fname = rcFileName[index];
+		var csvPath = path.join(__dirname,'../public/data/September/', fname);
+		var rcStream = fs.createReadStream(csvPath);
+		batchInsert(rcStream,records, function(c){
+			console.log(csvPath,"done:",c);
+			help(index+1, len, cb);
+		});
+	}
+};
+
+
+/*
 rcFileName.forEach(function(fname){
 	var csvPath = path.join(__dirname,'../public/data/September/', fname);
 	var rcStream = fs.createReadStream(csvPath);
 	batchInsert(rcStream,records, function(c){console.log(csvPath,"done:",c)});
 });
-
+*/
 
 function batchInsert(stream, collection, next){
 	var count = 0;
 	var apCsv = csv({headers:true}).on('data',function(ap, err){
 		if(err) console.log(err);
 		else{
-			collection.insert(ap, function(err,doc){ if(err) throw err; });
+			collection.insert(ap, function(err,doc){
+				if(err) throw err;
+				db.close();
+			});
 			count++;
 		}
 	}).on('end',function(err){
