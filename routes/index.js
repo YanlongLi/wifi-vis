@@ -17,7 +17,7 @@ router.get('/getApsByFloor', function(req, res, next) {
 	var iF = req.query.floor;
 	var apCenter = req.dataCenter.apCenter;
 	var result = apCenter.getApsByFloor(iF);
-	console.log("getApsByFloor:", floor);
+	console.log("getApsByFloor:", iF);
 	console.log("result:", result.length);
 	res.contentType('application/json');
 	res.send(JSON.stringify(result));
