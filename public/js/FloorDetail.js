@@ -39,7 +39,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 		y.domain([0, imgOriSize.h]).range([0, imgSize.h]);
 		img.attr('width', imgSize.w);
 		img.attr('height', imgSize.h);
-		img.attr('opacity', 0.4);
+		img.attr('opacity', 0.1);
 		gAps.select("rect.placeholder").attr("width",imgSize.w).attr("height", imgSize.h);
 		gPath.select("rect.placeholder").attr("width",imgSize.w).attr("height", imgSize.h);
 	}
