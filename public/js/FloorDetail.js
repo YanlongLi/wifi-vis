@@ -15,11 +15,13 @@ WifiVis.FloorDetail = function(selector, _iF){
 	var aps;
 	var gAps = g.append("g").attr("id","aps-wrapper"),
 			gPath = g.append("g").attr("id", "path-wrapper"),
+			gFloorLabel = g.append("g").attr("class",'floor-label'),
 			pathF = d3.svg.line()
 				.x(function(d){return x(d.ap.x)})
 				.y(function(d){return y(d.ap.y)});
 	gAps.append("rect").attr("class","placeholder");
 	gPath.append("rect").attr("class","placeholder");
+	gFloorLabel.append('text');
 	var imgOffset = [20,20];
 
 	if(_iF){
@@ -43,8 +45,10 @@ WifiVis.FloorDetail = function(selector, _iF){
 	}
 	function changeFloor(_iF){
 		iF = _iF;
+		// update label
+		gFloorLabel.select("text").text("Floor " +iF);
 		//
-		utils.log(["change to floor:", iF]);
+		console.log("change to floor:", iF);
 		img.attr("xlink:href", _imgPath(iF));
 		imgOriSize.w = floor_image_size[iF][0];
 		imgOriSize.h = floor_image_size[iF][1];
@@ -58,6 +62,8 @@ WifiVis.FloorDetail = function(selector, _iF){
 		imgSize.w = imgOriSize.w / ratio;
 		imgSize.h = imgOriSize.h / ratio;
 		console.log("floor image shown size:",imgSize.w,imgSize.h);
+		gFloorLabel.select("text").attr("x",imgSize.w/2)
+			.attr("y", imgSize.h/2);
 		//
 		_resizeImg();
 		moveImage(imgOffset);
@@ -78,7 +84,9 @@ WifiVis.FloorDetail = function(selector, _iF){
 		apSel.attr("cx", function(ap){return x(ap.x)})
 			.attr("cy", function(ap){return y(ap.y)})
 			.attr("r",function(ap){
-				return ap.c/80;
+				return ap.c/80 > 1?ap.c/80:1;
+			}).on("mouseover", function(ap){
+				d3.select(this).append("title").text("Num:"+ap.c);
 			});
 		apSel.attr("title",function(ap){return ap.name});
 		apSel.exit().remove();
@@ -117,7 +125,8 @@ WifiVis.FloorDetail = function(selector, _iF){
 	function moveImage(offset){
 		imgOffset = offset;
 		img.transition().attr("x", imgOffset[0]).attr("y", imgOffset[1]);
-		d3.selectAll("#path-wrapper, #aps-wrapper").transition()
+		d3.selectAll("#path-wrapper, #aps-wrapper, .floor-label")
+			.transition()
 			.attr('transform', "translate("+imgOffset[0]+","+imgOffset[1]+")");
 		//
 		utils.log(["move image:", imgOffset]);
