@@ -10,6 +10,7 @@ var dataCenter = WifiVis.DataCenter("all-data"),
 var curF = 1;
 var floorsNav, floorDetail;
 var tlSize, timeline, tlBrush;
+//var apG = WifiVis.ApGraph();
 
 function onEnd(extent){
 	var tl = this.timeline, shownData = tl.shownData;
@@ -20,11 +21,12 @@ function onEnd(extent){
 	}});
 	var rMap = pathDataCenter.groupByMac(recs);
 	floorDetail.drawPath(rMap.values());
+//	apG.draw(recs);
 }
 
 d3.csv("data/2013-09-02_.csv", function(err, records){
 	var apG = WifiVis.ApGraph();
-	apG.draw(records);
+	apG.draw(records.slice(0,700), true);
 });
 
 // load aps and records
