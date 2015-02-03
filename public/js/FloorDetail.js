@@ -62,21 +62,52 @@ WifiVis.FloorDetail = function(selector, _iF){
 		_resizeImg();
 		moveImage(imgOffset);
 
-		aps = dataCenter.find_aps({floors:[iF]});
-		_drawAps(aps);
+		//aps = dataCenter.find_aps({floors:[iF]});
 		return FloorDetail;
 	}
 	function _drawAps(aps){
+		aps.forEach(function(ap){
+			ap.c = numByAp.get(ap.apid) || 0;
+			if(ap.c == 0){
+				console.log("empty ap:", ap);
+			}
+		});
 		utils.log(["draw_aps:",aps.length]);
 		apSel = gAps.selectAll("circle").data(aps);
 		apSelEnter = apSel.enter().append("circle");
 		apSel.attr("cx", function(ap){return x(ap.x)})
 			.attr("cy", function(ap){return y(ap.y)})
-			.attr("r",4);
+			.attr("r",function(ap){
+				return ap.c/80;
+			});
 		apSel.attr("title",function(ap){return ap.name});
 		apSel.exit().remove();
 	}
-	function drawPath(pathByMac){
+	var pathByMac, numByAp;
+	function drawPath(_pathByMac){
+		pathByMac = _pathByMac;
+		//
+		var records = Array.prototype.concat.apply([], pathByMac);
+		var i = -1, len = records.length, r;
+		numByAp = d3.map();
+		//console.log("record size:", records.length);
+		while(++i < len){
+			r = records[i];
+			if(numByAp.has(r.apid)){
+				numByAp.set(r.apid, numByAp.get(r.apid)+1);
+			}else{
+				numByAp.set(r.apid, 1);
+			}
+		}
+		//console.log("mapsize:", numByAp.size());
+		//
+		d3.json("/getApsByFloor?floor="+iF, function(err, _aps){
+			console.log("get aps by floor:",iF);
+			aps = _aps;
+			_drawAps(aps);
+		});
+		//_drawAps(aps);
+		//
 		utils.log(["draw path, path number:", pathByMac.length]);
 		var selPath = gPath.selectAll("path").data(pathByMac);
 		var selPathEnter = selPath.enter().append("path");
