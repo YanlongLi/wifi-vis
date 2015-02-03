@@ -21,10 +21,11 @@ WifiVis.Floor = function(div, index, w, h){
 	function Floor(){}
 	var mgBot= 0, iF = index;
 	var btn = div.append("input").attr("type","button")
-		.attr("value", "Floor "+index).style("height",h).style("width", "20%");
+		.attr("value", "Floor "+index);
+		//.style("height",h).style("width", "100%");
 	div.attr("id", "floor-"+index).style({
-		"width": w,
-		"height": h - mgBot,
+//		"width": w,
+//		"height": h - mgBot,
 		"margin": "0 0 "+mgBot+" 0",
 	});
 	btn.on("click", changeToFloor);
@@ -38,6 +39,10 @@ WifiVis.Floor = function(div, index, w, h){
 		var recs = dataCenter.find_records({floors:[iF]});
 		var rMaps = pathDataCenter.groupByMac(recs);
 		floorDetail.drawPath(rMaps.values());
+		//
+		d3.selectAll(".floor input[type='button']")
+			.classed('btn-pushed', false);
+		d3.select(this).classed('btn-pushed', true);
 	}
 	(function(){
 		Object.defineProperty(Floor, "iF", {
