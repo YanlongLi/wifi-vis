@@ -66,10 +66,19 @@ rect.placeholder{
 /*
  * aps force layout
  */
-#ap-graph-wrapper{
+#aps-graph-wrapper{
 	width:  100%;
 	height: 300px;
 	/*background-color: #FF00FF;*/
+}
+
+#aps-graph-wrapper circle.node{
+	fill: #265D26;
+}
+
+#aps-graph-wrapper line.link{
+	fill: #F7E308;
+	stroke: #F7E308;
 }
 
 /*
