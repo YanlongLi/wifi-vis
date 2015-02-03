@@ -21,6 +21,12 @@ function onEnd(extent){
 	var rMap = pathDataCenter.groupByMac(recs);
 	floorDetail.drawPath(rMap.values());
 }
+
+d3.csv("data/2013-09-02_.csv", function(err, records){
+	var apG = WifiVis.ApGraph();
+	apG.draw(records);
+});
+
 // load aps and records
 d3.csv(DATA_PATH+"APS.csv", function(err, _aps){
 	err && (utils.error(err));
