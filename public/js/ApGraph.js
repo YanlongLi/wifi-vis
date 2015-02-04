@@ -9,9 +9,9 @@ WifiVis.ApGraph = function(){
 	var o = utils.initSVG("#"+DIV_ID,[0]);
 	var g = o.g, w = o.w, h = o.h, r = 6;
 	var force = d3.layout.force().size([o.w,o.h])
-		.charge(-200)
+		.gravity(0.06)
+		.charge(-100)
 		.linkDistance(20)
-		.gravity(0.5)
 		.on('tick', tick);
 	var nodes, links, sNode, sLink;
 
