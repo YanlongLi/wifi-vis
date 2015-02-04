@@ -55,7 +55,7 @@ WifiVis.ApGraph = function(){
 				return color(ap.floor);
 			}).attr("r", r).call(force.drag);
 		sNode.on('mouseover', function(ap){
-			d3.select(this).append("title").text((ap.name || "none")+ap.weight);
+			d3.select(this).append("title").text((ap.name || "none")+" "+ap.weight);
 		})
 		sNode.exit().remove();
 	}

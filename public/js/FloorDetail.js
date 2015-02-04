@@ -77,15 +77,22 @@ WifiVis.FloorDetail = function(selector, _iF){
 				console.log("empty ap:", ap);
 			}
 		});
-		utils.log(["draw_aps:",aps.length]);
+		console.log("draw_aps:",aps.length);
 		apSel = gAps.selectAll("circle").data(aps);
 		apSelEnter = apSel.enter().append("circle");
 		apSel.attr("cx", function(ap){return x(ap.pos_x)})
 			.attr("cy", function(ap){return y(ap.pos_y)})
 			.attr("r",function(ap){
-				return ap.c/80 > 1?ap.c/80:1;
+				return ap.c/80 > 1?ap.c/80:3;
 			}).on("mouseover", function(ap){
-				d3.select(this).append("title").text("Num:"+ap.c);
+				d3.select(this).attr("r", function(ap){
+					return ap.c/40 > 4 ? ap.c/40:4;
+				});
+				d3.select(this).append("title").text("Record Num:"+ap.c);
+			}).on("mouseout", function(ap){
+				d3.select(this).attr("r", function(ap){
+					return ap.c/80 > 1?ap.c/80:3;
+				});
 			});
 		apSel.attr("title",function(ap){return ap.name});
 		apSel.exit().remove();
@@ -106,14 +113,22 @@ WifiVis.FloorDetail = function(selector, _iF){
 				numByAp.set(r.apid, 1);
 			}
 		}
-		//console.log("mapsize:", numByAp.size());
-		//
+		console.log("mapsize:", numByAp.size());
+		aps = apCenter.findAllApsOnFloor(iF);
+		/*
 		d3.json("/getApsByFloor?floor="+iF, function(err, _aps){
 			console.log("get aps by floor:",iF);
-			aps = _aps;
+			aps = _aps.map(function(ap){
+				ap.apid = +ap.apid;
+				ap.floor = +ap.floor;
+				ap.pos_x = ap.x;
+				ap.pos_y = ap.y;
+				delete ap.x;
+				delete ap.y;
+			});
 			_drawAps(aps);
-		});
-		//_drawAps(aps);
+		});*/
+		_drawAps(aps);
 		//
 		utils.log(["draw path, path number:", pathByMac.length]);
 		var selPath = gPath.selectAll("path").data(pathByMac);

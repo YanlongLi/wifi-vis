@@ -7,6 +7,7 @@ WifiVis.ApCenter = function(){
 	ApCenter.findAps = findAps;
 	ApCenter.findAllAps = findAllAps;
 	ApCenter.findApById = findApById;
+	ApCenter.findAllApsOnFloor = findAllApsOnFloor;
 
 	function init(_aps){
 		aps = _aps.map(function(ap){
@@ -38,8 +39,11 @@ WifiVis.ApCenter = function(){
 
 	function findAllAps(){
 		return aps.map(function(d){return d});
-	};
+	}
 
+	function findAllApsOnFloor(f){
+		return apsByFloor.get(f).map(function(d){return d});
+	}
 	function findApById(apid){
 		var opt = {};
 		opt.apFilter = function(ap){return ap.apid === apid};

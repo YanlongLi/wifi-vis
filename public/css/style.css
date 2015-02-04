@@ -32,6 +32,7 @@ rect.placeholder{
 	width: 20%;
 	height: 65%;*/
 	height: 30px;
+	margin-bottom:30px;
 	/*background-color: #CCC3C3;*/
 }
 
@@ -102,14 +103,13 @@ rect.placeholder{
 
 #aps-wrapper{}
 #aps-wrapper circle{
-	fill: rgb(210, 215, 35);
+	fill: rgb(44, 160, 44);
 }
 
 #path-wrapper{}
 #path-wrapper path{
 	fill: none;
-	/*stroke: rgb(255, 73, 6);*/
-	stroke: #BEF000;
+	stroke: #FF7F0E;
 	stroke-width: 2;
 	opacity: 0.2;
 }
