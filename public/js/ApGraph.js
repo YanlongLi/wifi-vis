@@ -2,7 +2,8 @@
 WifiVis.ApGraph = function(){
 	function ApGraph(){}
 	var dataHelper = WifiVis.DataHelper;
-	var color = d3.scale.category20();
+	//var color = d3.scale.category20();
+	var color = WifiVis.FLOOR_COLOR;
 
 	var DIV_ID = "aps-graph-wrapper";
 	var o = utils.initSVG("#"+DIV_ID,[0]);
@@ -24,7 +25,7 @@ WifiVis.ApGraph = function(){
 		rs = dataHelper.removeDuplicateRecords(rs);
 		//var data = recordToNodeLink(records.slice(0,700));
 		var data = dataHelper.recordsToNodeLink(rs);
-		nodes = data.nodes;
+		nodes = data.nodes.filter(function(d){return d.weight > 0});
 		links = data.links;
 		//nodes = data.nodes.filter(function(n){return n.weight > 1500});
 		//links = data.links.filter(function(n){return n.weight > 50});
@@ -53,7 +54,10 @@ WifiVis.ApGraph = function(){
 			.attr("cy", function(d){return d.y})
 			.attr('fill', function(ap){
 				return color(ap.floor);
-			}).attr("r", r).call(force.drag);
+			}).attr("r", function(d){
+				console.log(d.weight);
+				return Math.log(d.weight)*3;
+			}).call(force.drag);
 		sNode.on('mouseover', function(ap){
 			d3.select(this).append("title").text((ap.name || "none")+" "+ap.weight);
 		})

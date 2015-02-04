@@ -44,9 +44,9 @@ rect.placeholder{
 
 .floor{
 	background-color: #C0C0C0;	
+/*	position: relative;
 	border: 1px solid #6F5252;
-	border-radius: 3px;
-/*	position: relative;*/
+	border-radius: 3px;*/
 	float: left;
 	width: 5.8%;
 	height: 100%;
@@ -55,10 +55,11 @@ rect.placeholder{
 .floor input[type='button']{
 	width: 100%;
 	height: 100%;
+	border: 0;
 }
 
-.floor .btn-pushed{
-	background-color: #A8D704;
+.floor.pushed{
+	border: 3px solid #FFFFFF;
 }
 
 .floor *{
@@ -75,10 +76,10 @@ rect.placeholder{
 
 #aps-graph-wrapper circle.node{
 	/*fill: #265D26;*/
+	stroke: #45F205;
 }
 
 #aps-graph-wrapper line.link{
-	fill: #F7E308;
 	stroke: #F7E308;
 }
 

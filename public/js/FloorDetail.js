@@ -82,17 +82,13 @@ WifiVis.FloorDetail = function(selector, _iF){
 		apSelEnter = apSel.enter().append("circle");
 		apSel.attr("cx", function(ap){return x(ap.pos_x)})
 			.attr("cy", function(ap){return y(ap.pos_y)})
+			.attr("opacity","0.3")
 			.attr("r",function(ap){
-				return ap.c/80 > 1?ap.c/80:3;
+				return ap.c/10 > 5?ap.c/10:5;
 			}).on("mouseover", function(ap){
-				d3.select(this).attr("r", function(ap){
-					return ap.c/40 > 4 ? ap.c/40:4;
-				});
 				d3.select(this).append("title").text("Record Num:"+ap.c);
 			}).on("mouseout", function(ap){
-				d3.select(this).attr("r", function(ap){
-					return ap.c/80 > 1?ap.c/80:3;
-				});
+				d3.select(this).selectAll('title').remove();
 			});
 		apSel.attr("title",function(ap){return ap.name});
 		apSel.exit().remove();

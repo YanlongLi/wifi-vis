@@ -147,6 +147,8 @@ WifiVis.DataHelper = (function(){
 	 *  records are sorted by mac and date_time
 	 */
 	function recordsToNodeLink(records){
+		console.log("recordsToNodeLink:", records.length);
+		//console.log(records.slice(0,100).map(function(d){return d.mac}));
 		var nodeMap = d3.map(), linkMap = d3.map();
 		var i = 0, len = records.length, cur, pre;
 		if(len == 0){
@@ -179,7 +181,11 @@ WifiVis.DataHelper = (function(){
 			}
 			pre = cur;
 		}
-		return {nodes:nodeMap.values(),links:linkMap.values()}
+		var nodes = nodeMap.values().filter(function(d){
+			return d.weight > 1;
+		});
+		// console.log(nodes.map(function(d){return d.weight}));
+		return {nodes:nodes,links:linkMap.values()}
 	}
 	function sortRecordsByMacAndTime(records){
 		records.sort(function(r1, r2){
