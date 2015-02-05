@@ -30,6 +30,13 @@ function onEnd(extent){
 	var pathes = dataHelper.groupRecordsByMac(records)
 		.map(dataHelper.removeDuplicateRecords);
 	floorDetail.drawPath(pathes);
+	// apGraph
+	/*
+	var allRecords = recordCenter.findAllRecords(function(r){
+		return r.dateTime >= e0
+			&& r.dateTime <= e1;
+	});
+	apGraph.draw(allRecords);*/
 }
 
 // load aps and records
