@@ -8,6 +8,23 @@ WifiVis.FloorDetail = function(selector, _iF){
 	//
 	var iF;
 	var o = utils.initSVG(selector, [0]), g = o.g;
+	// defs
+	o.svg.append('svg:defs').append('svg:marker')
+		.attr('id', 'triangle')
+		.attr('viewBox', '0 -5 10 10')
+		.attr('refX', 6)
+		.attr('markerWidth', 6)
+		.attr('markerHeight', 6)
+		.attr('orient', 'auto')
+		.append('svg:path')
+		.attr('d', 'M0,-5L10,0L0,5')
+		.attr('fill', 'rgb(148, 103, 189)').attr('opacity',0.3);
+	var gradient = o.svg.append('defs').append('linegradient').attr('id','grad')
+		.attr('gradientUnits','userSpaceOnUse')
+		.attr({ "x1":0,"y1":0,"x2":10,"y2":10 });
+	gradient.append('stop').attr('offset', "20%").attr("stop-color","#39F");
+	gradient.append('stop').attr('offset', "90%").attr("stop-color","#F3F");
+	//
 	var imgOriSize = {}, imgSize = {},
 			x = d3.scale.linear(), y = d3.scale.linear(),
 			img = g.append("image").attr("id","floor-background"),
@@ -127,10 +144,24 @@ WifiVis.FloorDetail = function(selector, _iF){
 		_drawAps(aps);
 		//
 		utils.log(["draw path, path number:", pathByMac.length]);
-		var selPath = gPath.selectAll("path").data(pathByMac);
-		var selPathEnter = selPath.enter().append("path");
-		selPath.attr("d", pathF);
-		selPath.exit().remove();
+		var sPath = gPath.selectAll("g.path-g").data(pathByMac);
+		sPath.enter().append('g').attr("path-g");
+		sPath.each(function(path, index){
+			var data =  path.map(function(r,i){
+				if(i == 0) return null;
+				return [r, path[i-1]];
+			});
+			data.shift();
+			var sP = d3.select(this).selectAll('path').data(data);
+			sP.enter().append('path');
+			sP.attr('d', pathF).attr('marker-end', 'url(#triangle)')
+				.attr('stroke','url(#grad)');
+			sP.exit().remove();
+		});
+		//var selPath = gPath.selectAll("path").data(pathByMac);
+		//var selPathEnter = selPath.enter().append("path");
+		//selPath.attr("d", pathF);
+		//selPath.exit().remove();
 	}
 	function moveImage(offset){
 		imgOffset = offset;
