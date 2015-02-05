@@ -2,7 +2,8 @@
 var DATA_PATH = WifiVis.DATA_PATH;
 var apCenter = WifiVis.ApCenter(), 
 		recordCenter = WifiVis.RecordCenter(apCenter),
-		dataHelper = WifiVis.DataHelper;
+		pathCenter = WifiVis.PathCenter(recordCenter),
+		dataHelper = WifiVis.DataHelper,
 		FloorsNav = WifiVis.FloorsNav,
 		FloorDetail = WifiVis.FloorDetail,
 		Timeline = WifiVis.Timeline,
@@ -46,6 +47,7 @@ d3.csv(DATA_PATH+"APS.csv", function(err, _aps){
 		err && (console.error(err));
 		apCenter.init(_aps);
 		recordCenter.init(_records);
+		pathCenter.init();
 		var records = recordCenter.findAllRecords();
 		init();
 	});

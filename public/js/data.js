@@ -1,3 +1,89 @@
+WifiVis.DataHelper = (function(){
+	var Helper = {};
+	Helper.groupRecordsByMac = groupRecordsByMac;
+	Helper.recordsToNodeLink = recordsToNodeLink;
+	Helper.sortRecordsByMacAndTime = sortRecordsByMacAndTime;
+	Helper.removeDuplicateRecords = removeDuplicateRecords;
+	function groupRecordsByMac(records){
+		var map = d3.map();
+		var nested = d3.nest().key(function(record){return record.mac})
+			.sortValues(function(r1,r2){return r1.dateTime - r2.dateTime})
+			.entries(records);
+		console.log("groupRecordsByMac:", nested.length);
+		return nested.map(function(ent){
+			return ent.values;
+		});
+	}
+	/*
+	 *  records are sorted by mac and date_time
+	 */
+	function recordsToNodeLink(records){
+		console.log("recordsToNodeLink:", records.length);
+		//console.log(records.slice(0,100).map(function(d){return d.mac}));
+		var nodeMap = d3.map(), linkMap = d3.map();
+		var i = 0, len = records.length, cur, pre;
+		if(len == 0){
+			return {nodes:[],links:[]}
+		}else{
+			var r = records[0];
+			nodeMap.set(r.apid, r.ap);
+			r.ap.w = 1;
+			pre = r.ap;
+		}
+		while(++i < len){
+			var r = records[i];
+			cur = nodeMap.get(r.apid);
+			if(!cur){
+				cur = r.ap;
+				cur.w = 1;
+				nodeMap.set(r.apid, cur);
+			}else{
+				cur.w++;
+			}
+			if(records[i].mac == records[i-1].mac){
+				var key = pre.apid + "," + cur.apid;
+				if(linkMap.has(key)){
+					var l = linkMap.get(key);
+					l.weight = l.weight+1;
+					linkMap.set(key,l);
+				}else{
+					linkMap.set(key,{source:pre, target:cur, weight:1});
+				}
+			}
+			pre = cur;
+		}
+		var nodes = nodeMap.values().filter(function(d){
+			return d.w > 1;
+		});
+		// console.log(nodes.map(function(d){return d.weight}));
+		return {nodes:nodes,links:linkMap.values()}
+	}
+	function sortRecordsByMacAndTime(records){
+		records.sort(function(r1, r2){
+			if(r1.mac != r2.mac){
+				return r1.mac > r2.mac;
+			}
+			return r1.date_time > r2.date_time;
+		});
+		return records;
+	}
+	function removeDuplicateRecords(records){
+		var res = [], i = 0, len = records.length, pre, cur;
+		if(len == 0) return [];
+		res.push(records[0]);
+		pre = records[0];
+		while(++i < len){
+			cur = records[i];
+			if(cur.mac != pre.mac || cur.apid != pre.apid){
+				res.push(cur);
+				pre = cur;
+			}
+		}
+		return res;
+	}
+	return Helper;
+})();
+
 WifiVis.ApCenter = function(){
 	function ApCenter(){}
 	
@@ -127,97 +213,68 @@ WifiVis.RecordCenter = function(apCenter){
 	return RecordCenter;
 };
 
-WifiVis.DataHelper = (function(){
-	var Helper = {};
-	Helper.groupRecordsByMac = groupRecordsByMac;
-	Helper.recordsToNodeLink = recordsToNodeLink;
-	Helper.sortRecordsByMacAndTime = sortRecordsByMacAndTime;
-	Helper.removeDuplicateRecords = removeDuplicateRecords;
-	function groupRecordsByMac(records){
+
+WifiVis.PathCenter = function(recordCenter){
+	function PathCenter(){}
+	var records, pathByFloor;
+	var nodeMap = d3.map(), linkMap = d3.map();
+
+	PathCenter.init = init;
+	PathCenter.findAllPath = findAllPath;
+	function init(){
+		records = recordCenter.findAllRecords();
+		pathByMac = _groupByMac(records);
+	}
+	function findAllPath(){
+		return pathByMac.values();
+	}
+	function _pathNodeLink(){
+		pathByMac.values().forEach()
+	}
+	function pathToNodeLink(nodeMap, linkMap, path){
+		var i = 0, len = path.length, cur, pre;
+		if(len == 0 || len == 1) return;
+		path.map(function(r){return r.ap}).forEach(function(ap){
+			if(nodeMap.has(ap.apid)){
+				nodeMap.get(ap.apid).w ++;
+			}else{
+				ap.w = 1;
+				nodeMap.set(ap.apid, ap);
+			}
+		});
+		path.map(function(r,i){
+			if(i == 0) return null;
+			var pre = path[i-1], key = pre.apid+","+r.apid;
+			return {key:key,link:{source:pre, target:r, weight:1}};
+		}).shift().forEach(function(o){
+			if(linkMap.has(o.key)){
+				linkMap.get(o.key).weight++;
+			}else{
+				linkMap.set(o.key, o.link);
+			}
+		});
+	}
+	function _groupByMac(records){
 		var map = d3.map();
 		var nested = d3.nest().key(function(record){return record.mac})
 			.sortValues(function(r1,r2){return r1.dateTime - r2.dateTime})
 			.entries(records);
-		console.log("groupRecordsByMac:", nested.length);
-		return nested.map(function(ent){
-			return ent.values;
+		nested.forEach(function(o){
+			var key = o.key,
+					values = WifiVis.DataHelper.removeDuplicateRecords(o.values);
 		});
+		return map;
 	}
-	/*
-	 *  records are sorted by mac and date_time
-	 */
-	function recordsToNodeLink(records){
-		console.log("recordsToNodeLink:", records.length);
-		//console.log(records.slice(0,100).map(function(d){return d.mac}));
-		var nodeMap = d3.map(), linkMap = d3.map();
-		var i = 0, len = records.length, cur, pre;
-		if(len == 0){
-			return {nodes:[],links:[]}
-		}else{
-			var r = records[0];
-			nodeMap.set(r.apid, r.ap);
-			r.ap.weight = 1;
-			pre = r.ap;
-		}
-		while(++i < len){
-			var r = records[i];
-			cur = nodeMap.get(r.apid);
-			if(!cur){
-				cur = r.ap;
-				cur.weight = 1;
-				nodeMap.set(r.apid, cur);
-			}else{
-				cur.weight ++;
-			}
-			if(records[i].mac == records[i-1].mac){
-				var key = pre.apid + "," + cur.apid;
-				if(linkMap.has(key)){
-					var l = linkMap.get(key);
-					l.weight = l.weight+1;
-					linkMap.set(key,l);
-				}else{
-					linkMap.set(key,{source:pre, target:cur, weight:1});
-				}
-			}
-			pre = cur;
-		}
-		var nodes = nodeMap.values().filter(function(d){
-			return d.weight > 1;
-		});
-		// console.log(nodes.map(function(d){return d.weight}));
-		return {nodes:nodes,links:linkMap.values()}
-	}
-	function sortRecordsByMacAndTime(records){
-		records.sort(function(r1, r2){
-			if(r1.mac != r2.mac){
-				return r1.mac > r2.mac;
-			}
-			return r1.date_time > r2.date_time;
-		});
-		return records;
-	}
-	function removeDuplicateRecords(records){
-		var res = [], i = 0, len = records.length, pre, cur;
-		if(len == 0) return [];
-		res.push(records[0]);
-		pre = records[0];
-		while(++i < len){
-			cur = records[i];
-			if(cur.mac != pre.mac || cur.apid != pre.apid){
-				res.push(cur);
-				pre = cur;
-			}
-		}
-		return res;
-	}
-	return Helper;
-})();
+	return PathCenter;
+};
+
 
 /*
 WifiVis.PathDataCenter = function(key){
 	var dCenter;
 	if((dCenter = this.dataCenterManager.get(key))){
 		return dCenter;	
+
 	}
 	utils.log(["init path data center:"+key]);
 	function PathDataCenter(){};

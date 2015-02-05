@@ -25,7 +25,7 @@ WifiVis.ApGraph = function(){
 		rs = dataHelper.removeDuplicateRecords(rs);
 		//var data = recordToNodeLink(records.slice(0,700));
 		var data = dataHelper.recordsToNodeLink(rs);
-		nodes = data.nodes.filter(function(d){return d.weight > 0});
+		nodes = data.nodes;
 		links = data.links;
 		//nodes = data.nodes.filter(function(n){return n.weight > 1500});
 		//links = data.links.filter(function(n){return n.weight > 50});
@@ -56,7 +56,7 @@ WifiVis.ApGraph = function(){
 				return color(ap.floor);
 			}).attr("r", function(d){
 				//console.log(d.weight);
-				return Math.log(d.weight || 3)*3;
+				return Math.log(d.w);
 			}).call(force.drag);
 		sNode.on('mouseover', function(ap){
 			d3.select(this).append("title").text((ap.name || "none")+" "+ap.weight);
