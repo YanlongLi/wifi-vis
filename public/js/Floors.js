@@ -1,5 +1,7 @@
 WifiVis.FloorsNav = function(gName){
 	function FloorsNav(){}
+//	var color = d3.scale.category20();
+	var color = WifiVis.FLOOR_COLOR;
 	var nFloors = WifiVis.NUM_FLOOR;
 	var Floor = WifiVis.Floor;
 	//
@@ -10,34 +12,40 @@ WifiVis.FloorsNav = function(gName){
 	floorDivs.enter().append("div").attr("class","floor");
 	var floors = [];
 	floorDivs.each(function(i){
-		var floor = Floor(d3.select(this), i, size.width(), size.height()/nFloors);
+		var floor = Floor(d3.select(this), i, size.width(), size.height()/nFloors,color(i));
 		floors.push(floors);
 	});
 	//
 	return FloorsNav;
 };
 
-WifiVis.Floor = function(div, index, w, h){
+WifiVis.Floor = function(div, index, w, h, bgColor){
 	function Floor(){}
 	var mgBot= 0, iF = index;
 	var btn = div.append("input").attr("type","button")
-		.attr("value", "Floor "+index).style("height",h).style("width", "20%");
+		.attr("value", "Floor "+index).style("background-color",bgColor);
+		//.style("height",h).style("width", "100%");
 	div.attr("id", "floor-"+index).style({
-		"width": w,
-		"height": h - mgBot,
+//		"width": w,
+//		"height": h - mgBot,
 		"margin": "0 0 "+mgBot+" 0",
 	});
-	btn.on("click", changeToFloor);
+	div.on("click", changeToFloor);
 	function changeToFloor(){
 		curF = iF;
 		console.log("changeToFloor:", curF);
-		var timelineData = dataCenter.find_records({floors:[iF]});
+		var timelineData = recordCenter.findAllRecordsOnFloor(iF);
 		timeline.updateData(timelineData);
 		timeline.renderTimeline(tlSize, "#1C98F3");
 		floorDetail.changeFloor(iF);
-		var recs = dataCenter.find_records({floors:[iF]});
-		var rMaps = pathDataCenter.groupByMac(recs);
-		floorDetail.drawPath(rMaps.values());
+
+		var pathes = dataHelper.groupRecordsByMac(timelineData)
+			.map(dataHelper.removeDuplicateRecords);
+		floorDetail.drawPath(pathes);
+		//
+		d3.selectAll(".floor")
+			.classed('pushed', false);
+		d3.select(this).classed('pushed', true);
 	}
 	(function(){
 		Object.defineProperty(Floor, "iF", {

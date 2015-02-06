@@ -71,6 +71,9 @@ WifiVis.Timeline = function(id, opt, _data){
 		Object.defineProperty(Timeline, "y", {
 			get: function(){return y}
 		});
+		Object.defineProperty(Timeline, "data", {
+			get: function(){return data}
+		});
 		Object.defineProperty(Timeline, "shownData", {
 			get: function(){return shownData}
 		});
