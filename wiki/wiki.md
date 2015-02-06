@@ -1,70 +1,43 @@
 # Wiki Update
 
-## 2015-02-03
+## 2015-02-04
 
-### need to change
+Current version:
 
-1. Floor Detail View: remove floor label and hilight floor button with similar color.
-2. Force Layout: **color as floor**, set **threshold** to node (ap) and link (path).
+![cur version](_img/0204-img-1.png)
 
-	![current version](_img/0203-img.png)
+(records data is on day of 2013-09-02, Monday)
 
-Below is a summary of data:
+- 283876 records on 250 APs
+- number of access to one AP is between [13,4512].
+		2/3 is below 1500.
+		when generate path for a device(MAC address),
+		only one of neighbouring records on same AP is reserved.
+- among 250 APs, there are 2549 links, the weigh of link is between [1,641], which represent how many path on this link. most of these number is below 50.
 
-**aps on each floor**
+What update:
 
-```
-+----------+-----------+
-| floor    | ap number |
-+----------+-----------+
-| floor 1  | 8         |
-| floor 2  | 11        |
-| floor 3  | 24        |
-| floor 4  | 11        |
-| floor 5  | 15        |
-| floor 6  | 21        |
-| floor 7  | 21        |
-| floor 8  | 18        |
-| floor 9  | 14        |
-| floor 10 | 15        |
-| floor 11 | 16        |
-| floor 12 | 15        |
-| floor 13 | 15        |
-| floor 14 | 15        |
-| floor 15 | 14        |
-| floor 16 | 10        |
-| floor 17 | 7         |
-+----------+-----------+
-```
+- Rewrite and simplify the implementation
+-	Add color to Floor Nav bar
+- Add AP Graph to show aps relationship
 
-**number of records by week**
+Still many problems:
 
-```
-+--------+---------+------+--------+
-| 星期   | 总数    | 天数 | 平均   |
-+--------+---------+------+--------+
-| 星期一 | 1246182 | 5    | 249236 |
-| 星期二 | 1336588 | 4    | 334147 |
-| 星期三 | 1278566 | 4    | 319642 |
-| 星期四 | 1062691 | 4    | 265673 |
-| 星期五 | 925067  | 4    | 231267 |
-| 星期六 | 271741  | 4    | 67935  |
-| 星期日 | 557133  | 5    | 111427 |
-+--------+---------+------+--------+
-```
+- Some Aps share the some position
+	```
+	3,f1ap1,0,0,1
+	2,f1ap2,0,0,1
+	7,f1ap3,0,0,1
+	4,f1ap4,0,0,1
+	```
+- Path direction haven't been shown up both in Floor Plan and AP Graph
+- In th AP Graph, nodes and links are clustered. May nodes and links should be filtered.
+- How to generate a reasonable path using wifi records?
+- Other infomation?
 
-**Some APs share the same location**
+Todo next:
 
-```
-3,f1ap1,0,0,1
-2,f1ap2,0,0,1
-7,f1ap3,0,0,1
-4,f1ap4,0,0,1
-5,f1ap5,910,401,1
-6,f1ap6,324,413,1
-8,f1ap8,76,273,1
-9,f1ap9,96,434,1
-```
+- Seperate different directon of path
 
 
 ## 2015-02-02
@@ -103,8 +76,6 @@ So, now we have three type of data:
 	```
 	
 Now we have data in **September 2013** as a sample.
-
-record summary as below: _IMAGE_
 
 ### Implement Goals
 
