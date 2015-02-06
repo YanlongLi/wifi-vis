@@ -145,6 +145,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 		//
 		utils.log(["draw path, path number:", pathByMac.length]);
 		var sPath = gPath.selectAll("g.path-g").data(pathByMac);
+		/*
 		sPath.enter().append('g').attr("path-g");
 		sPath.each(function(path, index){
 			var data =  path.map(function(r,i){
@@ -158,10 +159,11 @@ WifiVis.FloorDetail = function(selector, _iF){
 				.attr('stroke','url(#grad)');
 			sP.exit().remove();
 		});
-		//var selPath = gPath.selectAll("path").data(pathByMac);
-		//var selPathEnter = selPath.enter().append("path");
-		//selPath.attr("d", pathF);
-		//selPath.exit().remove();
+		*/
+		var selPath = gPath.selectAll("path").data(pathByMac);
+		var selPathEnter = selPath.enter().append("path");
+		selPath.attr("d", pathF);
+		selPath.exit().remove();
 	}
 	function moveImage(offset){
 		imgOffset = offset;

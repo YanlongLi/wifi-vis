@@ -26,7 +26,7 @@ WifiVis.ApGraph = function(){
 		//var data = recordToNodeLink(records.slice(0,700));
 		var data = dataHelper.recordsToNodeLink(rs);
 		nodes = data.nodes.filter(function(d){return d.weight > 0});
-		links = data.links;
+		links = data.links.filter(function(l){return l.source.weight > 0 && l.target.weight > 0});
 		//nodes = data.nodes.filter(function(n){return n.weight > 1500});
 		//links = data.links.filter(function(n){return n.weight > 50});
 		// filter node: 1500 and links: 50
@@ -56,6 +56,7 @@ WifiVis.ApGraph = function(){
 				return color(ap.floor);
 			}).attr("r", function(d){
 				//console.log(d.weight);
+				if(d.weight == 0) return 0;
 				return Math.log(d.weight || 3)*3;
 			}).call(force.drag);
 		sNode.on('mouseover', function(ap){
