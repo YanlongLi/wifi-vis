@@ -13,7 +13,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 	o.svg.append('svg:defs').append('svg:marker')
 		.attr('id', 'triangle')
 		.attr('viewBox', '0 -5 10 10')
-		.attr('refX', 6)
+		.attr('refX', -16)
 		.attr('markerWidth', 6)
 		.attr('markerHeight', 6)
 		.attr('orient', 'auto')
@@ -37,7 +37,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 			pathF = d3.svg.line()
 				.x(function(d){return x(d.ap.pos_x)})
 				.y(function(d){return y(d.ap.pos_y)})
-				.interpolate('basis');
+				//.interpolate('basis');
 				//.interpolate('bundle');
 	gAps.append("rect").attr("class","placeholder");
 	gPath.append("rect").attr("class","placeholder");
@@ -162,16 +162,14 @@ WifiVis.FloorDetail = function(selector, _iF){
 		// 		.attr('stroke','url(#grad)');
 		// 	sP.exit().remove();
 		// });
-		/*
 		var selPath = gPath.selectAll("path").data(pathByMac);
 		var selPathEnter = selPath.enter().append("path");
-		selPath.attr("d", pathF).attr('marker-mid','url(#triangle)');
+		selPath.attr("d", pathF).attr('marker-mid','url(#triangle)').attr("stroke","red");
 		selPath.exit().remove();
-		*/
 		//
 		pathByMac = pathByMac.filter(function(d){return d.length > 3});
 		//pathByMac.map(function(ps){console.log(ps)});
-		//
+		/*
 		var res = pathByMac.map(function(points){
 			var r = quad(sample(pathF(points)), 8);
 			return r;
@@ -185,6 +183,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 			.attr("d",function(d){
 				return lineJoin(d[0],d[1],d[2],d[3],4)
 			});
+		*/
 	}
 	function moveImage(offset){
 		imgOffset = offset;
