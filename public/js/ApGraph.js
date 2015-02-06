@@ -26,18 +26,8 @@ WifiVis.ApGraph = function(){
 		//var data = recordToNodeLink(records.slice(0,700));
 		var data = dataHelper.recordsToNodeLink(rs);
 		nodes = data.nodes.filter(function(d){return d.weight > 0});
-		links = data.links;
-		//nodes = data.nodes.filter(function(n){return n.weight > 1500});
-		//links = data.links.filter(function(n){return n.weight > 50});
-		// filter node: 1500 and links: 50
-		/*
-		console.log("node summary:");
-		nodes.forEach(function(n){console.log("apid:",n.apid, n.weight)})
-		console.log("link summary:");
-		links.forEach(function(l){
-			console.log(l.source.apid, l.target.apid,l.weight);
-		});
-		*/
+		links = data.links.filter(function(l){return l.source.weight > 0 && l.target.weight > 0});
+		//
 		sNode = g.selectAll(".node").data(nodes);
 		sLink = g.selectAll(".link").data(links);
 		//
