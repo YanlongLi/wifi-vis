@@ -25,8 +25,8 @@ WifiVis.ApGraph = function(){
 		rs = dataHelper.removeDuplicateRecords(rs);
 		//var data = recordToNodeLink(records.slice(0,700));
 		var data = dataHelper.recordsToNodeLink(rs);
-		nodes = data.nodes.filter(function(d){return d.weight > 0});
-		links = data.links.filter(function(l){return l.source.weight > 0 && l.target.weight > 0});
+		nodes = data.nodes;
+		links = data.links;
 		//
 		sNode = g.selectAll(".node").data(nodes);
 		sLink = g.selectAll(".link").data(links);
