@@ -5,6 +5,7 @@ floor_image_size = WifiVis.FLOOR_IMG_SIZE;
 
 WifiVis.FloorDetail = function(selector, _iF){
 	function FloorDetail(){}
+	var color = d3.interpolateLab("#008000", "#c83a22");
 	//
 	var iF;
 	var o = utils.initSVG(selector, [0]), g = o.g;
@@ -18,7 +19,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 		.attr('orient', 'auto')
 		.append('svg:path')
 		.attr('d', 'M0,-5L10,0L0,5')
-		.attr('fill', 'rgb(148, 103, 189)').attr('opacity',0.3);
+		.attr('fill', 'rgb(148, 103, 189)').attr('opacity',0.7);
 	var gradient = o.svg.append('defs').append('linegradient').attr('id','grad')
 		.attr('gradientUnits','userSpaceOnUse')
 		.attr({ "x1":0,"y1":0,"x2":10,"y2":10 });
@@ -35,7 +36,9 @@ WifiVis.FloorDetail = function(selector, _iF){
 			//gFloorLabel = g.append("g").attr("class",'floor-label'),
 			pathF = d3.svg.line()
 				.x(function(d){return x(d.ap.pos_x)})
-				.y(function(d){return y(d.ap.pos_y)});
+				.y(function(d){return y(d.ap.pos_y)})
+				.interpolate('basis');
+				//.interpolate('bundle');
 	gAps.append("rect").attr("class","placeholder");
 	gPath.append("rect").attr("class","placeholder");
 	//gFloorLabel.append('text');
@@ -128,7 +131,6 @@ WifiVis.FloorDetail = function(selector, _iF){
 		}
 		console.log("mapsize:", numByAp.size());
 		aps = apCenter.findAllApsOnFloor(iF);
-		/*
 		d3.json("/getApsByFloor?floor="+iF, function(err, _aps){
 			console.log("get aps by floor:",iF);
 			aps = _aps.map(function(ap){
@@ -138,30 +140,51 @@ WifiVis.FloorDetail = function(selector, _iF){
 				ap.pos_y = ap.y;
 				delete ap.x;
 				delete ap.y;
+				return ap;
 			});
+			console.log(aps)
 			_drawAps(aps);
-		});*/
-		_drawAps(aps);
+		});
+		//_drawAps(aps);
 		//
 		utils.log(["draw path, path number:", pathByMac.length]);
-		var sPath = gPath.selectAll("g.path-g").data(pathByMac);
-		sPath.enter().append('g').attr("path-g");
-		sPath.each(function(path, index){
-			var data =  path.map(function(r,i){
-				if(i == 0) return null;
-				return [r, path[i-1]];
-			});
-			data.shift();
-			var sP = d3.select(this).selectAll('path').data(data);
-			sP.enter().append('path');
-			sP.attr('d', pathF).attr('marker-end', 'url(#triangle)')
-				.attr('stroke','url(#grad)');
-			sP.exit().remove();
+		// var sPath = gPath.selectAll("g.path-g").data(pathByMac);
+		// sPath.enter().append('g').attr("path-g");
+		// sPath.each(function(path, index){
+		// 	var data =  path.map(function(r,i){
+		// 		if(i == 0) return null;
+		// 		return [r, path[i-1]];
+		// 	});
+		// 	data.shift();
+		// 	var sP = d3.select(this).selectAll('path').data(data);
+		// 	sP.enter().append('path');
+		// 	sP.attr('d', pathF).attr('marker-end', 'url(#triangle)')
+		// 		.attr('stroke','url(#grad)');
+		// 	sP.exit().remove();
+		// });
+		/*
+		var selPath = gPath.selectAll("path").data(pathByMac);
+		var selPathEnter = selPath.enter().append("path");
+		selPath.attr("d", pathF).attr('marker-mid','url(#triangle)');
+		selPath.exit().remove();
+		*/
+		//
+		pathByMac = pathByMac.filter(function(d){return d.length > 3});
+		//pathByMac.map(function(ps){console.log(ps)});
+		//
+		var res = pathByMac.map(function(points){
+			var r = quad(sample(pathF(points)), 8);
+			return r;
 		});
-		//var selPath = gPath.selectAll("path").data(pathByMac);
-		//var selPathEnter = selPath.enter().append("path");
-		//selPath.attr("d", pathF);
-		//selPath.exit().remove();
+		var ggPath = gPath.selectAll("g.pp").data(res);
+		ggPath.enter().append("g").attr("class", 'pp');
+		ggPath.selectAll("path").data(function(d){return d})
+			.enter().append("path");
+		ggPath.selectAll("path").style("fill",function(d){return color(d.t)})
+			.style("stroke", function(d){return color(d.t)})
+			.attr("d",function(d){
+				return lineJoin(d[0],d[1],d[2],d[3],4)
+			});
 	}
 	function moveImage(offset){
 		imgOffset = offset;
@@ -181,3 +204,61 @@ WifiVis.FloorDetail = function(selector, _iF){
 	//
 	return FloorDetail;
 };
+
+/*
+ *
+ */
+function sample(d, precision) {
+	var path = document.createElementNS(d3.ns.prefix.svg, "path");
+	path.setAttribute("d", d);
+	var n = path.getTotalLength(), t = [0], i = 0, dt = precision;
+	while ((i += dt) < n) t.push(i);
+	t.push(n);
+	return t.map(function(t) {
+		var p = path.getPointAtLength(t), a = [p.x, p.y];
+		a.t = t / n;
+		return a;
+	});
+}
+// Compute quads of adjacent points [p0, p1, p2, p3].
+function quad(points) {
+	return d3.range(points.length - 1).map(function(i) {
+		var a = [points[i - 1], points[i], points[i + 1], points[i + 2]];
+		a.t = (points[i].t + points[i + 1].t) / 2;
+		return a;
+	});
+}
+// Compute stroke outline for segment p12.
+function lineJoin(p0, p1, p2, p3, width) {
+	if(!p1 || !p2) return "";
+	var u12 = perp(p1, p2),
+	r = width / 2,
+	a = [p1[0] + u12[0] * r, p1[1] + u12[1] * r],
+		b = [p2[0] + u12[0] * r, p2[1] + u12[1] * r],
+		c = [p2[0] - u12[0] * r, p2[1] - u12[1] * r],
+			d = [p1[0] - u12[0] * r, p1[1] - u12[1] * r];
+	if (p0) { // clip ad and dc using average of u01 and u12
+		var u01 = perp(p0, p1), e = [p1[0] + u01[0] + u12[0], p1[1] + u01[1] + u12[1]];
+		a = lineIntersect(p1, e, a, b);
+		d = lineIntersect(p1, e, d, c);
+	}
+	if (p3) { // clip ab and dc using average of u12 and u23
+		var u23 = perp(p2, p3), e = [p2[0] + u23[0] + u12[0], p2[1] + u23[1] + u12[1]];
+		b = lineIntersect(p2, e, a, b);
+		c = lineIntersect(p2, e, d, c);
+	}
+	return "M" + a + "L" + b + " " + c + " " + d + "Z";
+}
+// Compute intersection of two infinite lines ab and cd.
+function lineIntersect(a, b, c, d) {
+	var x1 = c[0], x3 = a[0], x21 = d[0] - x1, x43 = b[0] - x3,
+	y1 = c[1], y3 = a[1], y21 = d[1] - y1, y43 = b[1] - y3,
+	ua = (x43 * (y1 - y3) - y43 * (x1 - x3)) / (y43 * x21 - x43 * y21);
+	return [x1 + ua * x21, y1 + ua * y21];
+}
+// Compute unit vector perpendicular to p01.
+function perp(p0, p1) {
+	var u01x = p0[1] - p1[1], u01y = p1[0] - p0[0],
+	u01d = Math.sqrt(u01x * u01x + u01y * u01y);
+	return [u01x / u01d, u01y / u01d];
+} 

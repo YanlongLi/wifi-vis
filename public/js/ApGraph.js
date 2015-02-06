@@ -56,6 +56,7 @@ WifiVis.ApGraph = function(){
 				return color(ap.floor);
 			}).attr("r", function(d){
 				//console.log(d.weight);
+				if(d.weight == 0) return 0;
 				return Math.log(d.weight || 3)*3;
 			}).call(force.drag);
 		sNode.on('mouseover', function(ap){
