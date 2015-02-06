@@ -9,6 +9,15 @@ WifiVis.FloorDetail = function(selector, _iF){
 	var iF;
 	var o = utils.initSVG(selector, [0]), g = o.g;
 	//
+	var marker = o.svg.append("defs").append("marker")
+		.attr("id","triangle").attr("viewBox","0 0 60 40")
+		.attr("refX","40").attr("refY", "10")
+		.attr("markerUnits","strokeWidth")
+		.attr("markerWidth", 24).attr("markerHeight", 12)
+		.attr("orient", "auto")
+		.attr("fill","#8C564B").attr("opacity", 0.4);
+	marker.append("path").attr("d", "M 0 0 L 30 10 L 0 20 z");
+	//
 	var imgOriSize = {}, imgSize = {},
 			x = d3.scale.linear(), y = d3.scale.linear(),
 			img = g.append("image").attr("id","floor-background"),
@@ -161,6 +170,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 			//console.log("res",res);
 			return res;
 		});
+		//.attr("marker-mid","url(#triangle)");
 		selPath.exit().remove();
 	}
 	function moveImage(offset){
