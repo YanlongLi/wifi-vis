@@ -110,7 +110,7 @@ rect.placeholder{
 #path-wrapper{}
 #path-wrapper path{
 	fill: none;
-	stroke: #FF7F0E;
+/*	stroke: #FF7F0E;*/
 	stroke-width: 2;
 	opacity: 0.2;
 }

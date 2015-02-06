@@ -5,25 +5,19 @@ floor_image_size = WifiVis.FLOOR_IMG_SIZE;
 
 WifiVis.FloorDetail = function(selector, _iF){
 	function FloorDetail(){}
+	var color = d3.interpolateLab("#008000", "#c83a22");
 	//
 	var iF;
 	var o = utils.initSVG(selector, [0]), g = o.g;
 	// defs
-	o.svg.append('svg:defs').append('svg:marker')
-		.attr('id', 'triangle')
-		.attr('viewBox', '0 -5 10 10')
-		.attr('refX', 6)
-		.attr('markerWidth', 6)
-		.attr('markerHeight', 6)
-		.attr('orient', 'auto')
-		.append('svg:path')
-		.attr('d', 'M0,-5L10,0L0,5')
-		.attr('fill', 'rgb(148, 103, 189)').attr('opacity',0.3);
-	var gradient = o.svg.append('defs').append('linegradient').attr('id','grad')
-		.attr('gradientUnits','userSpaceOnUse')
-		.attr({ "x1":0,"y1":0,"x2":10,"y2":10 });
-	gradient.append('stop').attr('offset', "20%").attr("stop-color","#39F");
-	gradient.append('stop').attr('offset', "90%").attr("stop-color","#F3F");
+	var marker = o.svg.append("defs").append("marker")
+		.attr("id","triangle").attr("viewBox","0 0 60 40")
+		.attr("refX","40").attr("refY", "10")
+		.attr("markerUnits","strokeWidth")
+		.attr("markerWidth", 24).attr("markerHeight", 12)
+		.attr("orient", "auto")
+		.attr("fill","#8C564B").attr("opacity", 0.4);
+	marker.append("path").attr("d", "M 0 0 L 30 10 L 0 20 z");
 	//
 	var imgOriSize = {}, imgSize = {},
 			x = d3.scale.linear(), y = d3.scale.linear(),
@@ -56,7 +50,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 		y.domain([0, imgOriSize.h]).range([0, imgSize.h]);
 		img.attr('width', imgSize.w);
 		img.attr('height', imgSize.h);
-		img.attr('opacity', 0.1);
+		img.attr('opacity', 0.3);
 		gAps.select("rect.placeholder").attr("width",imgSize.w).attr("height", imgSize.h);
 		gPath.select("rect.placeholder").attr("width",imgSize.w).attr("height", imgSize.h);
 	}
@@ -128,41 +122,27 @@ WifiVis.FloorDetail = function(selector, _iF){
 		}
 		console.log("mapsize:", numByAp.size());
 		aps = apCenter.findAllApsOnFloor(iF);
-		/*
-		d3.json("/getApsByFloor?floor="+iF, function(err, _aps){
-			console.log("get aps by floor:",iF);
-			aps = _aps.map(function(ap){
-				ap.apid = +ap.apid;
-				ap.floor = +ap.floor;
-				ap.pos_x = ap.x;
-				ap.pos_y = ap.y;
-				delete ap.x;
-				delete ap.y;
-			});
-			_drawAps(aps);
-		});*/
 		_drawAps(aps);
 		//
-		utils.log(["draw path, path number:", pathByMac.length]);
-		var sPath = gPath.selectAll("g.path-g").data(pathByMac);
-		/*
-		sPath.enter().append('g').attr("path-g");
-		sPath.each(function(path, index){
-			var data =  path.map(function(r,i){
-				if(i == 0) return null;
-				return [r, path[i-1]];
-			});
-			data.shift();
-			var sP = d3.select(this).selectAll('path').data(data);
-			sP.enter().append('path');
-			sP.attr('d', pathF).attr('marker-end', 'url(#triangle)')
-				.attr('stroke','url(#grad)');
-			sP.exit().remove();
-		});
-		*/
+		console.log("draw path, path number:", pathByMac.length);
 		var selPath = gPath.selectAll("path").data(pathByMac);
 		var selPathEnter = selPath.enter().append("path");
-		selPath.attr("d", pathF);
+		selPath.attr("d", function(path){
+			var len = path.length;
+			if(len <= 2) return "";
+			var res = "";
+			path.forEach(function(r,i){
+				if(i == 0) return;
+				var p0 = {x:x(path[i-1].ap.pos_x), y:y(path[i-1].ap.pos_y)};
+				var p1 = {x:x(r.ap.pos_x), y:y(r.ap.pos_y)};
+				var p = getPoint(p0, p1);
+				res = res + " Q"+p.x+","+p.y+" "+p1.x+","+p1.y+" ";
+			});
+			res = "M"+x(path[0].ap.pos_x)+","+y(path[0].ap.pos_y)+res;
+			//console.log("res",res);
+			return res;
+		});
+		//.attr("marker-mid","url(#triangle)");
 		selPath.exit().remove();
 	}
 	function moveImage(offset){
@@ -183,3 +163,19 @@ WifiVis.FloorDetail = function(selector, _iF){
 	//
 	return FloorDetail;
 };
+
+function getPoint(p0, p1, tant = -0.3){
+	if(p0.x == p1.x && p0.y == p1.y) return {x:"",y:""};
+	var l = Math.sqrt(tant*tant+1);
+	var cosy = 1/l, siny = tant/l;
+	var ux = p1.x - p0.x, uy = p1.y - p0.y;
+	var len = Math.sqrt(ux*ux + uy*uy);
+	var cosx = ux/len, sinx = uy/len;
+	var cosr = cosx*cosy - sinx*siny;
+	var sinr = cosx*siny + cosy*sinx;
+	var ll = len/(2*cosy);
+	var dx = ll*cosr, dy = ll*sinr;
+	//console.log("cosx:", cosx, "sinx:", sinx, "dx:", dx, "dy:", dy);
+	return {x:p0.x+dx, y:p0.y+dy, name:"mid"}
+}
+
