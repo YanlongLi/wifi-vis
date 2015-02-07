@@ -1,8 +1,6 @@
 var fs = require('fs');
 var express = require('express');
 var router = express.Router();
-var PUBLIC_DIRECTORY = "public/";
-var dataCenter = require('./DataCenter');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -13,45 +11,75 @@ router.get('/', function(req, res, next) {
 });
 //
 // get aps by floor
-router.get('/getApsByFloor', function(req, res, next) {
-	var iF = req.query.floor;
-	var apCenter = req.dataCenter.apCenter;
-	var result = apCenter.getApsByFloor(iF);
-	console.log("getApsByFloor:", iF);
-	console.log("result:", result.length);
-	res.contentType('application/json');
-	res.send(JSON.stringify(result));
-	res.end();
+router.get('/aps', function(req, res, next) {
+	var floor = req.query.floor;
+	var db = req.db;
+	var aps = [];
+	var len = 0;
+	if(floor && (floor = floor.split(","))){
+		len = floor.length;
+	}
+	if(len > 0){
+		(function next(i){
+			if(i == len){
+				fn(null, aps);
+			}else{
+				findAps(db, +floor[i], function(err,_aps){
+					cb(err, _aps);
+					next(i+1);
+				});
+			}
+		})(0);
+	}else{
+		findAps(db, null, fn)
+	}
+	function cb(err, _aps){
+		aps = aps.concat(_aps);
+	}
+	function fn(err, aps){
+		res.contentType('application/json');
+		res.send(JSON.stringify(aps));
+		res.end();
+	}
 });
 
-router.get('/getApsByFloors', function(req, res, next) {
-	var str = req.query.floor;
-	var floor = str.split(",");
-	var apCenter = req.dataCenter.apCenter;
-	var result = apCenter.getApsByFloors(floor);
-	console.log("getApsByFloors:", floor);
-	console.log("result:", result.length);
-	res.contentType('application/json');
-	res.send(JSON.stringify(result));
-	res.end();
-});
+function findAps(db, floor, fn){
+	console.log("floor", floor);
+	var filter = {};
+	floor != null && (filter.floor = floor);
+	db.get('aps').find(filter,{},function(err, aps){
+		fn(err, aps);
+	});
+}
 
-router.get('/NodesAndLinks', function(req, res, next){
-	var pc = req.dataCenter.pathCenter;
-	var allPath = pc.findAllPath();
-	var o = pc.pathToForceNodeLink(allPath);
-	res.contentType('application/json');
-	res.send(JSON.stringify(o));
-	res.end();
-});
-
-router.get('/NodesAndLinksWeight', function(req, res){
-	var pc = req.dataCenter.pathCenter;	
-	var allPath = pc.findAllPath();
-	var o = pc.pathToForceNodeLinkWithWeight(allPath);
-	res.contentType("application/json");
-	res.send(JSON.stringify(o));
-	res.end();
+router.get('/records', function(req, res, next) {
+	var start = +req.query.start;
+	var end = +req.query.end;
+	var sortBy = req.query.sortBy;
+	var db = req.db;
+	var records_c = db.get('records');
+	//
+	var filter = {}, option = {};
+	if(start){
+		filter.date_time =  filter.date_time || {};
+		filter.date_time["$gte"] = new Date(start);
+	}
+	if(end){
+		filter.date_time =  filter.date_time || {};
+		filter.date_time["$lte"] = new Date(end);
+	}
+	if(sortBy){
+		option.sort = option.sort || {};
+		option.sort[sortBy] = 1;
+	}
+	records_c.find(filter, option,
+			function(err, records){
+				if(err) console.log(err);
+				res.contentType('application/json');
+				res.send(JSON.stringify(records));
+				res.end();
+			});
+	//
 });
 
 module.exports = router;
