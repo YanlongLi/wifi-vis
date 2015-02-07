@@ -164,7 +164,8 @@ WifiVis.FloorDetail = function(selector, _iF){
 	return FloorDetail;
 };
 
-function getPoint(p0, p1, tant = -0.3){
+function getPoint(p0, p1, tant){
+	if(typeof tan == 'undefine') tan = 0.3;
 	if(p0.x == p1.x && p0.y == p1.y) return {x:"",y:""};
 	var l = Math.sqrt(tant*tant+1);
 	var cosy = 1/l, siny = tant/l;
