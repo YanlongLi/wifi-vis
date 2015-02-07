@@ -1,7 +1,7 @@
 body {
 	padding: 20px 50px;
 	font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-	background-color: #303030;
+	/*background-color: #303030;*/
 }
 
 /*
@@ -12,6 +12,7 @@ a {
 }
 
 rect.placeholder{
+	visibility: hidden;
 	fill: none;
 	opacity: 0.4;
 }
@@ -99,12 +100,15 @@ rect.placeholder{
 }
 
 #floor-background{
+	/*plan image*/
 	position: relative;	
+	opacity: 0.5;
 }
 
 #aps-wrapper{}
 #aps-wrapper circle{
-	fill: rgb(44, 160, 44);
+	fill: rgb(255, 127, 14);
+	opacity: 0.8;
 }
 
 #path-wrapper{}
@@ -150,8 +154,9 @@ rect.placeholder{
 
 }
 .timeline rect.placeholder{
-	fill: #000000;
-	opacity: 0.2;
+	fill:none;
+	/*fill: #000000;
+	opacity: 0.2;*/
 }
 .timeline .axis path,
 .timeline .axis line{
@@ -173,9 +178,9 @@ rect.placeholder{
 	fill: #FFFFFF;
 }
 .timeline .basic-timeline{
-	stroke-width: 3;
-	fill: #302F2F;
-	opacity: 0.4;
+	/*stroke-width: 3;*/
+	fill: #98DF8A;
+	/*opacity: 0.4;*/
 }
 .timeline .timeline-title{
 
@@ -189,7 +194,7 @@ rect.placeholder{
 }
 .brush rect.extent{
 	opacity: 0.5;
-	fill: #919191;
+	fill: #BCBD22;
 }
 .brush .brush-tag{}
 .brush .brush-tag text{

@@ -50,7 +50,6 @@ WifiVis.FloorDetail = function(selector, _iF){
 		y.domain([0, imgOriSize.h]).range([0, imgSize.h]);
 		img.attr('width', imgSize.w);
 		img.attr('height', imgSize.h);
-		img.attr('opacity', 0.3);
 		gAps.select("rect.placeholder").attr("width",imgSize.w).attr("height", imgSize.h);
 		gPath.select("rect.placeholder").attr("width",imgSize.w).attr("height", imgSize.h);
 	}
@@ -93,9 +92,8 @@ WifiVis.FloorDetail = function(selector, _iF){
 		apSelEnter = apSel.enter().append("circle");
 		apSel.attr("cx", function(ap){return x(ap.pos_x)})
 			.attr("cy", function(ap){return y(ap.pos_y)})
-			.attr("opacity","0.3")
 			.attr("r",function(ap){
-				return ap.c/10 > 5?ap.c/10:5;
+				return Math.log(ap.c)*2;
 			}).on("mouseover", function(ap){
 				d3.select(this).append("title").text("Record Num:"+ap.c);
 			}).on("mouseout", function(ap){
