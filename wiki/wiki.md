@@ -1,5 +1,40 @@
 # Wiki Update
 
+## 2015-02-07
+
+**TODO**
+
+1. 考虑单辆车的行为
+2. 更新wiki
+3. 收集文章（看下租祖去年的文章）
+
+**Today's Goal**
+
+rewrite basic version and update
+
+## 2015-02-06
+
+**TODO**
+
+1. Force layout 修改参数，固定其位置
+	- 如何生成path
+2. 颜色主题由黑色改成白色
+3. 窗口大小改变时更新画图
+4. 实现[网页](http://apps.opendatacity.de/relog/)中的功能
+	- 用点表示设备，提供设备的筛选
+5. 点选单个AP或者Device时显示其Timeline
+6. 显示某个Device或者某几个Device的运动轨迹
+7. 几个view之间要可以相互link, highlight
+8. 提供数据输入的入口
+9. AP分类
+	- 登录的人数、登录的时间、停留的时间等
+10. Device分类
+
+思考：
+
+- 如何计算某个时间点AP上的人数
+- 每个AP上点如何布局
+
 ## 2015-02-04
 
 Current version:
