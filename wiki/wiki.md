@@ -2,11 +2,32 @@
 
 ## 2015-02-07
 
+![cur version](_img/0207-img-color-change.png)
+
+update:
+
+- changed color scheme and view size.
+- adjust force layout's parameters.
+
+summary of what to modify(from 0206's and 0207's discuss):
+
+1. color scheme change
+2. problems of views positon when in different window size
+3. animate every MAC's position change, ref to [link](http://apps.opendatacity.de/relog/). support MAC selection.
+4. timeline of chosen AP
+5. collaboration between views
+
+(aboves need quick implementation)
+
+6. data input entrance
+7. classification of APs and MACs
+
+
 **TODO**
 
 1. 考虑单辆车的行为
 2. 更新wiki
-3. 收集文章（看下租祖去年的文章）
+3. 收集文章（看下祖祖去年的文章）
 
 **Today's Goal**
 
