@@ -67,7 +67,7 @@ function init(){
 
 	var timelineData = recordCenter.findAllRecordsOnFloor(curF);
 	timeline = Timeline("#timeline-g",{tid:1}, timelineData)
-		.renderTimeline(tlSize, "#05FD70");
+		.renderTimeline(tlSize, "rgb(255, 127, 14)");
 	// tlBrush
 	tlBrush = TimelineBrush(timeline).onBrushEnd(onEnd);
 	// floor detail
