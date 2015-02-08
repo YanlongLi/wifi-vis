@@ -57,19 +57,30 @@ function findAps(db, floor, fn){
 	});
 }
 
-/*
-* get records by start and end time
-* start:
-* end:
-* sortBy: attribute sort by
-*/
 router.get('/records', function(req, res, next) {
 	var start = +req.query.start;
 	var end = +req.query.end;
 	var sortBy = req.query.sortBy;
 	var db = req.db;
+	find_records(db, start, end, sortBy, function(err, records){
+		if(err) console.log(err);
+		res.contentType('application/json');
+		res.send(JSON.stringify(records));
+		res.end();
+	});
+});
+
+
+/*
+* get records by start and end time
+* db:
+* start:
+* end:
+* sortBy: attribute sort by
+* fn(err,records):
+*/
+function find_records(db, start, end, sortBy, fn){
 	var records_c = db.get('records');
-	//
 	var filter = {}, option = {};
 	if(start){
 		filter.date_time =  filter.date_time || {};
@@ -83,15 +94,46 @@ router.get('/records', function(req, res, next) {
 		option.sort = option.sort || {};
 		option.sort[sortBy] = 1;
 	}
-	records_c.find(filter, option,
-			function(err, records){
-				if(err) console.log(err);
-				res.contentType('application/json');
-				res.send(JSON.stringify(records));
-				res.end();
-			});
-	//
+	records_c.find(filter, option, function(err, records){
+		fn(err, records);
+	});
+}
+
+/*
+ * get timeline data
+ * start:
+ * end:
+ * step: time stemp
+ */
+router.get('/tl-data', function(req, res, next){
+	var db = req.db;
+	var start = +req.query.start;
+	var end = +req.query.end;
+	var step = +req.query.step;
 });
+
+/*
+ * records: sorted by time
+ */
+function generate_tl_data(records, start, end, step){
+	records.forEach(function(r){r.dateTime = new Date(r.date_time)});
+	var res = {
+		time:[],
+		shownData:[]
+	};
+	var binNum = (end - start)/step;
+	var time = [], shownData = [], i = -1;
+	while(++i <= binNum){
+		var t = start + i*step, dt = new Date(t);
+		time.push(t);
+		shownData.push(value:0);
+	}
+	i = -1;
+	while(++i < records.length){
+		var iBin = parseInt((data[i].dateTime - start)/step);
+		shownData[iBin].value++;
+	}
+}
 
 module.exports = router;
 
