@@ -1,5 +1,12 @@
 # Wiki Update
 
+## 2015-02-08
+
+**in the data: same device may log in a AP in very short time**
+
+- network instability 
+- (there are APs share the same location, which may have effects on the vis)
+
 ## 2015-02-07
 
 ![cur version](_img/0207-img-color-change.png)
