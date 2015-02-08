@@ -9,8 +9,11 @@ router.get('/', function(req, res, next) {
 		content.pipe(res);
 	});
 });
-//
-// get aps by floor
+
+/*
+ * get aps
+ * floor: floor number or numbers joined by ,
+ */
 router.get('/aps', function(req, res, next) {
 	var floor = req.query.floor;
 	var db = req.db;
@@ -43,6 +46,8 @@ router.get('/aps', function(req, res, next) {
 	}
 });
 
+// help function, 
+// floor can be null,
 function findAps(db, floor, fn){
 	console.log("floor", floor);
 	var filter = {};
@@ -52,6 +57,12 @@ function findAps(db, floor, fn){
 	});
 }
 
+/*
+* get records by start and end time
+* start:
+* end:
+* sortBy: attribute sort by
+*/
 router.get('/records', function(req, res, next) {
 	var start = +req.query.start;
 	var end = +req.query.end;
