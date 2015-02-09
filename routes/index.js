@@ -211,13 +211,16 @@ function find_records(db, start, end, sortBy, fn){
 	var records = [];
 	records_c.find(filter, option)
 		.each(function(r){
-			findApById(db, r.apid, function(ap){
-				r.floor = ap.floor;
-				records.push(r);
-			});
+			//findApById(db, r.apid, function(ap){
+		  //	r.floor = ap.floor;
+			records.push(r);
+			//});
 		})
 		.error(function(err){fn(err, null)})
-		.success(function(){fn(null, records)});
+		.success(function(){
+			console.log("find records", records.length);
+			fn(null, records);
+		});
 }
 
 /*
