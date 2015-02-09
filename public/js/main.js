@@ -1,3 +1,18 @@
+var timeFrom = new Date(2013,8,1),
+		timeTo   = new Date(2013,8,2);
+
+var apLst = [], apMap = d3.map();
+var records = [], curPos, curTime;
+
+function init(){
+	apLst.forEach(function(ap){
+		ap.cluster = new DeviceCluster(apid);
+	});
+	records.forEach(function(r,i){r.index = i});
+}
+/*
+ *
+ */
 
 var DATA_PATH = WifiVis.DATA_PATH;
 var apCenter = WifiVis.ApCenter(), 
