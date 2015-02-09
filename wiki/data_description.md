@@ -1,17 +1,67 @@
 # Data Description
 
-Wifi数据主要描述了终端设备在Wifi热点上的登录信息，每次设备接入Wifi热点时会产生一条记录。所以数据主要包括Wifi热点的位置信息和设备的接入日志两部分。
+## Design
 
-在Wifi普及的今天，我们的移动终端设备基本每时每刻都处在Wifi环境中，用户的终端设备每天都在各个Wifi热点间不停的切换，
-而设备的登录情况在一定程度上能够反映用户的行为轨迹变化以及用户间的影响。
-同时，研究wifi数据还有助于合理的放置wifi热点从而提高wifi热点的利用率。
+### Some Terminology
 
-我们的数据来自奇虎360公司，在360公司17层的大楼中分布着大量的wifi热点，每当有设备接入热点时就会生成一条登录记录，
-所以我们的数据包括两部分：wifi热点信息和接入日志。wifi热点信息包括每个wifi热点的ID、名称和地理位置信息，
-其中有热点所在的楼层和在楼层中的坐标，与之相对应的有每个楼层的平面图，平面图上标有热点所在的位置。
-接入日志是指不同的终端设备在这些热点上的接入记录，每条记录包括终端设备的MAC地址、接入时间以及接入的wifi热点的ID。
+- AP: (Access Point, wifi热点)
+- Device: Mobile devices, which is represented by MAC address in the data.
+- Three Main View:
+	- Overview: the force layout view, which shows the whole 150 APs as well as device path.
+	- Timeline View
+	- Floor View: show APs and device paths on a specific floor.
+- Login: each record is a login event, which means a device login a AP at some time.
+- move: a device login two different APs in two consequece time is a move.
 
-接入记录从2013年7月19日开始到2013年10月10日结束，总共53天，17790560条记录。这些记录分布在17层大楼中的总共250个wifi热点上。数据大小为785.1M。
+### Design Detail
+
+**Function of View:**
+
+- AP Graph View:
+	in AP graph view, we use force layout to visualize all the 250 APs. Each AP as a node.  
+	a link between a node pair means a device moved from a AP to another.  
+	- nodes(APs) weight: the number of devices logged in this AP at a selected _time point_,
+		or number of login occurs on this AP in selected _time period_.  
+		**node weight is represented by circle radius or opacity**  
+		**node's floor info is represented by color(what color to use will be discussed later)**
+  - links weight: how many movements occurs in time period.  
+		**link weight is represented by line width**
+	
+- Timeline View:
+	Timeline view is supported to show the total login number in a fixed time interval,
+	for example, we compute the login number every 30 minutes, then draw the login timeline.  
+	Also, timeline show shows device number change over time for a selected AP.
+	
+- Floor View:
+	Floor View shows Floor plan and the location of APs on it.  
+	At a time point, devices on a AP will be shown around the AP location.  
+	Links between APs means devices'moving path.
+	Director of links should be visualized(ref to [siming.chen's work](http://vis.pku.edu.cn/wiki/visgroup/projects/spatial_temporal_event_vis/weibogeo/version3/start)).
+
+**Collaboration of Views and supported interaction**
+
+- brush a time span in _timeline_ and show the corresponding device path change in the _floor view_ and _AP graph view_.
+- a time point can be selected in the brushed out range, then update the device locations in _floor view_.
+	Animation would be used to facilitate to show how device location change over time, animation may be limited in the range brushed out.
+- when select one AP in _floor view_, highlight the same AP in _AP Graph_(the other direction is the same) and visualize device number change over time in _timeline_.
+- select a set of device in _floor view_, then highlight them.
+
+### Work Division
+
+I just finished the computation module at the noon, in which compute the mac location at a chosen time.
+so the works are divided as follow:
+
+### Problem tracking
+
+how to represent the link weight, aggregation?
+
+- no aggregation:(ref to siming.chen's design)
+- aggregation: computing the weight. this is what we use in floor view and AP graph view.
+
+notes:
+
+cound add time interval information to links if we choose to draw seperate paths, for example using arc radian.
+
 
 ## Data Detail
 
@@ -111,3 +161,17 @@ then, if a same ap ocurrs in a path consecutively, only the first is obtained.
 ![link_number_dist](_img/link_number_dist.png)
 
 
+## Data Desciption
+
+Wifi数据主要描述了终端设备在Wifi热点上的登录信息，每次设备接入Wifi热点时会产生一条记录。所以数据主要包括Wifi热点的位置信息和设备的接入日志两部分。
+
+在Wifi普及的今天，我们的移动终端设备基本每时每刻都处在Wifi环境中，用户的终端设备每天都在各个Wifi热点间不停的切换，
+而设备的登录情况在一定程度上能够反映用户的行为轨迹变化以及用户间的影响。
+同时，研究wifi数据还有助于合理的放置wifi热点从而提高wifi热点的利用率。
+
+我们的数据来自奇虎360公司，在360公司17层的大楼中分布着大量的wifi热点，每当有设备接入热点时就会生成一条登录记录，
+所以我们的数据包括两部分：wifi热点信息和接入日志。wifi热点信息包括每个wifi热点的ID、名称和地理位置信息，
+其中有热点所在的楼层和在楼层中的坐标，与之相对应的有每个楼层的平面图，平面图上标有热点所在的位置。
+接入日志是指不同的终端设备在这些热点上的接入记录，每条记录包括终端设备的MAC地址、接入时间以及接入的wifi热点的ID。
+
+接入记录从2013年7月19日开始到2013年10月10日结束，总共53天，17790560条记录。这些记录分布在17层大楼中的总共250个wifi热点上。数据大小为785.1M。
