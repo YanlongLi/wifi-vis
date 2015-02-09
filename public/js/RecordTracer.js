@@ -148,7 +148,7 @@ RecordTracer.prototype.gotoTime = function(_time){
 		return;
 	}
 	var t =
-		this.cur == -1 ? new Date(timtFrome) : new Date(records[this.cur].date_time);
+		this.cur == -1 ? new Date(timeFrom) : new Date(records[this.cur].date_time);
 	var len = records.length;
 	while(t - _time > 0){
 		if(this.cur == -1){
