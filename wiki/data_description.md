@@ -48,8 +48,8 @@
 
 ### Work Division
 
-I just finished the computation module at the noon, in which compute the mac location at a chosen time.
-so the works are divided as follow:
+Hongyu.Jiang will first get familiar with current design and try to modify the AP Graph of current version. We will check later then.
+I am working on the timeline and floor view. At noon, I finished modifying data structure to adapt to current feature.
 
 ### Problem tracking
 
