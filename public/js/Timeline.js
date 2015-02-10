@@ -8,10 +8,10 @@
  * opt.tid: timeline id
  * opt.style: element style class
  */
-WifiVis.Timeline = function(id, opt, _data){
+WifiVis.Timeline = function(id, opt){
 	function Timeline(){}
 	//
-	var data = _data;
+	var data;
 	var g = d3.select(id),
 			tid = opt.tid || (100 + Math.round(Math.random() * 100)),
 			size;
@@ -29,19 +29,14 @@ WifiVis.Timeline = function(id, opt, _data){
 
 	g.append("path").attr("class", "basic-timeline");
 	g.append("g").attr("class","timeline-dot");
-	var binNum = 200,
-			binSize;
 	var shownData, strokeColor;
 	var brushLst = [];
 	//
-	if(_data){
-		updateData(data);
-	}
-	//
-	Timeline.updateData = updateData;
-	Timeline.renderTimeline = renderTimeline;
-	Timeline.addBrush = addBrush;
-	Timeline.setSize = function(_){
+	Timeline.set_step = set_step;
+	Timeline.set_range = set_range;
+	Timeline.update = update;
+	Timeline.add_brush= addBrush;
+	Timeline.set_size= function(_){
 		if(_){
 			size = _;
 			console.log("init timeline size:", _);
@@ -82,46 +77,80 @@ WifiVis.Timeline = function(id, opt, _data){
 		});
 	})();
 	//
-	function updateData(_data){
-		data = _data;
-		extent = d3.extent(data, function(d){return d.dateTime});
-		//utils.log(["extent:", extent], 1);
-		binSize = (extent[1].getTime() - extent[0].getTime())/binNum;
-		shownData = [], i = -1;
-		while(++i <= binNum){
-			var t = extent[0].getTime() + i*binSize,
-					dt = new Date(t);
-			shownData.push({dateTime:dt, value:0});
+	var from, to;
+	var IS_LOAD_DATA = false;
+	var curStep = "hour", stepCount = 2;
+	function set_step(step, count){
+		curStep = step ? step : curStep;
+		stepCount = count ? count : stepCount;
+		load_data();
+		update();
+		return Timeline;
+	}
+	function set_range(range){
+		if(!arguments.length){
+			from = timeFrom;
+			to = timeTo;
+		}else{
+			from = range[0];
+			to = range[1];
 		}
-		i = -1;
-		while(++i < data.length){
-			var iBin = parseInt((data[i].dateTime - extent[0])/binSize);
-			shownData[iBin].value++;
-		}
-		x.domain(d3.extent(shownData.map(function(d){return d.dateTime})));
-		y.domain(d3.extent(shownData.map(function(d){return d.value})));
-		//
-		//utils.log(["Timeline update_data:", shownData], 1);
+		IS_LOAD_DATA = false;
+		//load_data();
+		//update();
+		return Timeline;
+	}
+	function load_data(){
+		// need global variable: timeFrom, timeTo
+		from = from ? from : timeFrom;
+		to = to ? to : timeTo;
+		var url = WifiVis.RequestURL.timeline({
+			start     : (new Date(from)).getTime(),
+			end       : (new Date(to)).getTime(),
+			step      : curStep,
+			stepcount : +stepCount
+		});
+		d3.json(url, function(err, _data){
+			if(err){
+				console.error(err);
+				return;
+			}
+			data = _data;
+			console.log("load data:", new Date(data.start), new Date(data.end), data.time.length);
+			shownData = data.time.map(function(time,i){
+				return {
+					time   : time,
+					count  : data.count[i],
+					values : data.values[i]
+				}
+			});
+			IS_LOAD_DATA = true;
+			update();
+		});
 		return Timeline;
 	}
 	/*
-	 * reanderTimelien()
-	 * _size: size of the timeline view
-	 * strokeColor: line color
-	 * title:
+	 * _size: size of the timeline view, optional
+	 * strokeColor: line color, optional
+	 * title: optional
 	 */
-	function renderTimeline(_size, _strokeColor, title){
+	function update(_size, _strokeColor, title){
+		if(!IS_LOAD_DATA){
+			load_data();
+			return;
+		}
 		size = _size || size;
 		if(!size){
 			console.warn("renderTimeline: no render size");
 		}
 		strokeColor = _strokeColor || strokeColor;
-		// init scale and axis
-		x.range([0,size.width]);
-		y.range([size.height,0]);
+		// shownData:{start:, end:, time:, count:[], values:[]}
+		//extent = d3.extent(shownData.time);
+		x.range([0, size.width]).domain(d3.extent(data.time));
+		y.range([size.height, 0]).domain(d3.extent(data.count));
 		line = d3.svg.line().interpolate("monotone")
-			.x(function(d){return x(d.dateTime)})
-			.y(function(d){return y(d.value)});
+			.x(function(d){return x(d.time)})
+			.y(function(d){return y(d.count)});
 		g.select("#timeline-x-axis-"+ tid)
 			.attr("transform", "translate(0,"+size.height+")").call(xAxis);
 		g.select("#timeline-y-axis-"+ tid).call(yAxis);
@@ -129,12 +158,11 @@ WifiVis.Timeline = function(id, opt, _data){
 		g.selectAll("path.basic-timeline").remove();
 		var sel = g.append("path").attr("class","basic-timeline").datum(shownData);
 		sel.attr("d", line).style("stroke", strokeColor);
-//.attr("fill","#302F2F").attr("opacity",0.4);
-		// draw dots
+		//
 		var circles = g.select("g.timeline-dot").selectAll("circle").data(shownData);
 		circles.enter().append("circle").attr("class","dot");
-		circles.attr("cx",function(d){return x(d.dateTime)})
-			.attr("cy",function(d){return y(d.value)})
+		circles.attr("cx",function(d){return x(d.time)})
+			.attr("cy",function(d){return y(d.count)})
 			.attr("r", 2);
 		circles.exit().remove();
 		// title
