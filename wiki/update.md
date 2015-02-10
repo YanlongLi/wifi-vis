@@ -1,6 +1,72 @@
 # Wiki Update
 
-## 2015-02-06
+## Progress.
+
+### 2015-02-10
+
+![cur verison](_img/0211-img-1.png)
+
+on floor 6, day of 20130902, 01:00-23:00
+
+what have done:
+
+- track the device location change over time, when brush in timeline is moveing, device location changes.
+- hover on a AP, show records change over time in timeline view.
+- link width as traffic between APs.
+
+to do next:
+
+- put the arrow out of circle(AP).
+- use a more reasonalble y scale in timeline
+- rewrite the AP graph view 
+
+problems:
+
+- projection of the time and data is wrong, this is cause by time zone issue when converting time.
+- colurs used are terrible
+- bugs in device location tracking, need to recheck
+
+### 2015-02-08
+
+in the data: same device may log in a AP in very short time,
+this may caused by network instability.
+so when computing path for a device, only record differs with previous in AP are kept.
+
+
+### 2015-02-07
+
+![cur version](_img/0207-img-color-change.png)
+
+update:
+
+- changed color scheme and view size.
+- adjust force layout's parameters.
+
+summary of what to modify(from 0206's and 0207's discuss):
+
+1. color scheme change
+2. problems of views positon when in different window size
+3. animate every MAC's position change, ref to [link](http://apps.opendatacity.de/relog/). support MAC selection.
+4. timeline of chosen AP
+5. collaboration between views
+
+(aboves need quick implementation)
+
+6. data input entrance
+7. classification of APs and MACs
+
+
+**TODO**
+
+1. 考虑单辆车的行为
+2. 更新wiki
+3. 收集文章（看下祖祖去年的文章）
+
+**Today's Goal**
+
+rewrite basic version and update
+
+### 2015-02-06
 
 **TODO**
 
@@ -23,7 +89,7 @@
 - 如何计算某个时间点AP上的人数
 - 每个AP上点如何布局
 
-## 2015-02-04
+### 2015-02-04
 
 Current version:
 
@@ -63,44 +129,9 @@ Todo next:
 - Seperate different directon of path
 
 
-## 2015-02-02
+### 2015-02-02
 
-### Data Detail
-
-There are 17 floors in the building of 360, and in each floor, there are several wifi AP station(hotspot),
-now we have the plan of each floor and the position of AP in each floor.
-When a device (pc or cell phone) get access to a AP, the AP takes a record.
-
-So, now we have three type of data:
-
-1. Plan figure of each floor, these firues do not share the same size (resolution). **1-17** Floor.
-
-2. The AP Info
-	Each AP has four attributes:
-	- ID: ids is no continues, between 1 to 389, **250 total**.
-	- Name: AP name, floor+ap_number style, "f15ap12, f1ap2" etc.
-	- Floor: which floor does this ap locate
-	- (x,y): position of AP
-
-	```
-	+----+------+---+---+-------+
-	| ID | Name | x | y | floor |
-	+----+------+---+---+-------+
-	```
-3. AP access record
-	- date_time: access time
-	- mac: end devices'MAC address, which is unique to devices.
-	- ap id: id of AP the device accesses to.
-
-	```
-	+-----------+-----+------+
-	| date_time | mac | apid |
-	+-----------+-----+------+
-	```
-	
-Now we have data in **September 2013** as a sample.
-
-### Implement Goals
+#### Implement Goals
 
 a demo to show the wifi data and to show the data propertiy.
 
@@ -108,7 +139,7 @@ people flow change over time reflected by the mac path in data,
 what't the movement charater? 
 What other events canbe shown in this data?
 
-### What have been done so far
+#### What have been done so far
 
 compared to version of Saturday, I changed the layout and color scheme, 
 some data process were move to server end;
@@ -120,7 +151,7 @@ records on 2013-09-02 and 2013-09-03 are loaded
 - timeline view: show the mac number over time
 - floor detail view: show the aps and path in this floor.
 
-### What to do next
+#### What to do next
 
 - to show all the aps in one view, using force layout
 - seperate path of different direction.
