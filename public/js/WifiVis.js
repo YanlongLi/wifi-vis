@@ -15,3 +15,28 @@ WifiVis.FLOOR_COLOR = function(i){
 		"#dbdb8d", "#17becf", "#9edae5"];
 		return color[i];
 };
+
+WifiVis.RequestURL = (function(){
+	function RequestURL(){}
+
+	var PATH = {
+		graphinfo: "/graphinfo"
+	};
+	RequestURL.graphinfo = function(params){
+		// {start:, end:}
+		return generateURL(PATH.graphinfo, params);
+	}
+	
+	function generateURL(path, params){
+		var str = path + "?";
+		return str + d3.map(params).entries().map(function(o){
+			var name = o.key, value = o.value;
+			if(Array.isArray(value)){
+				return name+"="+value.join(",");
+			}
+			return name+"="+value;
+		}).join("&");
+	}
+
+	return RequestURL;
+})();
