@@ -110,6 +110,9 @@ rect.placeholder{
 #aps-wrapper circle.device{
 	fill: rgb(255, 127, 14);
 }
+#aps-wrapper circle.device.selected{
+	fill: red;
+}
 #aps-wrapper circle.ap{
 	fill: #4AFF00;
 }
@@ -127,6 +130,12 @@ rect.placeholder{
 	font-size: 120px;
 	/*stroke: rgb(255, 242, 0);*/
 	stroke-width: 2;
+}
+
+.brush .extent {
+  stroke: #fff;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
 }
 /*
  * timeline
@@ -193,10 +202,11 @@ rect.placeholder{
 .brush.active{
 
 }
+/*
 .brush rect.extent{
 	opacity: 0.5;
 	fill: #BCBD22;
-}
+}*/
 .brush .brush-tag{}
 .brush .brush-tag text{
 
