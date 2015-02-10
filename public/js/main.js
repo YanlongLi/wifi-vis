@@ -58,6 +58,7 @@ d3.json(recordUrl, function(err, rs){
 		//records = removeDup(rs);
 		records = rs;
 		apLst = as;
+		init_aplst_records();
 		//var toTime = new Date(2013,8,2,23,0);
 		//tracer.gotoTime(toTime.getTime() - 100);
 		init();
@@ -66,9 +67,13 @@ d3.json(recordUrl, function(err, rs){
 
 function init_aplst_records(){
 	apLst.forEach(function(ap){
-		ap.cluster = new DeviceCluster(apid);
+		ap.cluster = new DeviceCluster(ap.apid);
+		apMap.set(ap.apid, ap);
 	});
 	records.forEach(function(r,i){r.index = i});
+	records.forEach(function(r){
+		r.floor = apMap.get(r.apid).floor;
+	})
 }
 
 function onStart(extent){

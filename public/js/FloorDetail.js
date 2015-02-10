@@ -198,7 +198,6 @@ WifiVis.FloorDetail = function(selector, _iF){
 		apSel.attr("cx", function(d){return x(d.pos_x)})
 			.attr("cy", function(d){return y(d.pos_y)})
 			.attr("r", function(d){return 20})
-			.attr("opacity", 0)
 			.on("mouseover", function(d){
 				// TODO
 				timeline.add_ap_timeline(d.apid);
