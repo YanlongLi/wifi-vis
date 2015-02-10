@@ -175,10 +175,10 @@ function paths_to_links(paths){
  * req.query.stepcount: number, default 1
  */
 var TIME_STEP = {
-	second : 1,
-	minute : 60,
-	hour   : 60*60,
-	day    : 60*60*24
+	second : 1000,
+	minute : 60*1000,
+	hour   : 60*60*1000,
+	day    : 60*60*24*1000
 };
 // TODO: filter the start and end parameter according to DATA_TIME_RANGE
 var DATA_TIME_RANGE = {
@@ -282,6 +282,8 @@ function generate_tl_data(records, start, end, step){
 		values : []
 	};
 	var binNum = (end - start)/step;
+	console.log("step:",step);
+	console.log("bin num:", binNum);
 	var time   = res.time,
 			count  = res.count,
 			values = res.values,
