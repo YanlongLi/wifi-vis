@@ -9,16 +9,14 @@ WifiVis.FloorDetail = function(selector, _iF){
 	var color = d3.interpolateLab("#008000", "#c83a22");
 	//
 	var iF;
-	var o = utils.initSVG(selector, [0]), g = o.g;
 	// defs
-	var marker = o.svg.append("defs").append("marker")
-		.attr("id","triangle").attr("viewBox","0 0 60 40")
-		.attr("refX","40").attr("refY", "10")
-		.attr("markerUnits","strokeWidth")
-		.attr("markerWidth", 24).attr("markerHeight", 12)
-		.attr("orient", "auto")
-		.attr("fill","#8C564B").attr("opacity", 0.4);
-	marker.append("path").attr("d", "M 0 0 L 30 10 L 0 20 z");
+	var markerEndId = "arrowMarkerEnd";
+	(function(){
+		var svg = d3.select(selector + "> svg");
+		utils.initArrowMarker(svg, markerEndId);
+	})();
+	//
+	var o = utils.initSVG(selector, [0]), g = o.g;
 	//
 	var imgOriSize = {}, imgSize = {},
 			x = d3.scale.linear(), y = d3.scale.linear(),
@@ -127,6 +125,27 @@ WifiVis.FloorDetail = function(selector, _iF){
 			});
 		apSel.exit().remove();
 	}
+	function _update_links(links){
+		console.log("links:",links.length, links.slice(0,10));
+		links.forEach(function(link){
+			var sourceAp = apMap.get(link.source);
+			var targetAp = apMap.get(link.target);
+			link.x1 = sourceAp.pos_x;
+			link.y1 = sourceAp.pos_y;
+			link.x2 = targetAp.pos_x;
+			link.y2 = targetAp.pos_y;
+		});
+		//links.forEach(function(l){console.log("link weight:",l.weight)});
+		var arcline = utils.arcline();
+		var gLine = gPath.selectAll("path.link").data(links);
+		gLine.enter().append("path").attr("class","link");
+		gLine.attr("d",function(d){
+			var p1 = [x(d.x1),y(d.y1)];
+      var p2 = [x(d.x2),y(d.y2)];
+			return arcline([p1,p2]);
+		}).attr("marker-end", "url(#"+markerEndId+")")
+		.style("stroke-width",function(d){return d.weight});
+	}
 	function draw(apLst){
 		var aps = apLst.filter(function(ap){
 			return ap.floor == iF;
@@ -134,6 +153,14 @@ WifiVis.FloorDetail = function(selector, _iF){
 		console.log("aps on floor", aps.length);
 		_update_aps(aps);
 		_update_device(aps);
+		d3.json("/graphinfo?start=1378037532000&end=1378041122000",function(err, graphinfo){
+			var links = graphinfo.filter(function(link){
+				var from = apMap.get(link.source),
+				to = apMap.get(link.target);
+				return from.floor == iF && to.floor ==  iF;
+			});
+			_update_links(links);
+		})
 	}
 	var pathByMac, numByAp;
 	function drawPath(_pathByMac){

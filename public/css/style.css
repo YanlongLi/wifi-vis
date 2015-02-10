@@ -115,11 +115,10 @@ rect.placeholder{
 }
 
 #path-wrapper{}
-#path-wrapper path{
+#path-wrapper path.link{
 	fill: none;
-/*	stroke: #FF7F0E;*/
-	stroke-width: 2;
-	opacity: 0.2;
+	stroke: #FF7F0E;
+	/*opacity: 0.2;*/
 }
 .floor-label text{
 	text-anchor: middle;
