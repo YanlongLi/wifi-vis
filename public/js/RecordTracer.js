@@ -9,6 +9,8 @@
  *
  */
 
+WifiVis.RecordTracer = RecordTracer.CreateTracer;
+
 function Device(mac, index){
 	this.mac = mac;
 	this.deviceRoute = [];
