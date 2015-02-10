@@ -187,13 +187,16 @@ rect.placeholder{
 	stroke: #37957D;
 	fill: #FFFFFF;
 }
-.timeline .basic-timeline{
+.timeline path.basic-timeline{
 	/*stroke-width: 3;*/
 	fill: #98DF8A;
 	/*opacity: 0.4;*/
 }
 .timeline .timeline-title{
-
+}
+.timeline path.ap-timeline{
+	fill: red;
+	opacity:0.5;
 }
 /*
  * for Brush

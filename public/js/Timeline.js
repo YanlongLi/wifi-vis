@@ -29,9 +29,16 @@ WifiVis.Timeline = function(id, opt){
 
 	g.append("path").attr("class", "basic-timeline");
 	g.append("g").attr("class","timeline-dot");
+	g.append("path").attr("class","ap-timeline");
 	var shownData, strokeColor;
 	var brushLst = [];
 	//
+	Timeline.change_floor = function(){
+		IS_LOAD_DATA = false;
+		update();
+	}
+	Timeline.add_ap_timeline = add_ap_timeline;
+	Timeline.remove_ap_timeline = remove_ap_timeline;
 	Timeline.set_step = set_step;
 	Timeline.set_range = set_range;
 	Timeline.update = update;
@@ -106,17 +113,14 @@ WifiVis.Timeline = function(id, opt){
 		// need global variable: timeFrom, timeTo
 		from = from ? from : timeFrom;
 		to = to ? to : timeTo;
-		var url = WifiVis.RequestURL.timeline({
+		var params = {
 			start     : (new Date(from)).getTime(),
 			end       : (new Date(to)).getTime(),
 			step      : curStep,
-			stepcount : +stepCount
-		});
-		d3.json(url, function(err, _data){
-			if(err){
-				console.error(err);
-				return;
-			}
+			stepcount : +stepCount,
+			floor 		: curF
+		}
+		timeline_data(params, function( _data){
 			data = _data;
 			var format = d3.time.format("%Y-%m-%d %H:%M:%S");
 			console.log("load data:",
@@ -186,6 +190,34 @@ WifiVis.Timeline = function(id, opt){
 		// title
 		title && (renderTitle(title));
 		return Timeline;
+	}
+	function add_ap_timeline(apid){
+		from = from ? from : timeFrom;
+		to = to ? to : timeTo;
+		var params = {
+			start     : (new Date(from)).getTime(),
+			end       : (new Date(to)).getTime(),
+			step      : curStep,
+			stepcount : +stepCount,
+			apid : apid
+		}
+		timeline_data(params, function( _data){
+			var apTlData = _data.time.map(function(time,i){
+				return {
+					time   : time,
+					count  : _data.count[i],
+					values : _data.values[i]
+				}
+			});
+			console.log("ap timeline count:",_data.count.join(","));
+			// draw
+			var sel = g.select(".ap-timeline").datum(apTlData);
+			sel.attr("d", line).style("stroke", strokeColor);
+		});
+		return Timeline;
+	}
+	function remove_ap_timeline(){
+		g.select(".ap-timeline").attr("d","");
 	}
 	/*
 	 *
@@ -379,3 +411,66 @@ WifiVis.TimelineBrush = function(timeline, opt){
 };
 
 //module.exports = Timeline;
+
+var TIME_STEP = {
+	second : 1000,
+	minute : 60*1000,
+	hour   : 60*60*1000,
+	day    : 60*60*24*1000
+};
+
+function timeline_data(params, cb){
+	var stepBy    = params.step || "hour";
+	var stepcount = +(params.stepcount || 1);
+	var step      = TIME_STEP[stepBy] * stepcount;
+	var floor     = params.floor;
+	var apid = params.apid;
+	
+	var rs = records.filter(function(r){
+		if(!r.floor){
+			console.error("no floor field in records");
+			return;
+		}
+		if(floor){
+			return r.floor == +floor;
+		}else if(apid){
+			return r.apid == apid;
+		}
+		return true;
+	});
+	var tlData = generate_tl_data(rs, timeFrom.getTime(), timeTo.getTime(), step);
+	cb(tlData);
+}
+
+function generate_tl_data(records, start, end, step){
+	records.forEach(function(r){r.dateTime = new Date(r.date_time)});
+	var res = {
+		start  : start,
+		end    : end,
+		time   : [],
+		count  : [],
+		values : []
+	};
+	var binNum = (end - start)/step;
+	console.log("step:",step);
+	console.log("bin num:", binNum);
+	var time   = res.time,
+			count  = res.count,
+			values = res.values,
+				i    = -1;
+	while(++i <= binNum){
+		var t = start + i*step,
+			dt  = new Date(t);
+		time.push(t);
+		count.push(0);
+		values.push([]);
+	}
+	i = -1;
+	while(++i < records.length){
+		var iBin = parseInt((records[i].dateTime - start)/step);
+		count[iBin]++;
+		values[iBin].push(records[i]);
+	}
+	return res;
+}
+

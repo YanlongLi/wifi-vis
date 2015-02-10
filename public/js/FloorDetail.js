@@ -179,7 +179,12 @@ WifiVis.FloorDetail = function(selector, _iF){
 			.attr("cx", function(d) {return d.x})
 			.attr("cy", function(d){return d.y})
 			.attr("r", 0);
-		dvLst.transition().attr("cx", function(d){return d.x})
+		dvLst.on("mouseover", function(d){
+			// TODO
+			d3.select(this).append("title").text(d.mac);
+		}).on("mouseout", function(d){
+			d3.select(this).selectAll('title').remove();
+		}).transition().attr("cx", function(d){return d.x})
 			.attr("cy", function(d){return d.y})
 			.attr("r", function(d){return 4});
 		//dvLst.exit().transition().attr("cx", 0).attr("cy",0).remove();
@@ -195,9 +200,15 @@ WifiVis.FloorDetail = function(selector, _iF){
 			.attr("r", function(d){return 20})
 			.attr("opacity", 0)
 			.on("mouseover", function(d){
+				// TODO
+				timeline.add_ap_timeline(d.apid);
+				//console.log(d);
 				d3.select(this).attr("opacity",1);
+				d3.select(this).append('title').text(d.name);
 			}).on("mouseout", function(d){
 				d3.select(this).attr("opacity", 0);
+				d3.select(this).selectAll("title").remove();
+				timeline.remove_ap_timeline();
 			});
 		apSel.exit().remove();
 	}
