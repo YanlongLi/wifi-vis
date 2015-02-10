@@ -57,7 +57,7 @@ Device.prototype.moveBackward = function(index){
 
 function DeviceCluster(apid){
 	this.apid = apid;
-	this.r = 2;
+	this.r = 4;
 	this.level = 6;
 	this.positions = square(this.r, this.level);
 	this.posFlag = this.positions.map(function(){return false});
