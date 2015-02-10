@@ -79,7 +79,7 @@ WifiVis.Timeline = function(id, opt){
 	//
 	var from, to;
 	var IS_LOAD_DATA = false;
-	var curStep = "hour", stepCount = 2;
+	var curStep = "minute", stepCount = 20;
 	function set_step(step, count){
 		curStep = step ? step : curStep;
 		stepCount = count ? count : stepCount;
@@ -116,7 +116,12 @@ WifiVis.Timeline = function(id, opt){
 				return;
 			}
 			data = _data;
-			console.log("load data:", new Date(data.start), new Date(data.end), data.time.length);
+			var format = d3.time.format("%Y-%m-%d %H:%M:%S");
+			console.log("load data:",
+					format(new Date(data.start)),
+					format(new Date(data.end)),
+					data.time.length);
+			console.log("count:",data.count.join(","));
 			shownData = data.time.map(function(time,i){
 				return {
 					time   : time,
@@ -147,23 +152,34 @@ WifiVis.Timeline = function(id, opt){
 		// shownData:{start:, end:, time:, count:[], values:[]}
 		//extent = d3.extent(shownData.time);
 		x.range([0, size.width]).domain(d3.extent(data.time));
-		y.range([size.height, 0]).domain(d3.extent(data.count));
-		line = d3.svg.line().interpolate("monotone")
+		y.range([size.height, 0]).domain([0,d3.max(data.count)]);
+		console.log(y.domain());
+		line = d3.svg.area().interpolate("monotone")
 			.x(function(d){return x(d.time)})
-			.y(function(d){return y(d.count)});
+			.y(function(d){return y(d.count)})
+			.x0(function(d){ return x(d.time)})
+			.y0(function(d){return y(0)});
 		g.select("#timeline-x-axis-"+ tid)
 			.attr("transform", "translate(0,"+size.height+")").call(xAxis);
 		g.select("#timeline-y-axis-"+ tid).call(yAxis);
 		// draw line
-		g.selectAll("path.basic-timeline").remove();
-		var sel = g.append("path").attr("class","basic-timeline").datum(shownData);
+		//g.selectAll("path.basic-timeline").remove();
+		var sel = g.select("path.basic-timeline").datum(shownData);
 		sel.attr("d", line).style("stroke", strokeColor);
 		//
 		var circles = g.select("g.timeline-dot").selectAll("circle").data(shownData);
 		circles.enter().append("circle").attr("class","dot");
 		circles.attr("cx",function(d){return x(d.time)})
 			.attr("cy",function(d){return y(d.count)})
-			.attr("r", 2);
+			.attr("r", 4)
+			.on({
+				"mousemove": function(d){
+					d3.select(this).append("title").text(d.count);
+				},
+				"mouseout": function(d){
+					d3.select(this).select("title").remove();
+				}
+			});
 		circles.exit().remove();
 		// title
 		title && (renderTitle(title));

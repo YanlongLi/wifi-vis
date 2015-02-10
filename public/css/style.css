@@ -174,8 +174,8 @@ rect.placeholder{
 .timeline .y.axis{
 
 }
-.timeline-dot .dot{
-	/*stroke: #37957D;*/
+.timeline-dot circle.dot{
+	stroke: #37957D;
 	fill: #FFFFFF;
 }
 .timeline .basic-timeline{
