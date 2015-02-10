@@ -81,3 +81,17 @@ utils.debug = function(){
 	console.log.apply(console, arr);
 }
 //module.exports = utils;
+utils.initArrowMarker = function(svg, markerId){
+	svg.append("svg:defs").append("svg:marker")
+		.attr("id","markerId")
+		.attr("viewBox","0 -10 20 20")
+		.attr("refX",14.5)
+		.attr("refY",0)
+		.attr("markerWidth",5)
+		.attr("markerHeight",4)
+		.attr("orient","auto")
+		.append("svg:path")
+		.attr("d","M0,-8L18,0L0,8")
+		.style("stroke","red")
+		.style("fill","#5C4D2F");
+}
