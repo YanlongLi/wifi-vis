@@ -3,3 +3,4 @@ public/data/
 public/jslib/
 *.log
 test.*
+*.swp
