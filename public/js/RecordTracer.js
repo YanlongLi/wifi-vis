@@ -69,20 +69,20 @@ DeviceCluster.prototype.addDevice = function(device){
 		console.warn("device already on cluster");
 		return;
 	}
-	console.log("add device to cluster begin", this.apid, device.mac);
+	//console.log("add device to cluster begin", this.apid, device.mac);
 	var i = -1, len = this.positions.length;
 	while(++i < len){
 		if(this.posFlag[i]){
 			continue;
 		}
 		// add device to cluster
-		console.log('succeed');
+		//console.log('succeed');
 		this.posFlag[i] = true;
 		this.positions[i].device = device;
 		this.deviceMap.set(device.mac, i);
 		this.count ++;
-		console.log("add device to cluster end");
-		//console.log("cluster positions:", this.positions);
+		//console.log("add device to cluster end");
+		////console.log("cluster positions:", this.positions);
 		// update device position info
 		return;
 	}
@@ -95,7 +95,7 @@ DeviceCluster.prototype.removeDevice = function(device){
 		console.warn("remove device not int cluster");
 		return;
 	}
-	console.log("remove device from cluster begin", this.apid, device.mac);
+	//console.log("remove device from cluster begin", this.apid, device.mac);
 	var pos = this.deviceMap.get(device.mac);
 	// remove from cluster
 	if(!this.posFlag[pos] == true){
@@ -106,7 +106,7 @@ DeviceCluster.prototype.removeDevice = function(device){
 	delete this.positions[pos].device;
 	this.deviceMap.remove(device.mac);
 	this.count --;
-	console.log("remove device from cluster end");
+	//console.log("remove device from cluster end");
 }
 
 DeviceCluster.prototype.deviceLst = function(){
@@ -124,7 +124,7 @@ function RecordTracer(){
 
 RecordTracer.CreateTracer = function(){
 	if(apLst.length == 0 || records.length == 0){
-		console.log(apLst.length, records.length);
+		//console.log(apLst.length, records.length);
 		console.error("apLst or records is empty");
 		return;
 	}
@@ -136,14 +136,14 @@ RecordTracer.CreateTracer = function(){
 		ap.cluster = new DeviceCluster(ap.apid);
 		apMap.set(ap.apid, ap);
 	});
-	//console.log("apMap:", apMap);
+	////console.log("apMap:", apMap);
 	records.forEach(function(r,i){r.index = i});
 	var tracer = new RecordTracer();
 	return tracer;
 }
 RecordTracer.prototype.gotoTime = function(_time){
 	if(_time - timeFrom < 0 || _time > timeTo){
-		console.log(new Date(_time));
+		//console.log(new Date(_time));
 		console.warn("go to time out of range");
 		return;
 	}
@@ -165,17 +165,17 @@ RecordTracer.prototype.gotoTime = function(_time){
 		t = new Date(records[this.cur].date_time);
 	}
 	if(this.cur == len){
-		console.log("reach end");
+		//console.log("reach end");
 		return;
 	}
 }
 
 RecordTracer.prototype.moveOn = function(){
 	if(this.cur == records.length - 1){
-		console.log("reach to the end");
+		//console.log("reach to the end");
 		return;
 	}
-	console.log("record tracer, move on begin, cur:", this.cur);
+	//console.log("record tracer, move on begin, cur:", this.cur);
 	this.cur ++;
 	if(this.cur >= records.length){
 		this.cur = records.length;
@@ -187,13 +187,13 @@ RecordTracer.prototype.moveOn = function(){
 		this.deviceLst.push(new Device(r.mac, this.cur));
 	}
 	var device = this.deviceLst[this.deviceMap.get(r.mac)];
-	//console.log("device", device);
+	////console.log("device", device);
 	device.moveForward(this.cur);
-	console.log("record tracer, move on end, cur:", this.cur);
+	//console.log("record tracer, move on end, cur:", this.cur);
 }
 
 RecordTracer.prototype.moveBack = function(){
-	console.log("record tracer, move back begin, cur:", this.cur);
+	//console.log("record tracer, move back begin, cur:", this.cur);
 	if(this.cur == -1){
 		return;
 	}
@@ -201,7 +201,7 @@ RecordTracer.prototype.moveBack = function(){
 	var device = this.deviceLst[this.deviceMap.get(r.mac)];
 	device.moveBackward(this.cur);
 	this.cur -- ;
-	console.log("record tracer, move back end, cur:", this.cur);
+	//console.log("record tracer, move back end, cur:", this.cur);
 }
 
 function removeDup(records){
@@ -266,6 +266,6 @@ function getPoint(p0, p1, tant){
 	var sinr = cosx*siny + cosy*sinx;
 	var ll = len/(2*cosy);
 	var dx = ll*cosr, dy = ll*sinr;
-	//console.log("cosx:", cosx, "sinx:", sinx, "dx:", dx, "dy:", dy);
+	////console.log("cosx:", cosx, "sinx:", sinx, "dx:", dx, "dy:", dy);
 	return {x:p0.x+dx, y:p0.y+dy, name:"mid"}
 }
