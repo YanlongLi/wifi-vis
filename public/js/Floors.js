@@ -38,6 +38,7 @@ WifiVis.Floor = function(div, index, w, h, bgColor){
 		floorDetail.changeFloor(iF);
 		floorDetail.update_ap_device(apLst);
 		floorDetail.update_links();
+		timeline.change_floor();
 
 		//
 		d3.selectAll(".floor")
