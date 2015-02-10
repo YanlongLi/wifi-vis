@@ -40,6 +40,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 	if(_iF){
 		changeFloor(_iF);
 	}
+	var graphinfo;
 	//
 	FloorDetail.changeFloor = changeFloor;
 	FloorDetail.move = moveImage;
@@ -50,15 +51,28 @@ WifiVis.FloorDetail = function(selector, _iF){
 			console.error("no global variable apMap");
 			return;
 		}
+		if(!arguments.length){
+			if(!graphinfo){
+				console.error("no graphinfo, range not assigned");
+			}
+			var links = graphinfo.filter(function(link){
+				var from = apMap.get(link.source),
+							to = apMap.get(link.target);
+				return from.floor == iF && to.floor == iF;
+			});
+			_update_links(links);
+			return;
+		}
 		var from = new Date(range[0]), to = new Date(range[1]);
 		var params = {start: +from.getTime(), end: +to.getTime()};
 		var url = WifiVis.RequestURL.graphinfo(params);
-		d3.json(url,function(err, graphinfo){
+		d3.json(url,function(err, _graphinfo){
+			graphinfo = _graphinfo;
 			console.log(graphinfo.length);
 			var links = graphinfo.filter(function(link){
 				var from = apMap.get(link.source),
 							to = apMap.get(link.target);
-				return from.floor == iF && to.floor ==  iF;
+				return from.floor == iF && to.floor == iF;
 			});
 			_update_links(links);
 		});
@@ -165,6 +179,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 			return arcline([p1,p2]);
 		}).attr("marker-end", "url(#"+markerEndId+")")
 		.style("stroke-width",function(d){return Math.log(d.weight+3)*3});
+		gLine.exit().remove();
 	}
 	function update_ap_device(apLst){
 		if(!apMap){
