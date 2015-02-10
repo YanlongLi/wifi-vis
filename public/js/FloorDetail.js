@@ -29,8 +29,8 @@ WifiVis.FloorDetail = function(selector, _iF){
 			img = g.append("image").attr("id","floor-background"),
 			IMG_DIR = "data/floors/";
 	var aps;
-	var gAps = g.append("g").attr("id","aps-wrapper"),
-			gPath = g.append("g").attr("id", "path-wrapper");
+	var	gPath = g.append("g").attr("id", "path-wrapper"),
+		gAps = g.append("g").attr("id","aps-wrapper");
 			//gFloorLabel = g.append("g").attr("class",'floor-label'),
 	gAps.append("rect").attr("class","placeholder");
 	gPath.append("rect").attr("class","placeholder");
@@ -77,6 +77,14 @@ WifiVis.FloorDetail = function(selector, _iF){
 			_update_links(links);
 		});
 	};
+	FloorDetail.hide_links = function(){
+		gPath.attr("opacity", 0);
+		return FloorDetail;
+	};
+	FloorDetail.show_links = function(){
+		gPath.attr("opacity", 1);
+		return FloorDetail;
+	}
 	//
 	function _imgPath(iF){return IMG_DIR+iF+"F.jpg"};
 	function _resizeImg(){
@@ -171,15 +179,17 @@ WifiVis.FloorDetail = function(selector, _iF){
 		});
 		console.log("link weight:",links.map(function(l){return +l.weight}).sort(function(a,b){return a-b}).join(","));
 		var arcline = utils.arcline();
-		var gLine = gPath.selectAll("path.link").data(links);
+		var gLine = gPath.selectAll("path.link").data(links,function(l){
+			return l.source + "," + l.target;
+		});
 		gLine.enter().append("path").attr("class","link");
 		gLine.attr("d",function(d){
 			var p1 = [x(d.x1),y(d.y1)];
       var p2 = [x(d.x2),y(d.y2)];
 			return arcline([p1,p2]);
-		}).attr("marker-end", "url(#"+markerEndId+")")
+		}).transition().attr("marker-end", "url(#"+markerEndId+")")
 		.style("stroke-width",function(d){return Math.log(d.weight+3)*3});
-		gLine.exit().remove();
+		gLine.exit().transition().style("stroke-width",0).remove();
 	}
 	function update_ap_device(apLst){
 		if(!apMap){
