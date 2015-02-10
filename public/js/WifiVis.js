@@ -24,7 +24,8 @@ WifiVis.RequestURL = (function(){
 		aps: "/aps",
 		apbyid: "/apById",
 		records: "/records",
-		paths: "/find_path"
+		paths: "/find_path",
+		timeline: "/tl-data"
 	};
 
 	RequestURL.graphinfo = function(params){
@@ -51,6 +52,10 @@ WifiVis.RequestURL = (function(){
 	RequestURL.paths = function(params){
 		params = params ? params : {};
 		return generateURL(PATH.paths, params);
+	}
+	RequestURL.timeline = function(params){
+		params = params? params : {};
+		return generateURL(PATH.timeline, params);
 	}
 
 	function generateURL(path, params){
