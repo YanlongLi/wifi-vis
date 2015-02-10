@@ -1,5 +1,6 @@
 var fs = require('fs');
 var express = require('express');
+var d3 = require('d3');
 var router = express.Router();
 
 router.get('/test', function(req, resp){
@@ -120,6 +121,51 @@ router.get('/find_path', function(req, res, next) {
 		});	
 	}
 });
+/*
+ * given a time span, generate graph info,
+ * including links(source:apid, to: apid, weight)
+ */
+router.get('/graphinfo', function(req, resp, next){
+	var db = req.db;
+	var start = +req.query.start;
+	var end = +req.query.end;
+	find_path(db, start, end, function(err, result){
+		var paths = result.map(function(d){return d.records});
+		var links	= paths_to_links(paths);
+		resp.contentType("application/json");
+		resp.send(JSON.stringify(links));
+		resp.end();
+	});
+})
+
+function paths_to_links(paths){
+	// key:"apid,apid", value:{weight:, macs:[]}
+	var links = d3.map(); 
+	paths.forEach(function(path){
+		path.forEach(function(r,i){
+			if(i == 0 || r.apid == path[i-1].apid){
+				return;
+			}
+			var key = path[i-1].apid + ","+ r.apid;
+			if(!links.has(key)){
+				links.set(key, {weight:0, macs:[]});
+			}
+			var link = links.get(key);
+			link.weight ++;
+			link.macs.push(r.mac);
+		});
+	});
+	return links.entries().map(function(o){
+		var key = o.key, link = o.value;
+		var arr = key.split(",");
+		return {
+			source : +arr[0],
+			target : +arr[1],
+			weight : link.weight,
+			macs   : link.macs
+		}
+	});
+}
 
 /*
  * get timeline data
@@ -258,7 +304,7 @@ function generate_tl_data(records, start, end, step){
 
 /*
  * fn(err, paths)
- *  - paths:[{records:[]}]
+ *  - paths:[{mac:, records:[]}]
  * note: log in same ap in sequential may occur
  */
 function find_path(db, start, end, fn){
