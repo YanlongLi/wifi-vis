@@ -39,6 +39,8 @@ WifiVis.Timeline = function(id, opt){
 	Timeline.set_size= function(_){
 		if(_){
 			size = _;
+			x.range([0, size.width]);
+			y.range([size.height, 0]);
 			console.log("init timeline size:", _);
 			return Timeline;
 		}
@@ -214,7 +216,10 @@ WifiVis.TimelineBrush = function(timeline, opt){
 			BRUSH_LOCK = false, IN_SELECTION = false, ALL_DEFAULT = true;
 	// some functiion
 	var validateExtent = defaultValidateExtent,
-			adjustExtent, onBrushEnd;
+			adjustExtent;
+	var onBrushStart = function(){},
+			onBrushMove = function(){},
+			onBrushEnd = function(){};
 			
 	// getter and setter
 	(function(){
@@ -247,6 +252,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 	 *
 	 */
 	function setBrush(){
+		console.log(x.range(), x.domain());
 		brush = d3.svg.brush().x(x)
 			.on("brushstart",cbBrushStart)
 			.on("brush", cbBrushMove)
@@ -262,6 +268,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 		gBrush.classed("active", true);
 		BRUSH_LOCK = true;
 		extent = null;
+		onBrushStart();
 	}
 	function cbBrushMove(){
 		console.log("brush move");
@@ -270,7 +277,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 			e = adjustExtent(e);
 		}
 		extent = e;
-		onBrushEnd(e);
+		onBrushMove(e);
 	}
 	function cbBrushEnd(){
 		console.log("brush end");
@@ -295,7 +302,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 		}
 		extent = e;
 		//
-		onBrushEnd && onBrushEnd(e);
+		onBrushEnd(e);
 		//
 		updateBrushTag(false, e);
 		//
@@ -347,6 +354,20 @@ WifiVis.TimelineBrush = function(timeline, opt){
 		}
 		return adjustExtent;
 	};
+	TimelineBrush.onBrushStart = function(f){
+		if(f){
+			onBrushStart = f.bind(TimelineBrush);
+			return TimelineBrush;
+		}
+		return onBrushStart;
+	}
+	TimelineBrush.onBrushMove = function(f){
+		if(f){
+			onBrushMove = f.bind(TimelineBrush);
+			return TimelineBrush;
+		}
+		return onBrushMove;
+	}
 	TimelineBrush.onBrushEnd = function(f){
 		if(f){
 			onBrushEnd = f.bind(TimelineBrush);

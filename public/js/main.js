@@ -37,13 +37,17 @@ function init(){
 	timeline = WifiVis.Timeline("#timeline-g",{tid:1});
 	timeline.set_size(tlSize);
 	// brush
-	tlBrush = WifiVis.TimelineBrush(timeline).onBrushEnd(onEnd);
+	tlBrush = WifiVis.TimelineBrush(timeline)
+		.onBrushMove(onMove)
+		.onBrushEnd(onEnd);
 	// apGraph
 	apGraph = WifiVis.ApGraph();
 	//
 	//
-	floorDetail.update_ap_device(apLst);
+	//tracer.gotoTime((timeFrom.getTime()+timeTo.getTime())/2);
 	floorDetail.update_links([timeFrom.getTime(),timeTo.getTime()]);
+	//floorDetail.hide_links();
+	floorDetail.update_ap_device(apLst);
 	timeline.update();
 }
 
@@ -67,6 +71,16 @@ function init_aplst_records(){
 	records.forEach(function(r,i){r.index = i});
 }
 
+function onStart(extent){
+}
+function onMove(extent){
+	var tl = this.timeline,
+		shownData = tl.shownData, data = tl.data;
+	var e0 = extent[0], e1 = extent[1];
+	tracer.gotoTime(new Date(e0));
+	floorDetail.update_ap_device(apLst);
+	//floorDetail.update_links([e0, e1]);
+}
 function onEnd(extent){
 	var tl = this.timeline,
 		shownData = tl.shownData, data = tl.data;
