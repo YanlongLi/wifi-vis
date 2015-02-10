@@ -1,13 +1,19 @@
 
 /*
- *
+ * global variable required:
+ * apLst:
+ * apMap:
  */
 floor_image_size = WifiVis.FLOOR_IMG_SIZE;
 
+/*
+ * the interface:
+ * changeFloor: iF
+ * update_ap_device: apLst(with cluster)
+ * update_links: [range]
+ */
 WifiVis.FloorDetail = function(selector, _iF){
 	function FloorDetail(){}
-	var color = d3.interpolateLab("#008000", "#c83a22");
-	//
 	var iF;
 	// defs
 	var markerEndId = "arrowMarkerEnd";
@@ -24,11 +30,8 @@ WifiVis.FloorDetail = function(selector, _iF){
 			IMG_DIR = "data/floors/";
 	var aps;
 	var gAps = g.append("g").attr("id","aps-wrapper"),
-			gPath = g.append("g").attr("id", "path-wrapper"),
+			gPath = g.append("g").attr("id", "path-wrapper");
 			//gFloorLabel = g.append("g").attr("class",'floor-label'),
-			pathF = d3.svg.line()
-				.x(function(d){return x(d.ap.pos_x)})
-				.y(function(d){return y(d.ap.pos_y)});
 	gAps.append("rect").attr("class","placeholder");
 	gPath.append("rect").attr("class","placeholder");
 	//gFloorLabel.append('text');
@@ -41,8 +44,25 @@ WifiVis.FloorDetail = function(selector, _iF){
 	FloorDetail.changeFloor = changeFloor;
 	FloorDetail.move = moveImage;
 	FloorDetail.moveRelative = moveRelative;
-	FloorDetail.drawPath = drawPath;
-	FloorDetail.draw = draw;
+	FloorDetail.update_ap_device = update_ap_device;
+	FloorDetail.update_links = function(range){
+		if(!apMap){
+			console.error("no global variable apMap");
+			return;
+		}
+		var from = new Date(range[0]), to = new Date(range[1]);
+		var params = {start: +from.getTime(), end: +to.getTime()};
+		var url = WifiVis.RequestURL.graphinfo(params);
+		d3.json(url,function(err, graphinfo){
+			console.log(graphinfo.length);
+			var links = graphinfo.filter(function(link){
+				var from = apMap.get(link.source),
+							to = apMap.get(link.target);
+				return from.floor == iF && to.floor ==  iF;
+			});
+			_update_links(links);
+		});
+	};
 	//
 	function _imgPath(iF){return IMG_DIR+iF+"F.jpg"};
 	function _resizeImg(){
@@ -135,7 +155,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 			link.x2 = targetAp.pos_x;
 			link.y2 = targetAp.pos_y;
 		});
-		//links.forEach(function(l){console.log("link weight:",l.weight)});
+		console.log("link weight:",links.map(function(l){return +l.weight}).sort(function(a,b){return a-b}).join(","));
 		var arcline = utils.arcline();
 		var gLine = gPath.selectAll("path.link").data(links);
 		gLine.enter().append("path").attr("class","link");
@@ -144,64 +164,19 @@ WifiVis.FloorDetail = function(selector, _iF){
       var p2 = [x(d.x2),y(d.y2)];
 			return arcline([p1,p2]);
 		}).attr("marker-end", "url(#"+markerEndId+")")
-		.style("stroke-width",function(d){return d.weight});
+		.style("stroke-width",function(d){return Math.log(d.weight+3)*3});
 	}
-	function draw(apLst){
+	function update_ap_device(apLst){
+		if(!apMap){
+			console.error("no global variable apMap");
+			return;
+		}
 		var aps = apLst.filter(function(ap){
 			return ap.floor == iF;
 		});
 		console.log("aps on floor", aps.length);
 		_update_aps(aps);
 		_update_device(aps);
-		d3.json("/graphinfo?start=1378037532000&end=1378041122000",function(err, graphinfo){
-			var links = graphinfo.filter(function(link){
-				var from = apMap.get(link.source),
-				to = apMap.get(link.target);
-				return from.floor == iF && to.floor ==  iF;
-			});
-			_update_links(links);
-		})
-	}
-	var pathByMac, numByAp;
-	function drawPath(_pathByMac){
-		pathByMac = _pathByMac;
-		//
-		var records = Array.prototype.concat.apply([], pathByMac);
-		var i = -1, len = records.length, r;
-		numByAp = d3.map();
-		//console.log("record size:", records.length);
-		while(++i < len){
-			r = records[i];
-			if(numByAp.has(r.apid)){
-				numByAp.set(r.apid, numByAp.get(r.apid)+1);
-			}else{
-				numByAp.set(r.apid, 1);
-			}
-		}
-		console.log("mapsize:", numByAp.size());
-		aps = apCenter.findAllApsOnFloor(iF);
-		_drawAps(aps);
-		//
-		console.log("draw path, path number:", pathByMac.length);
-		var selPath = gPath.selectAll("path").data(pathByMac);
-		var selPathEnter = selPath.enter().append("path");
-		selPath.attr("d", function(path){
-			var len = path.length;
-			if(len <= 2) return "";
-			var res = "";
-			path.forEach(function(r,i){
-				if(i == 0) return;
-				var p0 = {x:x(path[i-1].ap.pos_x), y:y(path[i-1].ap.pos_y)};
-				var p1 = {x:x(r.ap.pos_x), y:y(r.ap.pos_y)};
-				var p = getPoint(p0, p1);
-				res = res + " Q"+p.x+","+p.y+" "+p1.x+","+p1.y+" ";
-			});
-			res = "M"+x(path[0].ap.pos_x)+","+y(path[0].ap.pos_y)+res;
-			//console.log("res",res);
-			return res;
-		});
-		//.attr("marker-mid","url(#triangle)");
-		selPath.exit().remove();
 	}
 	function moveImage(offset){
 		imgOffset = offset;
