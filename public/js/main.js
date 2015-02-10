@@ -35,11 +35,16 @@ function init(){
 	tlSize = {width: _tlG.w, height: _tlG.h};
 	// TODO
 	timeline = WifiVis.Timeline("#timeline-g",{tid:1});
-	timeline.set_size(tlSize).update();
+	timeline.set_size(tlSize);
 	// brush
-	//tlBrush = TimelineBrush(timeline).onBrushEnd(onEnd);
+	tlBrush = WifiVis.TimelineBrush(timeline).onBrushEnd(onEnd);
 	// apGraph
 	apGraph = WifiVis.ApGraph();
+	//
+	//
+	floorDetail.update_ap_device(apLst);
+	floorDetail.update_links([timeFrom.getTime(),timeTo.getTime()]);
+	timeline.update();
 }
 
 d3.json(recordUrl, function(err, rs){
@@ -67,18 +72,9 @@ function onEnd(extent){
 		shownData = tl.shownData, data = tl.data;
 	var e0 = extent[0], e1 = extent[1];
 	console.log("on bursh end:", e0, e1);
-	/*var records = recordCenter.findRecords(function(r){
-		return r.ap.floor == curF
-			&& r.dateTime >= e0
-			&& r.dateTime <= e1;	
-	});*/
-	var records = data.filter(function(r){
-		return r.dateTime >= e0
-			&& r.dateTime <= e1;	
-	});
-	var pathes = dataHelper.groupRecordsByMac(records)
-		.map(dataHelper.removeDuplicateRecords);
-	floorDetail.drawPath(pathes);
+	tracer.gotoTime(new Date(e0));
+	floorDetail.update_ap_device(apLst);
+	floorDetail.update_links([e0, e1]);
 	// apGraph
 	/*
 	var allRecords = recordCenter.findAllRecords(function(r){
