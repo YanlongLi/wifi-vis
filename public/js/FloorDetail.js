@@ -29,9 +29,11 @@ WifiVis.FloorDetail = function(selector, _iF){
 			img = g.append("image").attr("id","floor-background"),
 			IMG_DIR = "data/floors/";
 	var aps;
+	var gBrush = g.append("g").attr("id", "brush-select").attr("class", 'brush');
 	var	gPath = g.append("g").attr("id", "path-wrapper"),
 		gAps = g.append("g").attr("id","aps-wrapper");
 			//gFloorLabel = g.append("g").attr("class",'floor-label'),
+	var brush = d3.svg.brush();
 	gAps.append("rect").attr("class","placeholder");
 	gPath.append("rect").attr("class","placeholder");
 	//gFloorLabel.append('text');
@@ -94,6 +96,37 @@ WifiVis.FloorDetail = function(selector, _iF){
 		img.attr('height', imgSize.h);
 		gAps.select("rect.placeholder").attr("width",imgSize.w).attr("height", imgSize.h);
 		gPath.select("rect.placeholder").attr("width",imgSize.w).attr("height", imgSize.h);
+		brush.x(d3.scale.identity().domain([-20, imgSize.w+20]))
+			.y(d3.scale.identity().domain([-20, imgSize.h+20]));
+		brush.on("brushstart", brushstart)
+			.on("brush", brushed)
+			.on("brushend", brushend);
+		gBrush.call(brush);
+	}
+	function brushstart(d){
+		console.log('brush start:', d);
+	}
+	function brushed(){
+		var extent = brush.extent();
+		console.log("extent", extent[0], extent[1]);
+		deviceLst.forEach(function(d){
+			d.device.selected = false;
+			if(extent[0][0] <= d.x && d.x < extent[1][0]
+					&& extent[0][1] <= d.y && d.y < extent[1][1]){
+				d.device.selected = true;
+				console.log("one device selected");
+			}
+		});
+		gAps.selectAll("circle.device").classed("selected", function(d){
+			if(d.device.selected){
+				return true;
+			}
+			return false;
+		});
+	}
+	function brushend(){
+		d3.event.target.clear();
+		d3.select(this).call(d3.event.target);
 	}
 	function changeFloor(_iF){
 		iF = _iF;
@@ -122,9 +155,10 @@ WifiVis.FloorDetail = function(selector, _iF){
 		//aps = dataCenter.find_aps({floors:[iF]});
 		return FloorDetail;
 	}
+	var deviceLst = [];
 	function _update_device(aps){
 		// apLst:[{ap with cluster}]
-		var deviceLst = [];
+		deviceLst = [];
 		aps.forEach(function(ap){
 			var px = ap.pos_x, py = ap.pos_y;
 			ap.cluster.deviceLst().forEach(function(pos){
@@ -206,7 +240,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 	function moveImage(offset){
 		imgOffset = offset;
 		img.transition().attr("x", imgOffset[0]).attr("y", imgOffset[1]);
-		d3.selectAll("#path-wrapper, #aps-wrapper, .floor-label")
+		d3.selectAll("#path-wrapper, #aps-wrapper, #brush-select, .floor-label")
 			.transition()
 			.attr('transform', "translate("+imgOffset[0]+","+imgOffset[1]+")");
 		//
