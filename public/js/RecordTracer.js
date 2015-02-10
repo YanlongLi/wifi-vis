@@ -60,7 +60,7 @@ Device.prototype.moveBackward = function(index){
 function DeviceCluster(apid){
 	this.apid = apid;
 	this.r = 4;
-	this.level = 6;
+	this.level = 10;
 	this.positions = square(this.r, this.level);
 	this.posFlag = this.positions.map(function(){return false});
 	this.deviceMap = d3.map();
@@ -153,10 +153,10 @@ RecordTracer.prototype.gotoTime = function(_time, cb){
 		this.cur == -1 ? new Date(timeFrom) : new Date(records[this.cur].date_time);
 	var len = records.length;
 	while(t - _time > 0){
+		this.moveBack();
 		if(this.cur == -1){
 			break;
 		}
-		this.moveBack();
 		t = new Date(records[this.cur].date_time);
 	}
 	while(t - _time < 0){
