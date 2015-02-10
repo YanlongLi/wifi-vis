@@ -107,9 +107,11 @@ rect.placeholder{
 }
 
 #aps-wrapper{}
-#aps-wrapper circle{
+#aps-wrapper circle.device{
 	fill: rgb(255, 127, 14);
-	opacity: 0.8;
+}
+#aps-wrapper circle.ap{
+	fill: #4AFF00;
 }
 
 #path-wrapper{}

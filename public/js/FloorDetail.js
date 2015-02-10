@@ -44,7 +44,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 	FloorDetail.move = moveImage;
 	FloorDetail.moveRelative = moveRelative;
 	FloorDetail.drawPath = drawPath;
-	FloorDetail.drawAps = _drawAps;
+	FloorDetail.draw = draw;
 	//
 	function _imgPath(iF){return IMG_DIR+iF+"F.jpg"};
 	function _resizeImg(){
@@ -82,28 +82,58 @@ WifiVis.FloorDetail = function(selector, _iF){
 		//aps = dataCenter.find_aps({floors:[iF]});
 		return FloorDetail;
 	}
-	function _drawAps(apLst){
-		var aps = apLst.filter(function(ap){
-			return ap.floor == iF;
-		});
+	function _update_device(aps){
+		// apLst:[{ap with cluster}]
 		var deviceLst = [];
 		aps.forEach(function(ap){
 			var px = ap.pos_x, py = ap.pos_y;
 			ap.cluster.deviceLst().forEach(function(pos){
 				var o = {};
 				o.device = pos.device;
-				o.x = px + pos.x;
-				o.y = py + pos.y;
+				o.mac = pos.device.mac;
+				o.x = x(px) + pos.x;
+				o.y = y(py) + pos.y;
 				o.ap = ap;
 				deviceLst.push(o);
 			});
 		});
-		var dvLst = gAps.selectAll("circle.device").data(deviceLst, function(d){return d.mac});
-		dvLst.enter().append("circle").attr("class", "device");
-		dvLst.attr("cx", function(d){return x(d.x)})
-			.attr("cy", function(d){return y(d.y)})
-			.attr("r", function(d){return x(2)});
-
+		//console.log("device list", deviceLst.length, deviceLst.slice(0,10));
+		var dvLst = gAps.selectAll("circle.device")
+			.data(deviceLst, function(d){return d.mac});
+		dvLst.enter().append("circle")
+			.attr("class", "device")
+			.attr("cx", function(d) {return d.x})
+			.attr("cy", function(d){return d.y})
+			.attr("r", 0);
+		dvLst.transition().attr("cx", function(d){return d.x})
+			.attr("cy", function(d){return d.y})
+			.attr("r", function(d){return 4});
+		//dvLst.exit().transition().attr("cx", 0).attr("cy",0).remove();
+		dvLst.exit().remove();
+		return;
+	}
+	function _update_aps(aps){
+		var apSel = gAps.selectAll("circle.ap")
+			.data(aps,function(ap){return ap.apid});
+		apSel.enter().append("circle").attr("class", "ap");
+		apSel.attr("cx", function(d){return x(d.pos_x)})
+			.attr("cy", function(d){return y(d.pos_y)})
+			.attr("r", function(d){return 20})
+			.attr("opacity", 0)
+			.on("mouseover", function(d){
+				d3.select(this).attr("opacity",1);
+			}).on("mouseout", function(d){
+				d3.select(this).attr("opacity", 0);
+			});
+		apSel.exit().remove();
+	}
+	function draw(apLst){
+		var aps = apLst.filter(function(ap){
+			return ap.floor == iF;
+		});
+		console.log("aps on floor", aps.length);
+		_update_aps(aps);
+		_update_device(aps);
 	}
 	var pathByMac, numByAp;
 	function drawPath(_pathByMac){
