@@ -143,7 +143,7 @@ RecordTracer.CreateTracer = function(){
 	var tracer = new RecordTracer();
 	return tracer;
 }
-RecordTracer.prototype.gotoTime = function(_time){
+RecordTracer.prototype.gotoTime = function(_time, cb){
 	if(_time - timeFrom < 0 || _time > timeTo){
 		//console.log(new Date(_time));
 		console.warn("go to time out of range");
@@ -165,6 +165,9 @@ RecordTracer.prototype.gotoTime = function(_time){
 		}
 		this.moveOn();
 		t = new Date(records[this.cur].date_time);
+	}
+	if(cb){
+		cb(this.cur);
 	}
 	if(this.cur == len){
 		//console.log("reach end");
