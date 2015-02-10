@@ -1,12 +1,37 @@
 # Wiki Update
 
 ## Progress.
+
+### 2015-02-10
+
+![cur verison](_img/0211-img-1.png)
+
+on floor 6, day of 20130902, 01:00-23:00
+
+what have done:
+
+- track the device location change over time, when brush in timeline is moveing, device location changes.
+- hover on a AP, show records change over time in timeline view.
+- link width as traffic between APs.
+
+to do next:
+
+- put the arrow out of circle(AP).
+- use a more reasonalble y scale in timeline
+- rewrite the AP graph view 
+
+problems:
+
+- projection of the time and data is wrong, this is cause by time zone issue when converting time.
+- colurs used are terrible
+- bugs in device location tracking, need to recheck
+
 ### 2015-02-08
 
-**in the data: same device may log in a AP in very short time**
+in the data: same device may log in a AP in very short time,
+this may caused by network instability.
+so when computing path for a device, only record differs with previous in AP are kept.
 
-- network instability 
-- (there are APs share the same location, which may have effects on the vis)
 
 ### 2015-02-07
 
