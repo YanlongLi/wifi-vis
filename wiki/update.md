@@ -2,6 +2,48 @@
 
 ## Progress.
 
+### 2015-02-11
+
+**Today's Discussion Result:**
+
+#### Two New Views
+
+1. Single AP View: this view is supposed to visualize device's login activities over time on a specific(chosen) AP.  
+	![IMAGE](_img/0211-view-1.png)  
+	Just like above, the x axis is time, and y axis indicates different devices,
+	for one device, a segment shows a (login, logout) activity on the AP.  
+	then number of device can be accumulated and drawn as line plot.  
+	overlap or repeating can be used to show whether there are patterns over time for a device or some devices.
+	for example, overlap plot of day1, day2, day3 to see the results.
+	**Uncertainty**:  
+	For we don't have logout records, logout activities are known by login activity on other AP.
+	There may some devices that will stay all the time on AP under the condition,
+	but device(person) may be out actually. This is the uncertainty.  
+	So, we need to take this into consideration, for example, set a timeout for device.  
+	**Have a look at how many devices will appear on a AP in one day**
+
+2. Single Device View: this view is suppose to visualize the activities on a set of APs for a device or some devices. this is focus on devices.  
+	![IMAGE](_img/0211-view-2.png)  
+	x axis indicates time and y axis indicates different APs,	for a device, we can plot its path on these APs,
+	for example, _device1_ is on _AP1_ in time range (9:00, 10:00), and on _AP3_ in range (10:00, 12:00) ...  
+	Uncertainty is in this view too.
+
+in two views above, one is focus on AP's activity and one is on device activity, each one shows some aspects on AP for device,
+for different APs or device, histograms can be used to compare(**THIS PART TO BE DISCUSSED**).
+
+- view 1 is suppose to show different types of APs, meeting rooms, office or other functional based type.
+- view 2 is suppose to show different person activities, visitors, regular stuffs or something else.
+
+### Problems in current version
+
+- background opacity
+- put arrow out of circle
+- show AP or link info when hover
+- the timeline bug
+- may color or circle shape as staing time for a device
+- virtual AP in every floor, which are used to show floor change of device.
+- color scale for floors
+
 ### 2015-02-10
 
 ![cur verison](_img/0211-img-1.png)
