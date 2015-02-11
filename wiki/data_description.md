@@ -122,6 +122,8 @@ So, now we have three type of data:
 9,f1ap9,96,434,1
 ```
 
+## Total number of devices(MACs): 10455
+
 ## Records By Week (**records in September**)
 
 ```

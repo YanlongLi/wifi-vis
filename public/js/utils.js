@@ -81,3 +81,53 @@ utils.debug = function(){
 	console.log.apply(console, arr);
 }
 //module.exports = utils;
+utils.initArrowMarker = function(svg, markerId){
+	svg.append("svg:defs").append("svg:marker")
+		.attr("id",markerId)
+		.attr("viewBox","0 -10 20 20")
+		.attr("refX",14.5)
+		.attr("refY",0)
+		.attr("markerWidth",5)
+		.attr("markerHeight",4)
+		.attr("orient","auto")
+		.append("svg:path")
+		.attr("d","M0,-8L18,0L0,8")
+//		.style("stroke","red")
+		.style("fill","#5C4D2F");
+}
+utils.arcline = function(){
+	function arcline(points){
+		return single_arc(points[0], points[1]);
+	}
+
+	var x = default_x;
+	var y = default_y;
+
+	arcline.x = function(_){
+		if(!arguments.length) return x;
+		x = _;
+		return arcline;
+	};
+	arcline.y = function(_){
+		if(!arguments.length) return y;
+		y = _;
+		return arcline;
+	}
+
+	function single_arc(p0, p1){
+		var x0 = x(p0), y0 = y(p0),
+				x1 = x(p1), y1 = y(p1);
+		var dx = x1 - x0,
+				dy = y1 - y0;
+		var dr = Math.sqrt(dx*dx + dy*dy);
+		var str = "M" + x0 + "," + y0 
+							+ "A" + dr + "," + dr
+							+ " 0,0,0 " + x1 + "," + y1;
+		return str;
+	}
+
+	function default_x(d){ return d[0] };
+	function default_y(d){ return d[1] }
+
+	return arcline;
+}
