@@ -49,6 +49,7 @@ function init(){
 	//floorDetail.hide_links();
 	floorDetail.update_ap_device(apLst);
 	timeline.update();
+	apGraph.draw();
 }
 
 d3.json(recordUrl, function(err, rs){
