@@ -34,14 +34,12 @@ WifiVis.Floor = function(div, index, w, h, bgColor){
 	function changeToFloor(){
 		curF = iF;
 		console.log("changeToFloor:", curF);
-		var timelineData = recordCenter.findAllRecordsOnFloor(iF);
-		timeline.updateData(timelineData);
-		timeline.renderTimeline(tlSize, "#1C98F3");
+		timeline.update();
 		floorDetail.changeFloor(iF);
+		floorDetail.update_ap_device(apLst);
+		floorDetail.update_links();
+		timeline.change_floor();
 
-		var pathes = dataHelper.groupRecordsByMac(timelineData)
-			.map(dataHelper.removeDuplicateRecords);
-		floorDetail.drawPath(pathes);
 		//
 		d3.selectAll(".floor")
 			.classed('pushed', false);
