@@ -84,7 +84,8 @@ rect.placeholder{
 }
 
 #aps-graph-wrapper line.link{
-	stroke: #F7E308;
+	stroke: #8C564B;
+	stroke-width: 2;
 }
 
 /*
