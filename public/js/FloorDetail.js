@@ -226,11 +226,17 @@ WifiVis.FloorDetail = function(selector, _iF){
 		var gLine = gPath.selectAll("path.link").data(links,function(l){
 			return l.source + "," + l.target;
 		});
-		gLine.enter().append("path").attr("class","link");
+		gLine.enter().append("path").attr("class","link").style("stroke", "#8C564B");
 		gLine.attr("d",function(d){
 			var p1 = [x(d.x1),y(d.y1)];
       var p2 = [x(d.x2),y(d.y2)];
 			return arcline([p1,p2]);
+		}).on("mousemove", function(d){
+			// TODO
+			d3.select(this).style("stroke","red");
+		}).on("mouseout", function(d){
+			// TODO
+			d3.select(this).style("stroke", "#8C564B")
 		}).transition().attr("marker-end", "url(#"+markerEndId+")")
 		.style("stroke-width",function(d){return Math.log(d.weight+3)*3});
 		gLine.exit().transition().style("stroke-width",0).remove();

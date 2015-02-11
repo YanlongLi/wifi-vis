@@ -124,7 +124,7 @@ rect.placeholder{
 #path-wrapper{}
 #path-wrapper path.link{
 	fill: none;
-	stroke: #8C564B;
+	/*stroke: #8C564B;*/
 	opacity: 0.7;
 }
 .floor-label text{
