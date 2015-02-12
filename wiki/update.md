@@ -34,6 +34,16 @@ for different APs or device, histograms can be used to compare(**THIS PART TO BE
 - view 1 is suppose to show different types of APs, meeting rooms, office or other functional based type.
 - view 2 is suppose to show different person activities, visitors, regular stuffs or something else.
 
+### Work Division
+
+tasks of two new views above are given to Lu.Liu and Xuanwu.Yue. As to two new members, AP graph part will be handed to to Song.Wang, this part may need to be discussed further.
+work of floor selection bar to Hongyu.Jiang, in this part features below are included:
+
+1. floor navigation: add click handler on floor change.
+2. show some devices' path changing between floors in a time range.
+3. show flow change between floors in a time range.
+
+
 ### Problems in current version
 
 - background opacity
@@ -43,6 +53,7 @@ for different APs or device, histograms can be used to compare(**THIS PART TO BE
 - may color or circle shape as staing time for a device
 - virtual AP in every floor, which are used to show floor change of device.
 - color scale for floors
+- interfaces for new views
 
 ### 2015-02-10
 
