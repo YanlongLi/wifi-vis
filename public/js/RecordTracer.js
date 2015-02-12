@@ -20,6 +20,38 @@ function Device(mac, index){
 	}
 }
 
+Device.prototype.recordIn = function(){
+	var index = this.curRecordIndex();
+	return records[index];
+}
+
+Device.prototype.curRecordIndex = function(){
+	if(this.cur == -1){
+		console.log("current device not in");
+		return null;
+	}
+	return this.deviceRoute[this.cur];
+}
+
+Device.prototype.stayTime = function(rIndex){
+	var index = this.curRecordIndex();
+	if(rIndex < index){
+		console.warn("current time is before device's login time");
+	}
+	var r = records[rIndex],
+			cur = records[index];
+	return new Date(r.date_time) - new Date(cur.date_time);
+}
+
+Device.prototype.deviceStatus = function(rIndex){
+	if(!arguments.length){
+		console.log("no current record index");
+		return null;
+	}
+	var stayTime = this.stayTime();
+	var arr = [60*2,]
+}
+
 /*
  * mvoe forward to the index record
  */
