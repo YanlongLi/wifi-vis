@@ -22,7 +22,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 		utils.initArrowMarker(svg, markerEndId);
 	})();
 	//
-	var o = utils.initSVG(selector, [0]), g = o.g;
+	var o = utils.initSVG(selector, [0, 20, 0, 0]), g = o.g;
 	//
 	var imgOriSize = {}, imgSize = {},
 			x = d3.scale.linear(), y = d3.scale.linear(),
@@ -202,12 +202,21 @@ WifiVis.FloorDetail = function(selector, _iF){
 				// TODO
 				timeline.add_ap_timeline(d.apid);
 				//console.log(d);
-				d3.select(this).attr("opacity",1);
+				d3.select(this).classed("hilight",true);
 				d3.select(this).append('title').text(d.name);
+				//
+				gPath.selectAll("path.link").classed("fade", function(l){
+					if(l.source == d.apid){
+						return false;
+					}
+					return true;
+				});
 			}).on("mouseout", function(d){
-				d3.select(this).attr("opacity", 0);
+				d3.select(this).classed("hilight",false);
 				d3.select(this).selectAll("title").remove();
 				timeline.remove_ap_timeline();
+				//
+				gPath.selectAll("path.link").classed("fade", false);
 			});
 		apSel.exit().remove();
 	}

@@ -10,8 +10,8 @@ WifiVis.ApGraph = function(){
 	var g = o.g, w = o.w, h = o.h, r = 6;
 	var force = d3.layout.force().size([o.w,o.h])
 		.gravity(0.8)
-		.charge(-100)
-		.linkDistance(20)
+		.charge(-180)
+		.linkDistance(15)
 		.on('tick', tick);
 	var nodes, links, sNode, sLink;
 
@@ -40,7 +40,7 @@ WifiVis.ApGraph = function(){
 			//
 			console.log(graphinfo.length);
 			var links = graphinfo.filter(function(l){
-				return l.weight > 50;
+				return l.weight > 30;
 			});
 
 			var s = d3.set();
