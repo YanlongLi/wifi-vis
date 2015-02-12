@@ -22,7 +22,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 		utils.initArrowMarker(svg, markerEndId);
 	})();
 	//
-	var o = utils.initSVG(selector, [0]), g = o.g;
+	var o = utils.initSVG(selector, [0, 20, 0, 0]), g = o.g;
 	//
 	var imgOriSize = {}, imgSize = {},
 			x = d3.scale.linear(), y = d3.scale.linear(),
