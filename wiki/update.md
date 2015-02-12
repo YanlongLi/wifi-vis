@@ -2,6 +2,28 @@
 
 ## Progress.
 
+### 2015-02-12
+
+### Work Divisions are listed below
+
+tasks of two new views above are given to Lu.Liu and Xuanwu.Yue, which were roughly clear according to discusion yestoday.
+
+As to two new members, AP graph part will be handed to to Song.Wang, 
+the ApGraph is used to show the APs relation according to devices'activities in a time range, the implementation include:
+
+1. support change time range
+2. filter nodes and  links according to links weight
+3. zoom to show relation of a set of APs
+4. may be we also need to show a device's path on these APs.
+
+work of floor selection bar to Hongyu.Jiang, in this part features below are included:
+
+1. floor navigation: add click handler on floor change.
+2. show some devices'path changing between floors in a time range.
+3. highlight on AP or link selection.(may support highlight callback function to show some detail info)
+4. show flow change between floors in a time range.
+
+
 ### 2015-02-11
 
 **Today's Discussion Result:**
@@ -43,6 +65,17 @@ for different APs or device, histograms can be used to compare(**THIS PART TO BE
 - may color or circle shape as staing time for a device
 - virtual AP in every floor, which are used to show floor change of device.
 - color scale for floors
+- interfaces for new views
+
+### Simpler Version of AP Graph
+
+![link weight filter by 50](_img/0212-img-aps-1.png)
+
+only show links that have weight more than 50
+
+![linf weight filter fby 30](_img/0212-img-aps-2.png)
+
+only show links that have weight more than 50
 
 ### 2015-02-10
 
