@@ -217,6 +217,6 @@ WFV_DB.prototype.graph_info = function(from, to){
 	}
 }
 
-WFV_DB.prototype.tl_data = function(from, to, stepBy stepCount){
+WFV_DB.prototype.tl_data = function(from, to, stepBy, stepCount){
 
 }
