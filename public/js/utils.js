@@ -45,41 +45,7 @@ utils.waitUntil = function(condition, on_finished, interval, timeout) {
         }
     }, interval ? interval : 100);
 };
-/*
- * debug
- */
-utils.log = function(d,lev){
-	lev = 1;
-	if(lev){
-		if(Array.isArray(d)){
-			console.log.apply(console,d);
-		}
-		else{
-			console.log(d);
-		}
-	}
-};
-utils.warn = function(d,lev){
-	if(Array.isArray(d)){
-		console.warn.apply(console,d);
-	}
-	else{
-		console.warn(d);
-	}
-};
-utils.error = function(d,lev){
-	if(Array.isArray(d)){
-		console.error.apply(console,d);
-	}
-	else{
-		console.error(d);
-	}
-};
-utils.debug = function(){
-	if(!this.DEBUG) return;
-	var arr = Array.prototype.slice.call(arguments, 0);
-	console.log.apply(console, arr);
-}
+//
 //module.exports = utils;
 utils.initArrowMarker = function(svg, markerId){
 	svg.append("svg:defs").append("svg:marker")
