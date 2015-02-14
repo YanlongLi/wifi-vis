@@ -32,6 +32,10 @@ WFV.file_path = function(date){
 	return WFV.DATA_PATH + "September/" + fname + ".csv";
 }
 
+/*
+ * WFV_DB object
+ * used to fetch data
+ */
 function WFV_DB(dateFrom, dateTo){
 	var format = WFV.time_to_date;
 	this.dateFrom = format(dateFrom);
@@ -127,33 +131,53 @@ WFV_DB.compute_path = function(records){
 		});
 }
 
-WFV_DB.prototype.records_by_date = function(date){
+WFV_DB.prototype.records_by_date = function(date, cb){
 	if(!date instanceof Date){
 		console.warn(date, "is not a Date instance");
 	}
 	var key = date.to_date_str();
 	var res = this.recordsByDate.get(key).map(utils.identity);
 	console.log("get records on", key, "result:", res.length);
-	return res;
+	if(cb){
+		cb(res);
+	}
+	else{
+		return res;
+	}
 }
 
-WFV_DB.prototype.records_by_interval = function(from, to){
+WFV_DB.prototype.records_by_interval = function(from, to, cb){
 	console.log("get records by interval", from.to_time_str(), to.to_time_str());
-	return this.records.filter(function(r){
+	var records = this.records.filter(function(r){
 		return r.date_time - from >= 0
 			&& to - r.date_time > 0;
 	});	
+	if(cb){
+		cb(records);
+	}else{
+		return records;
+	}
 }
 
-WFV_DB.prototype.ap_by_id = function(apid){
-	return this.apById.get(apid);
+WFV_DB.prototype.ap_by_id = function(apid, cb){
+	var ap = this.apById.get(apid);
+	if(cb){
+		cb(ap);
+	}else{
+		return ap;
+	}
 }
 
-WFV_DB.prototype.aps_all = function(){
-	return this.aps.map(function(ap){return ap});
+WFV_DB.prototype.aps_all = function(cb){
+	var aps = this.aps.map(function(ap){return ap});
+	if(cb){
+		cb(aps);
+	}else{
+		return aps;
+	}
 }
 
-WFV_DB.prototype.path_all = function(from, to){
+WFV_DB.prototype.path_all = function(from, to, cb){
 	var paths = this.paths.map(utils.identity);
 	if(from){
 		paths = paths.map(function(path){
@@ -169,10 +193,15 @@ WFV_DB.prototype.path_all = function(from, to){
 			});
 		});
 	}
-	return paths.filter(function(path){return path.length > 0});
+	var res = paths.filter(function(path){return path.length > 0});
+	if(cb){
+		cb(res);
+	}else{
+		return res;
+	}
 }
 
-WFV_DB.prototype.path_by_mac = function(mac, from, to){
+WFV_DB.prototype.path_by_mac = function(mac, from, to, cb){
 	var path = this.pathByMac.get(mac).map(utils.identity);
 	if(from){
 		path = path.filter(function(r){return r.date_time - from >= 0});
@@ -180,13 +209,31 @@ WFV_DB.prototype.path_by_mac = function(mac, from, to){
 	if(to){
 		path = path.filter(function(r){return to - r.date_time > 0});
 	}
-	return path;
+	if(cb){
+		cb(path);
+	}else{
+		return path;
+	}
 }
 
-WFV_DB.prototype.graph_info = function(from, to){
+/*
+ * graph_info function return a array of links,
+ * the nodes are aps
+ * link: {
+ * 	source: apid
+ * 	target: apid
+ * 	wieght: apid
+ * 	macs: apid
+ * }
+ */
+WFV_DB.prototype.graph_info = function(from, to, cb){
 	var paths = this.path_all(from, to);
 	var links = paths_to_links(paths);
-	return links;
+	if(cb){
+		cb(links);
+	}else{
+		return links;
+	}
 	function paths_to_links(paths){
 		// key:"apid,apid", value:{weight:, macs:[]}
 		var links = d3.map(); 
