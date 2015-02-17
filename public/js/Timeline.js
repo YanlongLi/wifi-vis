@@ -20,8 +20,10 @@ WifiVis.Timeline = function(id, opt){
 			xAxis = d3.svg.axis(), yAxis = d3.svg.axis(),line,
 			extent;
 	xAxis = d3.svg.axis().scale(x).orient("bottom")
-		.tickSize(2,0,4).tickSubdivide(0);
-	yAxis = d3.svg.axis().scale(y).orient("left").ticks(4);
+		.tickSize(2,0,4).tickSubdivide(0)
+		//.tickFormat(function(d){return new Date(d).to_24_str()});
+	yAxis = d3.svg.axis().scale(y).orient("left")
+		.ticks(4);
 
 	g.append("g").attr("id", "timeline-x-axis-"+ tid).attr("class","x axis");
 //		.attr("transform", "translate(0,"+size.height+")")
@@ -113,14 +115,11 @@ WifiVis.Timeline = function(id, opt){
 		// need global variable: timeFrom, timeTo
 		from = from ? from : timeFrom;
 		to = to ? to : timeTo;
-		var params = {
-			start     : (new Date(from)).getTime(),
-			end       : (new Date(to)).getTime(),
-			step      : curStep,
-			stepcount : +stepCount,
-			floor 		: curF
+		function _get_step(){
+			// compute from curStep and stepCount
+			return 1000 * 3600;
 		}
-		timeline_data(params, function( _data){
+		db.tl_data(from, to, _get_step(), function(_data){
 			data = _data;
 			var format = d3.time.format("%Y-%m-%d %H:%M:%S");
 			console.log("load data:",
@@ -157,10 +156,10 @@ WifiVis.Timeline = function(id, opt){
 		strokeColor = _strokeColor || strokeColor;
 		// shownData:{start:, end:, time:, count:[], values:[]}
 		//extent = d3.extent(shownData.time);
-		x.range([0, size.width]).domain(d3.extent(data.time));
-		y.range([size.height, 0]).domain([0,d3.max(data.count)]);
-		console.log(y.domain());
-		line = d3.svg.area().interpolate("monotone")
+		x.range([0, size.width]).domain(d3.extent(data.time)).nice();
+		y.range([size.height, 0]).domain([0,d3.max(data.count)]).nice();
+		line = d3.svg.area()
+		//	.interpolate("monotone")
 			.x(function(d){return x(d.time)})
 			.y(function(d){return y(d.count)})
 			.x0(function(d){ return x(d.time)})
@@ -172,21 +171,6 @@ WifiVis.Timeline = function(id, opt){
 		//g.selectAll("path.basic-timeline").remove();
 		var sel = g.select("path.basic-timeline").datum(shownData);
 		sel.attr("d", line).style("stroke", strokeColor);
-		//
-		var circles = g.select("g.timeline-dot").selectAll("circle").data(shownData);
-		circles.enter().append("circle").attr("class","dot");
-		circles.attr("cx",function(d){return x(d.time)})
-			.attr("cy",function(d){return y(d.count)})
-			.attr("r", 4)
-			.on({
-				"mousemove": function(d){
-					d3.select(this).append("title").text(d.count);
-				},
-				"mouseout": function(d){
-					d3.select(this).select("title").remove();
-				}
-			});
-		circles.exit().remove();
 		// title
 		title && (renderTitle(title));
 		return Timeline;
@@ -303,7 +287,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 		onBrushStart();
 	}
 	function cbBrushMove(){
-		console.log("brush move");
+		//console.log("brush move");
 		var e = d3.event.target.extent();
 		if(adjustExtent){
 			e = adjustExtent(e);
@@ -425,52 +409,9 @@ function timeline_data(params, cb){
 	var step      = TIME_STEP[stepBy] * stepcount;
 	var floor     = params.floor;
 	var apid = params.apid;
-	
-	var rs = records.filter(function(r){
-		if(!r.floor){
-			console.error("no floor field in records");
-			return;
-		}
-		if(floor){
-			return r.floor == +floor;
-		}else if(apid){
-			return r.apid == apid;
-		}
-		return true;
-	});
-	var tlData = generate_tl_data(rs, timeFrom.getTime(), timeTo.getTime(), step);
-	cb(tlData);
-}
-
-function generate_tl_data(records, start, end, step){
-	records.forEach(function(r){r.dateTime = new Date(r.date_time)});
-	var res = {
-		start  : start,
-		end    : end,
-		time   : [],
-		count  : [],
-		values : []
-	};
-	var binNum = (end - start)/step;
-	console.log("step:",step);
-	console.log("bin num:", binNum);
-	var time   = res.time,
-			count  = res.count,
-			values = res.values,
-				i    = -1;
-	while(++i <= binNum){
-		var t = start + i*step,
-			dt  = new Date(t);
-		time.push(t);
-		count.push(0);
-		values.push([]);
+	if(undefined != apid){
+		db.tl_data(timeFrom, timeTo, step, cb);
+	}else{
+		db.tl_data_apid(timeFrom, timeTo, step, apid, cb);
 	}
-	i = -1;
-	while(++i < records.length){
-		var iBin = parseInt((records[i].dateTime - start)/step);
-		count[iBin]++;
-		values[iBin].push(records[i]);
-	}
-	return res;
 }
-

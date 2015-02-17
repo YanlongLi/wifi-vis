@@ -10,6 +10,16 @@ WFV.AP_FILE_PATH = WFV.DATA_PATH + "APS.csv";
 
 WFV.date_format = d3.time.format("%Y-%m-%d");
 
+var loading_tip = (function(){
+	var loading_tip = {};
+	var tip_div = $("#loading-tip");
+	loading_tip.add_tip = function(str){
+		var p = "<div>"+str+"</div>";
+		tip_div.append(p);
+	};
+	return loading_tip;
+})();
+
 // convert a Date obj to Date Obj
 WFV.time_to_date= function(time){
 	var str = WFV.date_format(time);
@@ -24,6 +34,10 @@ Date.prototype.to_date_str = function(){
 }
 Date.prototype.to_time_str = function(){
 	var format = d3.time.format("%Y-%m-%d %H:%M:%S");
+	return format(this);
+}
+Date.prototype.to_24_str = function(){
+	var format = d3.time.format("%H:%M:%S");
 	return format(this);
 }
 
@@ -59,16 +73,18 @@ WFV_DB.prototype.init = function(cb){
 	var that = this;
 	//
 	console.log("GET aps:");
+	loading_tip.add_tip("GET aps ...");
 	d3.csv(WFV.AP_FILE_PATH, function(err, aps){
 		if(err){
 			console.error(err);
 		}else{
-			console.log("result:", aps.length);
+			console.log("result: ", aps.length);
+			loading_tip.add_tip("result: " +  aps.length);
 			that.aps = aps;
 			aps.forEach(function(ap){
 				ap.apid = +ap.apid;
 				ap.floor = +ap.floor;
-				ap.pox_x = +ap.x;
+				ap.pos_x = +ap.x;
 				ap.pos_y = +ap.y;
 				delete ap.x;
 				delete ap.y;
@@ -88,11 +104,13 @@ WFV_DB.prototype.init = function(cb){
 		(function next(i){
 			if(i < len){
 				console.log("GET records on", WFV.date_format(dLst[i]));
+				loading_tip.add_tip("GET records on " + WFV.date_format(dLst[i]));
 				d3.csv(WFV.file_path(dLst[i]), function(err, records){
 					if(err){
 						console.error(err);
 					}else{
 						console.log("result:", records.length);
+						loading_tip.add_tip("result: " + records.length);
 						records.forEach(function(r){
 							r.apid = +r.apid;
 							r.mac = r.mac + "";
@@ -222,8 +240,8 @@ WFV_DB.prototype.path_by_mac = function(mac, from, to, cb){
  * link: {
  * 	source: apid
  * 	target: apid
- * 	wieght: apid
- * 	macs: apid
+ * 	wieght: 
+ * 	macs: [macs]
  * }
  */
 WFV_DB.prototype.graph_info = function(from, to, cb){
@@ -264,6 +282,55 @@ WFV_DB.prototype.graph_info = function(from, to, cb){
 	}
 }
 
-WFV_DB.prototype.tl_data = function(from, to, stepBy, stepCount){
-
+WFV_DB.prototype.tl_data = function(from, to, step, cb){
+	this.records_by_interval(from, to, function(records){
+		var tl_data = generate_tl_data(records, from.getTime(), to.getTime(), step);
+		cb(tl_data);
+	});
+}
+WFV_DB.prototype.tl_data_apid = function(from, to, step, apid, cb){
+	this.records_by_interval(from, to, function(records){
+		if(apid){
+			var rs = records.filter(function(r){return r.apid == +apid});
+			var tl_data = generate_tl_data(rs, from.getTime(), to.getTime(), step);
+			cb(tl_data);
+		}else{
+			var tl_data = generate_tl_data(records, from.getTime(), to.getTime(), step);
+			cb(tl_data);
+		}
+	});		
+}
+/*
+ * records: already sorted by time
+ */
+function generate_tl_data(records, start, end, step){
+	records.forEach(function(r){r.dateTime = new Date(r.date_time)});
+	var res = {
+		start  : start,
+		end    : end,
+		time   : [],
+		count  : [],
+		values : []
+	};
+	var binNum = (end - start)/step;
+	console.log("step:",step);
+	console.log("bin num:", binNum);
+	var time   = res.time,
+	count  = res.count,
+		values = res.values,
+		i    = -1;
+	while(++i <= binNum){
+		var t = start + i*step,
+			dt  = new Date(t);
+		time.push(t);
+		count.push(0);
+		values.push([]);
+	}
+	i = -1;
+	while(++i < records.length){
+		var iBin = parseInt((records[i].dateTime - start)/step);
+		count[iBin]++;
+		values[iBin].push(records[i]);
+	}
+	return res;
 }

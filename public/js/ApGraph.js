@@ -28,9 +28,7 @@ WifiVis.ApGraph = function(){
 	ApGraph.update = update;
 	function update(range){
 		var from = new Date(range[0]), to = new Date(range[1]);
-		var params = {start: +from.getTime(), end: +to.getTime()};
-		var url = WifiVis.RequestURL.graphinfo(params);
-		d3.json(url,function(err, _graphinfo){
+		db.graph_info(from, to, function(_graphinfo){
 			graphinfo = _graphinfo;
 			//
 			graphinfo.forEach(function(link){
@@ -53,6 +51,7 @@ WifiVis.ApGraph = function(){
 			});
 			console.log("nodes:", nodes.length);
 			_update_graph(nodes, links);
+
 		});
 	}
 	function _update_graph(nodes, links){

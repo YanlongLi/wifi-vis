@@ -1,7 +1,23 @@
 body {
-	padding: 20px 20px;
+/*	padding: 20px 20px;*/
 	font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 	/*background-color: #303030;*/
+}
+
+#mask{
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	background-color: #CCCCCC;
+	opacity: 0.8;
+	visibility: visible;
+}
+
+#mask .loading{
+	width: 400;
+	height: 300;
+	margin: auto;
+	visibility: inherit;
 }
 
 /*
@@ -80,11 +96,11 @@ rect.placeholder{
 
 #aps-graph-wrapper circle.node{
 	/*fill: #265D26;*/
-	stroke: #45F205;
+	stroke: #565656;
 }
 
 #aps-graph-wrapper line.link{
-	stroke: #8C564B;
+	stroke:#887E7C; 
 	stroke-width: 2;
 }
 
@@ -201,7 +217,7 @@ rect.placeholder{
 }
 .timeline path.basic-timeline{
 	/*stroke-width: 3;*/
-	fill: #98DF8A;
+	fill: #97CDFF;
 	/*opacity: 0.4;*/
 }
 .timeline .timeline-title{

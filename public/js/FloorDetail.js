@@ -20,6 +20,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 	(function(){
 		var svg = d3.select(selector + "> svg");
 		utils.initArrowMarker(svg, markerEndId);
+		utils.initArrowMarker(svg, markerEndId + "-hilight");
 	})();
 	//
 	var o = utils.initSVG(selector, [0, 20, 0, 0]), g = o.g;
@@ -66,9 +67,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 			return;
 		}
 		var from = new Date(range[0]), to = new Date(range[1]);
-		var params = {start: +from.getTime(), end: +to.getTime()};
-		var url = WifiVis.RequestURL.graphinfo(params);
-		d3.json(url,function(err, _graphinfo){
+		db.graph_info(from, to, function(_graphinfo){
 			graphinfo = _graphinfo;
 			console.log(graphinfo.length);
 			var links = graphinfo.filter(function(link){
@@ -76,6 +75,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 							to = apMap.get(link.target);
 				return from.floor == iF && to.floor == iF;
 			});
+			console.log(links);
 			_update_links(links);
 		});
 	};
@@ -201,7 +201,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 			.on("mouseover", function(d){
 				// TODO
 				timeline.add_ap_timeline(d.apid);
-				//console.log(d);
+				console.log(d);
 				d3.select(this).classed("hilight",true);
 				d3.select(this).append('title').text(d.name);
 				//
@@ -221,7 +221,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 		apSel.exit().remove();
 	}
 	function _update_links(links){
-		console.log("links:",links.length, links.slice(0,10));
+		//console.log("links:",links.length, links.slice(0,10));
 		links.forEach(function(link){
 			var sourceAp = apMap.get(link.source);
 			var targetAp = apMap.get(link.target);
@@ -235,17 +235,21 @@ WifiVis.FloorDetail = function(selector, _iF){
 		var gLine = gPath.selectAll("path.link").data(links,function(l){
 			return l.source + "," + l.target;
 		});
-		gLine.enter().append("path").attr("class","link").style("stroke", "#8C564B");
+		gLine.enter().append("path").attr("class","link").style("stroke", "rgb(115, 115, 115)");
 		gLine.attr("d",function(d){
-			var p1 = [x(d.x1),y(d.y1)];
-      var p2 = [x(d.x2),y(d.y2)];
+			var p1 = [x(d.x1),y(d.y1), 20];
+      var p2 = [x(d.x2),y(d.y2), 20];
 			return arcline([p1,p2]);
 		}).on("mousemove", function(d){
 			// TODO
-			d3.select(this).style("stroke","red");
+			d3.select(this).style("stroke","#000000").attr("opacity", 1);
+			d3.select(this).append("title").text(function(d){
+				return d.weight;
+			});
 		}).on("mouseout", function(d){
 			// TODO
-			d3.select(this).style("stroke", "#8C564B")
+			d3.select(this).style("stroke", "rgb(115, 115, 115)").attr("opacity", 0.7);
+			d3.select(this).selectAll("title").remove();
 		}).transition().attr("marker-end", "url(#"+markerEndId+")")
 		.style("stroke-width",function(d){return Math.log(d.weight+3)*3});
 		gLine.exit().transition().style("stroke-width",0).remove();
@@ -258,7 +262,6 @@ WifiVis.FloorDetail = function(selector, _iF){
 		var aps = apLst.filter(function(ap){
 			return ap.floor == iF;
 		});
-		console.log("aps on floor", aps.length);
 		_update_aps(aps);
 		_update_device(aps);
 	}
@@ -269,7 +272,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 			.transition()
 			.attr('transform', "translate("+imgOffset[0]+","+imgOffset[1]+")");
 		//
-		utils.log(["move image:", imgOffset]);
+		console.log("move image:", imgOffset);
 	}
 	function moveRelative(offset){
 		var dx = offset[0], dy = offset[1];
