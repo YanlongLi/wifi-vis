@@ -282,8 +282,10 @@ WFV_DB.prototype.graph_info = function(from, to, cb){
 	}
 }
 
-WFV_DB.prototype.tl_data = function(from, to, step, cb){
+WFV_DB.prototype.tl_data = function(from, to, step, floor, cb){
 	this.records_by_interval(from, to, function(records){
+		console.log(records[0])
+		records = records.filter(function(r){return r.floor == +floor});
 		var tl_data = generate_tl_data(records, from.getTime(), to.getTime(), step);
 		cb(tl_data);
 	});

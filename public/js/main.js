@@ -15,6 +15,7 @@ db.init(function(){
 	loading_tip.add_tip("done");
 	setTimeout(function(){
 		$("#mask").css("visibility", "hidden");
+		$("#timeline-option-bar").css("visibility", "visible");
 		init();
 	}, 500);
 });
@@ -31,7 +32,7 @@ var apGraph;
 
 function init(){
 	// init floorsNav
-	floorsNav = WifiVis.FloorsNav("#floor-wrapper");
+	// floorsNav = WifiVis.FloorsNav("#floor-wrapper");
 	// init recordTracer and floorDetail
 	tracer = RecordTracer.CreateTracer();
 	floorDetail = WifiVis.FloorDetail("#floor-detail-wrapper", curF);
@@ -46,6 +47,8 @@ function init(){
 	// TODO
 	timeline = WifiVis.Timeline("#timeline-g",{tid:1});
 	timeline.set_size(tlSize);
+	floorDetail.addFloorChangeListener(timeline);
+	floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, timeline);
 	// brush
 	tlBrush = WifiVis.TimelineBrush(timeline)
 		.onBrushMove(onMove)
@@ -57,7 +60,7 @@ function init(){
 	//tracer.gotoTime((timeFrom.getTime()+timeTo.getTime())/2);
 	//floorDetail.update_links([timeFrom.getTime(),timeTo.getTime()]);
 	//floorDetail.hide_links();
-	floorDetail.update_ap_device(apLst);
+	//floorDetail.update_ap_device(apLst);
 	timeline.update();
 	apGraph.draw();
 }

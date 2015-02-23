@@ -14,12 +14,25 @@ WifiVis.ApGraph = function(){
 		.linkDistance(15)
 		.on('tick', tick);
 	var nodes, links, sNode, sLink;
-
+	var gLink = g.append("g"), gNode = g.append("g");
+	var timeRange = [timeFrom, timeTo];
+	//
+	var edgeFilterWeight = 30;
+	var slider = d3.slider().axis(d3.svg.axis().orient("top"))
+		.step(1)
+		.on("slide", function(evt, value){
+			d3.select("#edge-filter-slider > a").text(value);
+		}).on("slideend", function(evt, value) {
+			edgeFilterWeight = value;
+			// TODO
+			update(timeRange);
+		}).value(edgeFilterWeight);
+	d3.select("#edge-filter-slider").call(slider);
+	//
 	ApGraph.init = init;
 	ApGraph.draw = function(){
 		update(timeRange);
 	}
-	var timeRange = [timeFrom, timeTo];
 	ApGraph.set_time_range = function(range){
 		timeRange[0] = range[0];
 		timeRange[1] = range[1];
@@ -38,9 +51,8 @@ WifiVis.ApGraph = function(){
 			//
 			console.log(graphinfo.length);
 			var links = graphinfo.filter(function(l){
-				return l.weight > 30;
+				return l.weight > edgeFilterWeight;
 			});
-
 			var s = d3.set();
 			graphinfo.forEach(function(link){
 				s.add(link.source.apid);
@@ -55,8 +67,9 @@ WifiVis.ApGraph = function(){
 		});
 	}
 	function _update_graph(nodes, links){
-		sNode = g.selectAll(".node").data(nodes);
-		sLink = g.selectAll(".link").data(links);
+		//g.selectAll(".node .link").remove();
+		sNode = gNode.selectAll(".node").data(nodes);
+		sLink = gLink.selectAll(".link").data(links);
 		//
 		force.nodes(nodes).links(links).start();
 		//
