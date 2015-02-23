@@ -4,12 +4,18 @@
 	<!---->
 	<script type="text/javascript" src="jslib/jquery-2.1.1.js"></script>
 	<script type="text/javascript" src="jslib/d3/d3.js"></script>
+	<script type="text/javascript" src="jslib/d3.slider.js"></script>
 	<link rel="stylesheet" href="jslib/bootstrap/css/bootstrap.css"/>
 	<link rel="stylesheet" href="jslib/bootstrap/css/bootstrap-theme.css"/>
+	<link rel="stylesheet" href="jslib/d3.slider.css"/>
 	<link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
-	<div id="header">
+	<div id="mask">
+		<div class="loading">
+			<h1>loading data ......</h1>
+			<div id="loading-tip"></div>
+		</div>
 	</div>
 	<div id="floor-nav-wrapper">
 		<div id="floor-wrapper"></div>
@@ -18,9 +24,21 @@
 		<svg width="100%" height="100%"></svg>
 	</div>
 	<div id="aps-graph-wrapper">
+		<div id="edge-filter-slider"></div>
 		<svg width="100%" height="100%"></svg>
 	</div>
 	<div id='timeline-wrapper'>
+		<div id="timeline-option-bar">
+			step
+			<select name="step" id="step">
+				<option value="minute">minute</option>
+				<option value="hour">hour</option>
+				<option value="day">day</option>
+			</select>
+			step-count
+			<input type="text" id="step-count" value="20"></input>
+			<input type="button" id="btn-step" value="change"></input>
+		</div>
 		<div id='timeline-wrapper-inner'>
 			<svg id='timeline-wrapper-svg'></svg>
 		</div>
@@ -29,6 +47,8 @@
 	<script type="text/javascript" src="jslib/queue.js"></script>
 	<script type="text/javascript" src="js/WifiVis.js"></script>
 	<script type="text/javascript" src="js/utils.js"></script>
+	<script type="text/javascript" src="db/WFV.js"></script>
+	<script type="text/javascript" src="db/db.js"></script>
 	<script type="text/javascript" src="js/RecordTracer.js"></script>
 	<script type="text/javascript" src="js/Timeline.js"></script>
 	<script type="text/javascript" src="js/timeVisUtils.js"></script>

@@ -17,26 +17,48 @@ WifiVis.Timeline = function(id, opt){
 			size;
 	g.attr("class", opt.style || "timeline");
 	var x = d3.time.scale(), y = d3.scale.linear(),
-			xAxis = d3.svg.axis(), yAxis = d3.svg.axis(),line,
+			xAxis, yAxis, line,
 			extent;
+	var yApTl= d3.scale.linear(), yApTlAxis, line1;
 	xAxis = d3.svg.axis().scale(x).orient("bottom")
-		.tickSize(2,0,4).tickSubdivide(0);
-	yAxis = d3.svg.axis().scale(y).orient("left").ticks(4);
+		.tickSize(2,0,4).tickSubdivide(0)
+		//.tickFormat(function(d){return new Date(d).to_24_str()});
+	yAxis = d3.svg.axis().scale(y).orient("left")
+		.ticks(5);
+	yApTlAxis = d3.svg.axis().scale(yApTl).orient("right").ticks(5);
 
 	g.append("g").attr("id", "timeline-x-axis-"+ tid).attr("class","x axis");
 //		.attr("transform", "translate(0,"+size.height+")")
 	g.append("g").attr("id", "timeline-y-axis-"+ tid).attr("class","y axis");
+	g.append("g").attr("id", "timeline-yAptl-axis-"+ tid).attr("class","y axis");
 
 	g.append("path").attr("class", "basic-timeline");
 	g.append("g").attr("class","timeline-dot");
 	g.append("path").attr("class","ap-timeline");
 	var shownData, strokeColor;
+	//
+	var from, to;
+	var IS_LOAD_DATA = false, curF = 1;
+	var curStep = "minute", stepCount = 20;
 	var brushLst = [];
+	//
+	$("#btn-step").click(function(){
+		curStep = $("#step").val();
+		stepCount = $("#step-count").val();
+		set_step(curStep, stepCount);
+	});
 	//
 	Timeline.change_floor = function(){
 		IS_LOAD_DATA = false;
 		update();
 	}
+	Timeline.onFloorChange = function(f){
+		curF = f;
+		IS_LOAD_DATA = false;
+		update();
+		g.selectAll(".ap-timeline").remove();
+	}
+	Timeline.onApClick = add_ap_timeline;
 	Timeline.add_ap_timeline = add_ap_timeline;
 	Timeline.remove_ap_timeline = remove_ap_timeline;
 	Timeline.set_step = set_step;
@@ -86,9 +108,6 @@ WifiVis.Timeline = function(id, opt){
 		});
 	})();
 	//
-	var from, to;
-	var IS_LOAD_DATA = false;
-	var curStep = "minute", stepCount = 20;
 	function set_step(step, count){
 		curStep = step ? step : curStep;
 		stepCount = count ? count : stepCount;
@@ -113,14 +132,16 @@ WifiVis.Timeline = function(id, opt){
 		// need global variable: timeFrom, timeTo
 		from = from ? from : timeFrom;
 		to = to ? to : timeTo;
+		//
 		var params = {
 			start     : (new Date(from)).getTime(),
 			end       : (new Date(to)).getTime(),
 			step      : curStep,
 			stepcount : +stepCount,
-			floor 		: curF
-		}
-		timeline_data(params, function( _data){
+			floor     : curF 
+		};
+		//
+		timeline_data(params, function(_data){
 			data = _data;
 			var format = d3.time.format("%Y-%m-%d %H:%M:%S");
 			console.log("load data:",
@@ -157,10 +178,10 @@ WifiVis.Timeline = function(id, opt){
 		strokeColor = _strokeColor || strokeColor;
 		// shownData:{start:, end:, time:, count:[], values:[]}
 		//extent = d3.extent(shownData.time);
-		x.range([0, size.width]).domain(d3.extent(data.time));
-		y.range([size.height, 0]).domain([0,d3.max(data.count)]);
-		console.log(y.domain());
-		line = d3.svg.area().interpolate("monotone")
+		x.range([0, size.width]).domain(d3.extent(data.time)).nice();
+		y.range([size.height, 0]).domain([0,d3.max(data.count)]).nice();
+		line = d3.svg.area()
+		//	.interpolate("monotone")
 			.x(function(d){return x(d.time)})
 			.y(function(d){return y(d.count)})
 			.x0(function(d){ return x(d.time)})
@@ -172,26 +193,16 @@ WifiVis.Timeline = function(id, opt){
 		//g.selectAll("path.basic-timeline").remove();
 		var sel = g.select("path.basic-timeline").datum(shownData);
 		sel.attr("d", line).style("stroke", strokeColor);
-		//
-		var circles = g.select("g.timeline-dot").selectAll("circle").data(shownData);
-		circles.enter().append("circle").attr("class","dot");
-		circles.attr("cx",function(d){return x(d.time)})
-			.attr("cy",function(d){return y(d.count)})
-			.attr("r", 4)
-			.on({
-				"mousemove": function(d){
-					d3.select(this).append("title").text(d.count);
-				},
-				"mouseout": function(d){
-					d3.select(this).select("title").remove();
-				}
-			});
-		circles.exit().remove();
 		// title
 		title && (renderTitle(title));
 		return Timeline;
 	}
-	function add_ap_timeline(apid){
+	function add_ap_timeline(ap, flag){
+		var apid = ap.apid;
+		if(!flag){
+			g.select("#ap-timeline-"+apid).remove();
+			return;
+		}
 		from = from ? from : timeFrom;
 		to = to ? to : timeTo;
 		var params = {
@@ -209,10 +220,25 @@ WifiVis.Timeline = function(id, opt){
 					values : _data.values[i]
 				}
 			});
-			console.log("ap timeline count:",_data.count.join(","));
+			var oldMax = yApTl.domain()[1];
+			var max = d3.max(_data.count);
+			var newMax = oldMax > max? oldMax:max;
+			yApTl.range([size.height, 0]).domain([0,newMax]);
+			line1 = d3.svg.area()
+				.x(function(d){return x(d.time)})
+				.y(function(d){return yApTl(d.count)})
+				.x0(function(d){return x(d.time)})
+				.y0(function(d){return yApTl(0)});
+			g.select("#timeline-yApTl-axis-"+ tid)
+				.attr("transform", "translate("+size.width+")").call(yApTlAxis); 
+			console.log("ap",apid,"timeline count:",_data.count.join(","));
 			// draw
-			var sel = g.select(".ap-timeline").datum(apTlData);
-			sel.attr("d", line).style("stroke", strokeColor);
+			var sel = g.append("path").attr("class","ap-timeline")
+				.attr("id","ap-timeline-"+apid).datum(apTlData);
+			g.selectAll("path.ap-timeline")
+				.attr("d", line1).style("stroke", strokeColor);
+			//var sel = g.select(".ap-timeline").datum(apTlData);
+			//sel.attr("d", line).style("stroke", strokeColor);
 		});
 		return Timeline;
 	}
@@ -303,7 +329,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 		onBrushStart();
 	}
 	function cbBrushMove(){
-		console.log("brush move");
+		//console.log("brush move");
 		var e = d3.event.target.extent();
 		if(adjustExtent){
 			e = adjustExtent(e);
@@ -425,52 +451,10 @@ function timeline_data(params, cb){
 	var step      = TIME_STEP[stepBy] * stepcount;
 	var floor     = params.floor;
 	var apid = params.apid;
-	
-	var rs = records.filter(function(r){
-		if(!r.floor){
-			console.error("no floor field in records");
-			return;
-		}
-		if(floor){
-			return r.floor == +floor;
-		}else if(apid){
-			return r.apid == apid;
-		}
-		return true;
-	});
-	var tlData = generate_tl_data(rs, timeFrom.getTime(), timeTo.getTime(), step);
-	cb(tlData);
-}
-
-function generate_tl_data(records, start, end, step){
-	records.forEach(function(r){r.dateTime = new Date(r.date_time)});
-	var res = {
-		start  : start,
-		end    : end,
-		time   : [],
-		count  : [],
-		values : []
-	};
-	var binNum = (end - start)/step;
-	console.log("step:",step);
-	console.log("bin num:", binNum);
-	var time   = res.time,
-			count  = res.count,
-			values = res.values,
-				i    = -1;
-	while(++i <= binNum){
-		var t = start + i*step,
-			dt  = new Date(t);
-		time.push(t);
-		count.push(0);
-		values.push([]);
+	console.log(apid);
+	if(undefined == apid){
+		db.tl_data(timeFrom, timeTo, step, floor, cb);
+	}else{
+		db.tl_data_apid(timeFrom, timeTo, step, apid, cb);
 	}
-	i = -1;
-	while(++i < records.length){
-		var iBin = parseInt((records[i].dateTime - start)/step);
-		count[iBin]++;
-		values[iBin].push(records[i]);
-	}
-	return res;
 }
-
