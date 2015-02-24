@@ -377,6 +377,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 	var onBrushStart = function(){},
 			onBrushMove = function(){},
 			onBrushEnd = function(){};
+
 			
 	// getter and setter
 	(function(){
@@ -405,6 +406,58 @@ WifiVis.TimelineBrush = function(timeline, opt){
 	var brush, extent, gBrush = g.append("g").attr("class", brushClass);
 
 	setBrush();
+	//
+	var listeners = d3.map();
+	TimelineBrush.EventType = {
+		EVENT_BRUSH_START: "BrushStart",
+		EVENT_BRUSH_MOVE: "BrushMove",
+		EVENT_BRUSH_END: "BrushEnd"
+	};
+	function addEventListener(type, obj){
+		if(!listeners.has(type)){
+			listeners.set(type,[obj]);
+		}else{
+			listeners.get(type).push(obj);
+		}
+	}
+	function removeEventListener(type, obj){
+		if(!listeners.has(type)){
+			return;
+		}else{
+			var objs = listeners.get(type);
+			var len = objs.length, i = -1;
+			while(++i < len){
+				if(objs[i] === obj){
+					break;
+				}
+			}
+			if(i == len) return;
+			objs = objs.slice(0,i).concat(objs.slice(i+1,len));
+			listeners.put(type, objs);
+		}
+	}
+	function fireEvent(type){
+		var params = Array.prototype.slice.call(arguments, 1); 
+		var objs = listeners.get(type);
+		if(!objs || !objs.length) return;
+		var i = -1, len = objs.length;
+		while(++i < len){
+			var fn = objs[i]["on"+type];
+			fn.apply(objs[i], params);
+		}
+	}
+	TimelineBrush.addBrushStartListener = function(obj){
+		addEventListener(TimelineBrush.EventType.EVENT_BRUSH_START, obj);
+		return TimelineBrush;
+	}
+	TimelineBrush.addBrushMoveListener = function(obj){
+		addEventListener(TimelineBrush.EventType.EVENT_BRUSH_MOVE, obj);
+		return TimelineBrush;
+	}
+	TimelineBrush.addBrushEndListener = function(obj){
+		addEventListener(TimelineBrush.EventType.EVENT_BRUSH_END, obj);
+		return TimelineBrush;
+	}
 	/*
 	 *
 	 */
@@ -426,6 +479,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 		BRUSH_LOCK = true;
 		extent = null;
 		onBrushStart();
+		fireEvent(TimelineBrush.EventType.EVENT_BRUSH_START);
 	}
 	function cbBrushMove(){
 		//console.log("brush move");
@@ -435,6 +489,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 		}
 		extent = e;
 		onBrushMove(e);
+		fireEvent(TimelineBrush.EventType.EVENT_BRUSH_MOVE, e);
 	}
 	function cbBrushEnd(){
 		console.log("brush end");
@@ -460,6 +515,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 		extent = e;
 		//
 		onBrushEnd(e);
+		fireEvent(TimelineBrush.EventType.EVENT_BRUSH_END, e);
 		//
 		updateBrushTag(false, e);
 		//

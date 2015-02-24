@@ -187,7 +187,8 @@ WifiVis.FloorDetail = function(selector, _iF){
 		changeFloor(f);
 		update_ap_device(apLst);
 		gPath.selectAll("path.link").remove();
-		//update_links();
+		var initRange = [timeFrom, timeTo];
+		update_links(initRange);
 	};
 	FloorDetail.move = moveImage;
 	FloorDetail.moveRelative = moveRelative;
@@ -356,6 +357,8 @@ WifiVis.FloorDetail = function(selector, _iF){
 			.on("click", function(d){
 				var selected = d3.select(this).classed("hilight");
 				d3.select(this).classed("hilight",!selected);
+				// TODO
+				//
 				fireEvent(FloorDetail.EventType.AP_CLICK, d, !selected);
 			});
 		apSel.exit().remove();
@@ -380,7 +383,10 @@ WifiVis.FloorDetail = function(selector, _iF){
 			var p1 = [x(d.x1),y(d.y1), 20];
       var p2 = [x(d.x2),y(d.y2), 20];
 			return arcline([p1,p2]);
-		}).on("mousemove", function(d){
+		}).attr("source", function(l){return l.source})
+		.attr("target", function(l){return l.target})
+		.style("opacity", 0.7)
+		.on("mousemove", function(d){
 			// TODO
 			d3.select(this).style("stroke","#000000").attr("opacity", 1);
 			d3.select(this).append("title").text(function(d){
