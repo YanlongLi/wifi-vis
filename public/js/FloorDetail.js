@@ -6,7 +6,7 @@ WifiVis.FloorBar = function(g,w,h){
 	var curFloor;
 	var listeners = d3.map();
 	FloorBar.EventType = {EVENT_FLOOR_CHANGE: "FloorChange"};
-	init();
+	//init();
 	(function(){
 		Object.defineProperty(FloorBar, "hRect", {
 			get: function(){return hRect}
@@ -15,6 +15,7 @@ WifiVis.FloorBar = function(g,w,h){
 			get: function(){return dia}
 		});
 	});
+	FloorBar.init = init;
 	function init(){
 		g.attr("width", w).attr("height", h)
 			.attr('id',"floor-bar");
@@ -179,9 +180,6 @@ WifiVis.FloorDetail = function(selector, _iF){
 	//gFloorLabel.append('text');
 	var imgOffset = [20,20];
 
-	if(_iF){
-		changeFloor(_iF);
-	}
 	var graphinfo;
 	//
 	FloorDetail.changeFloor = changeFloor;
@@ -195,6 +193,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 	FloorDetail.moveRelative = moveRelative;
 	FloorDetail.update_ap_device = update_ap_device;
 	FloorDetail.update_links = update_links;
+	bar.init();
 	function update_links(range){
 		if(!apMap){
 			console.error("no global variable apMap");
