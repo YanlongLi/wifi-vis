@@ -257,6 +257,14 @@ rect.placeholder{
 	stroke: blue;
 	stroke-width: 2;
 }
+
+.ap-line circle{
+	fill: red;
+	stroke: black;
+}
+.ap-line text{
+
+}
 /*
  * for Brush
  */
