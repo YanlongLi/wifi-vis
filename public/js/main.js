@@ -68,6 +68,7 @@ function init(){
 	//floorDetail.update_ap_device(apLst);
 	timeline.update();
 	apGraph.draw();
+	floorDetail.set_init_floor();
 }
 
 function init_aplst_records(){
