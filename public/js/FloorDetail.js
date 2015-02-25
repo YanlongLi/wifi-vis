@@ -6,7 +6,7 @@ WifiVis.FloorBar = function(g,w,h){
 	var curFloor;
 	var listeners = d3.map();
 	FloorBar.EventType = {EVENT_FLOOR_CHANGE: "FloorChange"};
-	//init();
+	init();
 	(function(){
 		Object.defineProperty(FloorBar, "hRect", {
 			get: function(){return hRect}
@@ -15,7 +15,7 @@ WifiVis.FloorBar = function(g,w,h){
 			get: function(){return dia}
 		});
 	});
-	FloorBar.init = init;
+	//FloorBar.init = init;
 	function init(){
 		g.attr("width", w).attr("height", h)
 			.attr('id',"floor-bar");
@@ -42,16 +42,17 @@ WifiVis.FloorBar = function(g,w,h){
 			curFloor = d;
 			fireEvent(FloorBar.EventType.EVENT_FLOOR_CHANGE, curFloor);
 		});
-		_set_init_floor(1);
+		//	_set_init_floor(1);
 		//
-		function _set_init_floor(f){
-			curFloor = f;
-			d3.select("#floor-"+curFloor + " > circle").classed("pushed", true);
-			// TODO
-			fireEvent(FloorBar.EventType.EVENT_FLOOR_CHANGE, curFloor);
-		}
 		//
 		gFloor.exit().remove();
+	}
+	FloorBar.set_init_floor = _set_init_floor;
+	function _set_init_floor(f){
+		curFloor = f;
+		d3.select("#floor-"+curFloor + " > circle").classed("pushed", true);
+		// TODO
+		fireEvent(FloorBar.EventType.EVENT_FLOOR_CHANGE, curFloor);
 	}
 	FloorBar.addFloorChangeListener = function(obj){
 		addEventListener(FloorBar.EventType.EVENT_FLOOR_CHANGE, obj);
@@ -187,6 +188,9 @@ WifiVis.FloorDetail = function(selector, _iF){
 	var nSelectedAp = 0;
 	//
 	FloorDetail.changeFloor = changeFloor;
+	FloorDetail.set_init_floor = function(){
+		bar.set_init_floor(1);
+	}
 	FloorDetail.onFloorChange = function(f){
 		changeFloor(f);
 		update_ap_device(apLst);
@@ -209,7 +213,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 	FloorDetail.moveRelative = moveRelative;
 	FloorDetail.update_ap_device = update_ap_device;
 	FloorDetail.update_links = update_links;
-	bar.init();
+	//bar.init();
 	function update_links(range){
 		if(!apMap){
 			console.error("no global variable apMap");
@@ -399,7 +403,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 					if(d3.select(this).classed("hilight")){
 						return "link fade reverse hilight";
 					}
-					return "link face reverse";
+					return "link fade reverse";
 				});
 			nSelectedAp ++;
 		}else{
@@ -441,7 +445,9 @@ WifiVis.FloorDetail = function(selector, _iF){
 		var gLine = gPath.selectAll("path.link").data(links,function(l){
 			return l.source + "," + l.target;
 		});
-		gLine.enter().append("path").attr("class","link");
+		gLine.enter().append("path").attr("class",function(d){
+			return nSelectedAp?"link fade":"link";
+		});
 		gLine.attr("d",function(d){
 			var p1 = [x(d.x1),y(d.y1), 20];
       var p2 = [x(d.x2),y(d.y2), 20];
@@ -454,7 +460,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 			d3.select(this).append("title").text(function(d){
 				return d.weight;
 			});*/
-		}).on("mouseout", function(d){
+		}).on("mouseleave", function(d){
 			// TODO
 			/*d3.select(this).style("stroke", "rgb(115, 115, 115)").attr("opacity", 0.7);
 			d3.select(this).selectAll("title").remove();*/
