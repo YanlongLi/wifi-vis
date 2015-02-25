@@ -160,6 +160,7 @@ WifiVis.ApGraph = function(){
 
 	ApGraph.onFloorChange = function(f){
 		console.log("apGraph", "onFloorChange", f);
+		sNode.style("fill", null);
 		sNode.attr("class","ap").filter(function(d){
 			return d.floor == f;
 		}).classed("hilight", true);
