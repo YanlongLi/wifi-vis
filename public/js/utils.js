@@ -57,9 +57,9 @@ utils.initArrowMarker = function(svg, markerId){
 		.attr("markerHeight",4)
 		.attr("orient","auto")
 		.append("svg:path")
-		.attr("d","M0,-8L18,0L0,8")
+		.attr("d","M0,-8L18,0L0,8");
 //		.style("stroke","red")
-		.style("fill","rgb(115, 115, 115)");
+		//.style("fill","rgb(115, 115, 115)");
 }
 
 utils.arcline = function(){

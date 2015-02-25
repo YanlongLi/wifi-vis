@@ -33,8 +33,18 @@ WifiVis.Timeline = function(id, opt){
 	g.append("g").attr("id", "timeline-yAptl-axis-"+ tid).attr("class","y axis");
 
 	g.append("path").attr("class", "basic-timeline");
-	g.append("g").attr("class","timeline-dot");
-	g.append("path").attr("class","ap-timeline");
+	g.append("g").attr("id","ap-timeline-container");
+	var apLine = g.select("#ap-timeline-container");
+	var gPop;
+	(function(){
+		var pW = 200, pH = 60;
+		gPop = g.append("g").attr("id", "popup").attr("opacity", 0);
+		gPop.append("rect").attr("width", pW).attr("height", pH)
+			.attr("fill", "black").attr("opacity", 0.13);
+		gPop.append("g").attr("class","time").append("rect")
+			.attr("width", 200).attr("height",20).style("fill","#FBC000");
+		gPop.select("g.time").append("text").attr("dy",16);
+	})();
 	var shownData, strokeColor;
 	//
 	var from, to;
@@ -48,6 +58,94 @@ WifiVis.Timeline = function(id, opt){
 		set_step(curStep, stepCount);
 	});
 	//
+	
+	var mouseTime;
+	g.on("mouseenter", mouseenter)
+		.on("mousemove", mousemove)
+		.on("mouseleave",mouseleave);
+	function mouseenter(){
+		apLine.selectAll("circle, text").attr("opacity", 1);
+	}
+	function mousemove(){
+		var _ref = d3.mouse(this);
+		var mx = _ref[0], my = _ref[1];
+		if(mx <= 0 || my <= 0){
+			mouseleave();
+			return;
+		}
+		mouseenter();
+		mouseTime = x.invert(mx);
+		var popData = [];
+		apLine.selectAll("text").attr("transform",function(d){
+			var i = -1;
+			while(++i < d.length && d[i].time - mouseTime < 0){
+			}
+			if(i == 0){
+				i = 1;
+			}
+			if(i == d.length){
+				console.warn("mouse pos overflow");
+				return;
+			}
+			var dx = x(new Date(d[i-1].time));
+			var dy = yApTl(d[i-1].count);
+			//
+			var pData = {name: d.ap.name, count:d[i-1].count};
+			//
+			return "translate("+dx+","+dy+")";
+		});
+		apLine.selectAll("circle").each(function(d){
+			var i = -1;
+			while(++i < d.length && d[i].time - mouseTime < 0){
+			}
+			if(i == 0){
+				i = 1;
+			}
+			if(i == d.length){
+				console.warn("mouse pos overflow");
+				return;
+			}
+			var dx = x(new Date(d[i-1].time));
+			var dy = yApTl(d[i-1].count);
+			//
+			var pData = {name: d.ap.name, count:d[i-1].count};
+			popData.push(pData);
+			//
+			d3.select(this).attr("transform", "translate("+dx+","+dy+")");
+		});
+		if(!popData.length){
+			return;
+		}
+		gPop.select("g.time").select("text").text(mouseTime.to_time_str());
+		var popItem= gPop.selectAll("g.text")
+			.data(popData,function(d){return d.name});
+		popItem.enter().append("g").attr("class","text").each(function(d){
+			d3.select(this).append("rect").attr("height", 20).attr("width", 200)
+				.attr("fill","#FFFFFF");
+			d3.select(this).append("text").attr("class","name");
+			d3.select(this).append("text").attr("class","count");
+		});
+		popItem.attr("transform",function(d,i){
+			var dy = (i+1) * 20;
+			return "translate(0,"+dy+")";
+		}).each(function(d){
+			d3.select(this).select("text.name").attr("dy",16)
+				.attr("dx",20)
+				.text(function(d){return d.name});
+			d3.select(this).select("text.count").attr("dy",16)
+				.attr("dx", 80)
+				.text(function(d){return d.count});
+		});
+		popItem.exit().remove();
+		gPop.attr("transform","translate("+mx+","+my+")")
+			.attr("height", 20*popData.length+20);
+		gPop.attr("opacity",1);
+	}
+	function mouseleave(){
+		apLine.selectAll("circle, text").attr("opacity", 0);
+		gPop.attr("opacity", 0);
+	}
+	//
 	Timeline.change_floor = function(){
 		IS_LOAD_DATA = false;
 		update();
@@ -56,11 +154,10 @@ WifiVis.Timeline = function(id, opt){
 		curF = f;
 		IS_LOAD_DATA = false;
 		update();
-		g.selectAll(".ap-timeline").remove();
+		apLine.selectAll("g.ap-line").remove();
 	}
 	Timeline.onApClick = add_ap_timeline;
 	Timeline.add_ap_timeline = add_ap_timeline;
-	Timeline.remove_ap_timeline = remove_ap_timeline;
 	Timeline.set_step = set_step;
 	Timeline.set_range = set_range;
 	Timeline.update = update;
@@ -220,6 +317,7 @@ WifiVis.Timeline = function(id, opt){
 					values : _data.values[i]
 				}
 			});
+			apTlData.ap = ap;
 			var oldMax = yApTl.domain()[1];
 			var max = d3.max(_data.count);
 			var newMax = oldMax > max? oldMax:max;
@@ -233,17 +331,18 @@ WifiVis.Timeline = function(id, opt){
 				.attr("transform", "translate("+size.width+")").call(yApTlAxis); 
 			console.log("ap",apid,"timeline count:",_data.count.join(","));
 			// draw
-			var sel = g.append("path").attr("class","ap-timeline")
+			var sel = apLine.append("g").attr("class","ap-line")
 				.attr("id","ap-timeline-"+apid).datum(apTlData);
-			g.selectAll("path.ap-timeline")
+			var path = sel.append("path").attr("class","ap-timeline");
+			sel.append("circle").attr("opacity", 0).attr("r",5);
+			sel.append("text").attr("opacity", 0).text(function(d){
+				return d.ap.name;
+			});
+			apLine.selectAll("path.ap-timeline")
 				.attr("d", line1).style("stroke", strokeColor);
-			//var sel = g.select(".ap-timeline").datum(apTlData);
-			//sel.attr("d", line).style("stroke", strokeColor);
+			//
 		});
 		return Timeline;
-	}
-	function remove_ap_timeline(){
-		g.select(".ap-timeline").attr("d","");
 	}
 	/*
 	 *
@@ -278,6 +377,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 	var onBrushStart = function(){},
 			onBrushMove = function(){},
 			onBrushEnd = function(){};
+
 			
 	// getter and setter
 	(function(){
@@ -306,6 +406,58 @@ WifiVis.TimelineBrush = function(timeline, opt){
 	var brush, extent, gBrush = g.append("g").attr("class", brushClass);
 
 	setBrush();
+	//
+	var listeners = d3.map();
+	TimelineBrush.EventType = {
+		EVENT_BRUSH_START: "BrushStart",
+		EVENT_BRUSH_MOVE: "BrushMove",
+		EVENT_BRUSH_END: "BrushEnd"
+	};
+	function addEventListener(type, obj){
+		if(!listeners.has(type)){
+			listeners.set(type,[obj]);
+		}else{
+			listeners.get(type).push(obj);
+		}
+	}
+	function removeEventListener(type, obj){
+		if(!listeners.has(type)){
+			return;
+		}else{
+			var objs = listeners.get(type);
+			var len = objs.length, i = -1;
+			while(++i < len){
+				if(objs[i] === obj){
+					break;
+				}
+			}
+			if(i == len) return;
+			objs = objs.slice(0,i).concat(objs.slice(i+1,len));
+			listeners.put(type, objs);
+		}
+	}
+	function fireEvent(type){
+		var params = Array.prototype.slice.call(arguments, 1); 
+		var objs = listeners.get(type);
+		if(!objs || !objs.length) return;
+		var i = -1, len = objs.length;
+		while(++i < len){
+			var fn = objs[i]["on"+type];
+			fn.apply(objs[i], params);
+		}
+	}
+	TimelineBrush.addBrushStartListener = function(obj){
+		addEventListener(TimelineBrush.EventType.EVENT_BRUSH_START, obj);
+		return TimelineBrush;
+	}
+	TimelineBrush.addBrushMoveListener = function(obj){
+		addEventListener(TimelineBrush.EventType.EVENT_BRUSH_MOVE, obj);
+		return TimelineBrush;
+	}
+	TimelineBrush.addBrushEndListener = function(obj){
+		addEventListener(TimelineBrush.EventType.EVENT_BRUSH_END, obj);
+		return TimelineBrush;
+	}
 	/*
 	 *
 	 */
@@ -327,6 +479,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 		BRUSH_LOCK = true;
 		extent = null;
 		onBrushStart();
+		fireEvent(TimelineBrush.EventType.EVENT_BRUSH_START);
 	}
 	function cbBrushMove(){
 		//console.log("brush move");
@@ -336,6 +489,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 		}
 		extent = e;
 		onBrushMove(e);
+		fireEvent(TimelineBrush.EventType.EVENT_BRUSH_MOVE, e);
 	}
 	function cbBrushEnd(){
 		console.log("brush end");
@@ -361,6 +515,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 		extent = e;
 		//
 		onBrushEnd(e);
+		fireEvent(TimelineBrush.EventType.EVENT_BRUSH_END, e);
 		//
 		updateBrushTag(false, e);
 		//
