@@ -413,6 +413,8 @@ WifiVis.TimelineBrush = function(timeline, opt){
 		EVENT_BRUSH_MOVE: "BrushMove",
 		EVENT_BRUSH_END: "BrushEnd"
 	};
+	TimelineBrush.addEventListener = addEventListener;
+	TimelineBrush.removeEventListener = removeEventListener;
 	function addEventListener(type, obj){
 		if(!listeners.has(type)){
 			listeners.set(type,[obj]);

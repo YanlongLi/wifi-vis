@@ -68,29 +68,35 @@ WifiVis.ApGraph = function(){
 	}
 	function _update_graph(nodes, links){
 		//g.selectAll(".node .link").remove();
-		sNode = gNode.selectAll(".node").data(nodes);
-		sLink = gLink.selectAll(".link").data(links);
+		sNode = gNode.selectAll(".ap").data(nodes, function(d){return d.apid});
+		sLink = gLink.selectAll(".link").data(links, function(d){
+			return d.source.apid + "," + d.target.apid;
+		});
 		//
 		force.nodes(nodes).links(links).start();
 		//
 		sLink.enter().append("line").attr('class',"link");
-		sLink.attr('x1', function(d){return d.source.x})
+		sLink.attr("source", function(d){return d.source.apid})
+			.attr("target", function(d){return d.target.apid})
+			.attr('x1', function(d){return d.source.x})
 			.attr('y1', function(d){return d.source.y})
 			.attr('x2', function(d){return d.target.x})
 			.attr('y2', function(d){return d.target.y});
 		sLink.exit().remove();
-		sNode.enter().append("circle").attr("class","node");
-		sNode.attr("cx", function(d){return d.x})
+		sNode.enter().append("circle").attr("class","ap");
+		sNode.attr("apid", function(d){return d.apid})
+			.attr("cx", function(d){return d.x})
 			.attr("cy", function(d){return d.y})
-			.attr('fill', function(ap){
-				return color(ap.floor);
-			}).attr("r",function(d){
+			.attr("r",function(d){
 				if(d.weight > 0){
 					return 8;
 				}
 				return 0;
 			}).call(force.drag);
-		sNode.on('mouseover', function(ap){
+		sNode.on("click", function(ap){
+			// TODO
+			fireEvent(ApGraph.EventType.AP_CLICK, ap);
+		}).on('mouseover', function(ap){
 			// TODO
 			d3.select(this).append("title")
 				.text((ap.name || "none")+" "+ap.weight);
@@ -102,41 +108,6 @@ WifiVis.ApGraph = function(){
 	}
 
 	function init(){}
-	function draw(records){
-		console.log("draw:", records.length);
-		var rs = dataHelper.sortRecordsByMacAndTime(records);
-		rs = dataHelper.removeDuplicateRecords(rs);
-		//var data = recordToNodeLink(records.slice(0,700));
-		var data = dataHelper.recordsToNodeLink(rs);
-		nodes = data.nodes;
-		links = data.links;
-		//
-		sNode = g.selectAll(".node").data(nodes);
-		sLink = g.selectAll(".link").data(links);
-		//
-		force.nodes(nodes).links(links).start();
-		//
-		sLink.enter().append("line").attr('class',"link");
-		sLink.attr('x1', function(d){return d.source.x})
-			.attr('y1', function(d){return d.source.y})
-			.attr('x2', function(d){return d.target.x})
-			.attr('y2', function(d){return d.target.y});
-		sLink.exit().remove();
-		sNode.enter().append("circle").attr("class","node");
-		sNode.attr("cx", function(d){return d.x})
-			.attr("cy", function(d){return d.y})
-			.attr('fill', function(ap){
-				return color(ap.floor);
-			}).attr("r", function(d){
-				//console.log(d.weight);
-				if(d.weight == 0) return 0;
-				return Math.log(d.weight || 3)*3;
-			}).call(force.drag);
-		sNode.on('mouseover', function(ap){
-			d3.select(this).append("title").text((ap.name || "none")+" "+ap.weight);
-		})
-		sNode.exit().remove();
-	}
 	function tick() {
 		sNode.attr("cx", function(d) { return d.x = Math.max(r, Math.min(w - r, d.x)); })
 			.attr("cy", function(d) { return d.y = Math.max(r, Math.min(h - r, d.y)); });
@@ -145,6 +116,71 @@ WifiVis.ApGraph = function(){
 			.attr("y1", function(d) { return d.source.y; })
 			.attr("x2", function(d) { return d.target.x; })
 			.attr("y2", function(d) { return d.target.y; });
+	}
+	// Event Type
+	var listeners = d3.map();
+	ApGraph.EventType = {
+		AP_CLICK: "ApClick"
+	}
+	ApGraph.addEventListener = addEventListener;
+	ApGraph.removeEventListener = removeEventListener;	
+	function addEventListener(type, obj){
+		if(!listeners.has(type)){
+			listeners.set(type,[obj]);
+		}else{
+			listeners.get(type).push(obj);
+		}
+	}
+	function removeEventListener(type, obj){
+		if(!listeners.has(type)){
+			return;
+		}else{
+			var objs = listeners.get(type);
+			var len = objs.length, i = -1;
+			while(++i < len){
+				if(objs[i] === obj){
+					break;
+				}
+			}
+			if(i == len) return;
+			objs = objs.slice(0,i).concat(objs.slice(i+1,len));
+			listeners.put(type, objs);
+		}
+	}
+	function fireEvent(type){
+		var params = Array.prototype.slice.call(arguments, 1); 
+		var objs = listeners.get(type);
+		if(!objs || !objs.length) return;
+		var i = -1, len = objs.length;
+		while(++i < len){
+			var fn = objs[i]["on"+type];
+			fn.apply(objs[i], params);
+		}
+	}
+
+	ApGraph.onFloorChange = function(f){
+		console.log("apGraph", "onFloorChange", f);
+		sNode.attr("class","ap").filter(function(d){
+			return d.floor == f;
+		}).classed("hilight", true);
+	}
+	ApGraph.onApClick = function(ap, flag){
+		console.log("apGraph", "onApClick");
+		sNode.filter(function(d){
+				return d.apid == ap.apid
+		}).classed("selected", flag);
+	}
+	ApGraph.onApMouseEnter = function(ap){
+		console.log("apGraph", "onApMouseEnter");
+	}
+	ApGraph.onApMouseLeave = function(ap){
+		console.log("apGraph", "onApMouseLeave");
+	}
+	ApGraph.onBrushEnd = function(extent){
+		console.log("apGraph", "onBrushEnd");
+		console.log(extent[0], extent[1]);
+		// TODO
+		//update(extent);
 	}
 	return ApGraph;
 };

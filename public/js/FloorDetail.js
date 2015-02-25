@@ -128,9 +128,12 @@ WifiVis.FloorDetail = function(selector, _iF){
 	var listeners = d3.map();
 	FloorDetail.EventType = {
 		AP_CLICK: "ApClick",
+		AP_MOUSE_ENTER: "ApMouseEnter",
+		AP_MOUSE_LEAVE: "ApMouseLeave",
 		DEVICE_SELECT: "DeviceSelect"
 	}
 	FloorDetail.addEventListener = addEventListener;
+	FloorDetail.removeEventListener = removeEventListener;
 	function addEventListener(type, obj){
 		if(!listeners.has(type)){
 			listeners.set(type,[obj]);
@@ -190,6 +193,16 @@ WifiVis.FloorDetail = function(selector, _iF){
 		var initRange = [timeFrom, timeTo];
 		update_links(initRange);
 	};
+	FloorDetail.onApClick = function(ap){
+		if(ap.floor != iF){
+			return;
+		}
+		var apSel = gAps.selectAll("circle.ap").filter(function(d){
+			return d.apid == ap.apid;
+		}).each(function(d,i){
+			_on_ap_click.call(this, d, i);
+		});
+	}
 	FloorDetail.move = moveImage;
 	FloorDetail.moveRelative = moveRelative;
 	FloorDetail.update_ap_device = update_ap_device;
@@ -355,74 +368,75 @@ WifiVis.FloorDetail = function(selector, _iF){
 		apSel.attr("cx", function(d){return x(d.pos_x)})
 			.attr("cy", function(d){return y(d.pos_y)})
 			.attr("r", function(d){return 20})
-			.on("click", function(d){
-				var selected = d3.select(this).classed("hilight");
-				d3.select(this).classed("hilight",!selected);
-				// TODO
-				if(!selected){
-					gPath.selectAll("path.link").attr("class", function(d){
-						if(d3.select(this).classed("hilight")){
-							return "link hilight";
-						}
-						if(d3.select(this).classed("bidirect")){
-							return "link bidirect";
-						}
-						if(d3.select(this).classed("reverse")){
-							return "link reverse";
-						}
-						return "link fade";
-					});
-					d3.selectAll($("path.link[source="+d.apid+"]"))
-						.attr("class", function(d){
-							if(d3.select(this).classed("fade")){
-								return "link hilight";
-							}
-							if(d3.select(this).classed("reverse")){
-								return "link bidirect";
-							}
-							console.warn("may not happen");
-						});
-					d3.selectAll($("path.link[target="+d.apid+"]"))
-						.attr("class", function(d){
-							if(d3.select(this).classed("fade")){
-								return "link reverse";
-							}
-							if(d3.select(this).classed("hilight")){
-								return "link bidirect";
-							}
-							console.warn("may not happen");
-						});
-					nSelectedAp ++;
-				}else{
-					d3.selectAll($("path.link[source="+d.apid+"]"))
-						.attr("class", function(d){
-							if(d3.select(this).classed("bidirect")){
-								return "link reverse";
-							}
-							if(d3.select(this).classed("hilight")){
-								return "link fade";
-							}
-							console.warn("may not happen");
-						});
-					d3.selectAll($("path.link[target="+d.apid+"]"))
-						.attr("class", function(d){
-							if(d3.select(this).classed("bidirect")){
-								return "link hilight";
-							}
-							if(d3.select(this).classed("reverse")){
-								return "link fade";
-							}
-							console.warn("may not happen");
-						});
-					nSelectedAp --;
-					if(nSelectedAp == 0){
-						d3.selectAll("path.link").attr("class", "link");
-					}
-				}
-				//
-				fireEvent(FloorDetail.EventType.AP_CLICK, d, !selected);
-			});
+			.on("click", _on_ap_click);
 		apSel.exit().remove();
+	}
+	function _on_ap_click(d){
+		var selected = d3.select(this).classed("hilight");
+		d3.select(this).classed("hilight",!selected);
+		// TODO
+		if(!selected){
+			gPath.selectAll("path.link").attr("class", function(d){
+				if(d3.select(this).classed("hilight")){
+					return "link hilight";
+				}
+				if(d3.select(this).classed("bidirect")){
+					return "link bidirect";
+				}
+				if(d3.select(this).classed("reverse")){
+					return "link reverse";
+				}
+				return "link fade";
+			});
+			d3.selectAll($("#path-wrapper path.link[source="+d.apid+"]"))
+				.attr("class", function(d){
+					if(d3.select(this).classed("fade")){
+						return "link hilight";
+					}
+					if(d3.select(this).classed("reverse")){
+						return "link bidirect";
+					}
+					console.warn("may not happen");
+				});
+			d3.selectAll($("#path-wrapper path.link[target="+d.apid+"]"))
+				.attr("class", function(d){
+					if(d3.select(this).classed("fade")){
+						return "link reverse";
+					}
+					if(d3.select(this).classed("hilight")){
+						return "link bidirect";
+					}
+					console.warn("may not happen");
+				});
+			nSelectedAp ++;
+		}else{
+			d3.selectAll($("#path-wrapper path.link[source="+d.apid+"]"))
+				.attr("class", function(d){
+					if(d3.select(this).classed("bidirect")){
+						return "link reverse";
+					}
+					if(d3.select(this).classed("hilight")){
+						return "link fade";
+					}
+					console.warn("may not happen");
+				});
+			d3.selectAll($("#path-wrapper path.link[target="+d.apid+"]"))
+				.attr("class", function(d){
+					if(d3.select(this).classed("bidirect")){
+						return "link hilight";
+					}
+					if(d3.select(this).classed("reverse")){
+						return "link fade";
+					}
+					console.warn("may not happen");
+				});
+			nSelectedAp --;
+			if(nSelectedAp == 0){
+				d3.selectAll("#path-wrapper path.link").attr("class", "link");
+			}
+		}
+		//
+		fireEvent(FloorDetail.EventType.AP_CLICK, d, !selected);
 	}
 	function _update_links(links){
 		//console.log("links:",links.length, links.slice(0,10));
