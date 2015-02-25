@@ -34,42 +34,6 @@ rect.placeholder{
 }
 
 /*
-#floor-nav-wrapper-background{
-}
-
-#floor-nav-wrapper{
-	height: 30px;
-	margin-bottom:30px;
-}
-
-#floor-wrapper{
-	width: 100%;
-	height: 100%;
-	margin: auto;
-}
-
-.floor{
-	background-color: #C0C0C0;	
-	float: left;
-	width: 5.8%;
-	height: 100%;
-}
-
-.floor input[type='button']{
-	width: 100%;
-	height: 100%;
-	border: 0;
-}
-
-.floor.pushed{
-	border: 3px solid #FFFFFF;
-}
-
-.floor *{
-}
-*/
-
-/*
  * aps force layout
  */
 #aps-graph-wrapper{
@@ -134,8 +98,8 @@ rect.placeholder{
 
 #floor-detail-wrapper{
 	position: fixed;
-	top: 8%;
-	height: 64%;
+	top: 2%;
+	height: 70%;
 	left: 2.5%;
 	width: 56%;
 	/*background-color: #523D3D;*/

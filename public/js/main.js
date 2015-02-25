@@ -15,7 +15,7 @@ db.init(function(){
 	loading_tip.add_tip("done");
 	setTimeout(function(){
 		$("#mask").css("visibility", "hidden");
-		$("#timeline-option-bar").css("visibility", "visible");
+		$("#timeline-option-bar").css("visibility", "hidden");
 		init();
 	}, 500);
 });
