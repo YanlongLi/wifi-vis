@@ -19,18 +19,16 @@ WifiVis.Timeline = function(id, opt){
 	var x = d3.time.scale(), y = d3.scale.linear(),
 			xAxis, yAxis, line,
 			extent;
-	var yApTl= d3.scale.linear(), yApTlAxis, line1;
 	xAxis = d3.svg.axis().scale(x).orient("bottom")
 		.tickSize(2,0,4).tickSubdivide(0)
 		//.tickFormat(function(d){return new Date(d).to_24_str()});
 	yAxis = d3.svg.axis().scale(y).orient("left")
 		.ticks(5);
-	yApTlAxis = d3.svg.axis().scale(yApTl).orient("right").ticks(5);
-
+	var aplineColor = WifiVis.AP_COLOR;
+		//
 	g.append("g").attr("id", "timeline-x-axis-"+ tid).attr("class","x axis");
 //		.attr("transform", "translate(0,"+size.height+")")
 	g.append("g").attr("id", "timeline-y-axis-"+ tid).attr("class","y axis");
-	g.append("g").attr("id", "timeline-yAptl-axis-"+ tid).attr("class","y axis");
 
 	g.append("path").attr("class", "basic-timeline");
 	g.append("g").attr("id","ap-timeline-container");
@@ -42,7 +40,7 @@ WifiVis.Timeline = function(id, opt){
 		gPop.append("rect").attr("width", pW).attr("height", pH)
 			.attr("fill", "black").attr("opacity", 0.13);
 		gPop.append("g").attr("class","time").append("rect")
-			.attr("width", 200).attr("height",20).style("fill","#FBC000");
+			.attr("width", 200).attr("height",20).style("fill","#FFFFFF");
 		gPop.select("g.time").append("text").attr("dy",16);
 	})();
 	var shownData, strokeColor;
@@ -88,7 +86,7 @@ WifiVis.Timeline = function(id, opt){
 				return;
 			}
 			var dx = x(new Date(d[i-1].time));
-			var dy = yApTl(d[i-1].count);
+			var dy = y(d[i-1].count);
 			//
 			var pData = {name: d.ap.name, count:d[i-1].count};
 			//
@@ -106,9 +104,9 @@ WifiVis.Timeline = function(id, opt){
 				return;
 			}
 			var dx = x(new Date(d[i-1].time));
-			var dy = yApTl(d[i-1].count);
+			var dy = y(d[i-1].count);
 			//
-			var pData = {name: d.ap.name, count:d[i-1].count};
+			var pData = {name: d.ap.name, count:d[i-1].count, ap: d.ap};
 			popData.push(pData);
 			//
 			d3.select(this).attr("transform", "translate("+dx+","+dy+")");
@@ -117,11 +115,17 @@ WifiVis.Timeline = function(id, opt){
 			return;
 		}
 		gPop.select("g.time").select("text").text(mouseTime.to_time_str());
+		popData.sort(function(d1, d2){
+			return d2.count - d1.count;
+		});
 		var popItem= gPop.selectAll("g.text")
 			.data(popData,function(d){return d.name});
+			//.data(popData,function(d){return d.name});
 		popItem.enter().append("g").attr("class","text").each(function(d){
 			d3.select(this).append("rect").attr("height", 20).attr("width", 200)
-				.attr("fill","#FFFFFF");
+				.attr("fill", function(d){
+					return aplineColor(d.ap.apid);
+				});
 			d3.select(this).append("text").attr("class","name");
 			d3.select(this).append("text").attr("class","count");
 		});
@@ -318,17 +322,6 @@ WifiVis.Timeline = function(id, opt){
 				}
 			});
 			apTlData.ap = ap;
-			var oldMax = yApTl.domain()[1];
-			var max = d3.max(_data.count);
-			var newMax = oldMax > max? oldMax:max;
-			yApTl.range([size.height, 0]).domain([0,newMax]);
-			line1 = d3.svg.area()
-				.x(function(d){return x(d.time)})
-				.y(function(d){return yApTl(d.count)})
-				.x0(function(d){return x(d.time)})
-				.y0(function(d){return yApTl(0)});
-			g.select("#timeline-yApTl-axis-"+ tid)
-				.attr("transform", "translate("+size.width+")").call(yApTlAxis); 
 			console.log("ap",apid,"timeline count:",_data.count.join(","));
 			// draw
 			var sel = apLine.append("g").attr("class","ap-line")
@@ -339,7 +332,9 @@ WifiVis.Timeline = function(id, opt){
 				return d.ap.name;
 			});
 			apLine.selectAll("path.ap-timeline")
-				.attr("d", line1).style("stroke", strokeColor);
+				.attr("d", line).style("stroke",function(d){
+					return aplineColor(d.ap.apid);
+				});
 			//
 		});
 		return Timeline;
@@ -492,6 +487,7 @@ WifiVis.TimelineBrush = function(timeline, opt){
 		extent = e;
 		onBrushMove(e);
 		fireEvent(TimelineBrush.EventType.EVENT_BRUSH_MOVE, e);
+		d3.event.stopPropagation();
 	}
 	function cbBrushEnd(){
 		console.log("brush end");

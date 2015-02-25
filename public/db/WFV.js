@@ -2,6 +2,14 @@ var WFV = {};
 
 var WifiVis = WFV;
 
+WifiVis.AP_COLOR = (function(){
+	var colors = [
+		"#B28A00", "#B2AE00", "#42B200",
+		"#00B22B", "#00B28C", "#0077B2"];
+	return d3.scale.ordinal().range(colors);
+})();
+
+
 WifiVis.NUM_FLOOR = 17;
 WifiVis.DATA_PATH = "data/";
 WifiVis.FLOOR_IMG_SIZE = [
