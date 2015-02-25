@@ -57,10 +57,11 @@ utils.initArrowMarker = function(svg, markerId){
 		.attr("markerHeight",4)
 		.attr("orient","auto")
 		.append("svg:path")
-		.attr("d","M0,-8L18,0L0,8")
+		.attr("d","M0,-8L18,0L0,8");
 //		.style("stroke","red")
-		.style("fill","#5C4D2F");
+		//.style("fill","rgb(115, 115, 115)");
 }
+
 utils.arcline = function(){
 	function arcline(points){
 		return single_arc(points[0], points[1]);
@@ -68,6 +69,7 @@ utils.arcline = function(){
 
 	var x = default_x;
 	var y = default_y;
+	var r = default_r;
 
 	arcline.x = function(_){
 		if(!arguments.length) return x;
@@ -79,21 +81,48 @@ utils.arcline = function(){
 		y = _;
 		return arcline;
 	}
+	arcline.r = function(_){
+		if(!arguments.length) return r;
+		r = _;
+		return arcline;
+	}
+
 
 	function single_arc(p0, p1){
-		var x0 = x(p0), y0 = y(p0),
-				x1 = x(p1), y1 = y(p1);
+		var x0 = x(p0), y0 = y(p0), r0 = r(p0),
+				x1 = x(p1), y1 = y(p1), r1 = r(p1);
 		var dx = x1 - x0,
 				dy = y1 - y0;
 		var dr = Math.sqrt(dx*dx + dy*dy);
-		var str = "M" + x0 + "," + y0 
-							+ "A" + dr + "," + dr
-							+ " 0,0,0 " + x1 + "," + y1;
+
+		var theta = Math.atan(dy/dx);
+		var theta1 = theta + Math.PI/6.0;
+		var theta2 = theta - Math.PI/6.0;
+		var directionX = dx>=0?1:-1;
+		var directionY = dy>0?1:-1;
+
+		if(dx<0){
+			theta+=Math.PI;
+			if(dy<0){
+				//	directionY*=-1;	
+			}
+		}
+		if((dx<=0&&dy>0) || (dx>=0&&dy<0)){
+			directionY*=-1;
+		}
+		var newX0 = x0 + directionX*r0*(Math.cos(theta1));
+		var newY0 = y0 + directionY*r0*(Math.sin(theta1));
+
+		var newX1 = x1 - directionX*r1*(Math.cos(theta2));
+		var newY1 = y1 - directionY*r1*(Math.sin(theta2)); 
+		var str = "M"+ newX0 + "," + newY0 + "A" + dr + "," + dr + " 0 0,0 " + newX1 + "," + newY1;
+
 		return str;
 	}
 
 	function default_x(d){ return d[0] };
 	function default_y(d){ return d[1] }
+	function default_r(d){ return d[2] || 0};
 
 	return arcline;
 }

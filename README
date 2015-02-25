@@ -3,11 +3,9 @@
 
 ## JS lib not include
 
-`/public/jslib/`
+download jslib into folder `/public/jslib/`, ref to index.html
 
 - bootstrap
 - d3
-- d3.parsets.css
-- d3.parsets.js
 - jquery-2.1.1.js
-- queue.js
+- [d3.slider](https://github.com/turban/d3.slider)

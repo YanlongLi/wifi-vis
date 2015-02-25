@@ -1,14 +1,25 @@
-var timeFrom = new Date(2013,8,2,1,0),
-		timeTo   = new Date(2013,8,2,23,0);
+var timeFrom = new Date(2013,8,2),
+		timeTo   = new Date(2013,8,3);
+var loading_tip = loading_tip || {};
 
-var apUrl = WifiVis.RequestURL.aps();
-var recordUrl = WifiVis.RequestURL.records({
-	start: timeFrom.getTime(),
-	end: timeTo.getTime()
-});
+var db = new WFV_DB(timeFrom, timeTo);
 
 var apLst = [], apMap = d3.map();
 var records = [];
+
+db.init(function(){ 
+	apLst = db.aps;
+	apMap = db.apMap;
+	records = db.records;
+	init_aplst_records();
+	loading_tip.add_tip("done");
+	setTimeout(function(){
+		$("#mask").css("visibility", "hidden");
+		$("#timeline-option-bar").css("visibility", "visible");
+		init();
+	}, 500);
+});
+
 
 var curF = 1;
 var tracer;
@@ -21,7 +32,7 @@ var apGraph;
 
 function init(){
 	// init floorsNav
-	floorsNav = WifiVis.FloorsNav("#floor-wrapper");
+	// floorsNav = WifiVis.FloorsNav("#floor-wrapper");
 	// init recordTracer and floorDetail
 	tracer = RecordTracer.CreateTracer();
 	floorDetail = WifiVis.FloorDetail("#floor-detail-wrapper", curF);
@@ -30,12 +41,14 @@ function init(){
 	tlSize = utils.getSize("#timeline-wrapper-inner");
 	var svg = d3.select("#timeline-wrapper-inner > svg")
 		.attr("width", tlSize.width()).attr("height", tlSize.height());
-	var _tlG = utils.initSVG("#timeline-wrapper-inner", [20, 40]);
+	var _tlG = utils.initSVG("#timeline-wrapper-inner", [20, 40, 20, 80]);
 	_tlG.g.attr("id","timeline-g");
 	tlSize = {width: _tlG.w, height: _tlG.h};
 	// TODO
 	timeline = WifiVis.Timeline("#timeline-g",{tid:1});
 	timeline.set_size(tlSize);
+	floorDetail.addFloorChangeListener(timeline);
+	floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, timeline);
 	// brush
 	tlBrush = WifiVis.TimelineBrush(timeline)
 		.onBrushMove(onMove)
@@ -45,26 +58,12 @@ function init(){
 	//
 	//
 	//tracer.gotoTime((timeFrom.getTime()+timeTo.getTime())/2);
-	floorDetail.update_links([timeFrom.getTime(),timeTo.getTime()]);
+	//floorDetail.update_links([timeFrom.getTime(),timeTo.getTime()]);
 	//floorDetail.hide_links();
-	floorDetail.update_ap_device(apLst);
+	//floorDetail.update_ap_device(apLst);
 	timeline.update();
 	apGraph.draw();
 }
-
-d3.json(recordUrl, function(err, rs){
-	if(err) console.error(err);
-	d3.json(apUrl, function(err, as){
-		if(err)	 console.log(err);
-		//records = removeDup(rs);
-		records = rs;
-		apLst = as;
-		init_aplst_records();
-		//var toTime = new Date(2013,8,2,23,0);
-		//tracer.gotoTime(toTime.getTime() - 100);
-		init();
-	});
-});
 
 function init_aplst_records(){
 	apLst.forEach(function(ap){

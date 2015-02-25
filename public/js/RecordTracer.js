@@ -43,6 +43,25 @@ Device.prototype.stayTime = function(rIndex){
 	return new Date(r.date_time) - new Date(cur.date_time);
 }
 
+Device.prototype.previousRecord = function(){
+	if(this.cur == -1){
+		console.warn("no previous ap");
+		return null;
+	}
+	if(this.cur == 0){
+		return null;
+	}
+	return records[this.deviceRoute[this.cur - 1]];
+}
+
+Device.prototype.nextRecord = function(){
+	if(this.cur >= this.deviceRoute.length - 1){
+		console.warn("no next ap");
+		return null;
+	}
+	return records[this.deviceRoute[this.cur + 1]];
+}
+
 Device.prototype.deviceStatus = function(rIndex){
 	if(!arguments.length){
 		console.log("no current record index");
@@ -221,7 +240,7 @@ RecordTracer.prototype.moveOn = function(){
 	var r = records[this.cur];
 	if(!this.deviceMap.has(r.mac)){
 		this.deviceMap.set(r.mac, this.deviceLst.length);
-		this.deviceLst.push(new Device(r.mac, this.cur));
+		this.deviceLst.push(new Device(r.mac));
 	}
 	var device = this.deviceLst[this.deviceMap.get(r.mac)];
 	////console.log("device", device);

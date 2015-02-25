@@ -1,3 +1,98 @@
+WifiVis.FloorBar = function(g,w,h){
+	function FloorBar(){}
+	//
+	var hRect, dia;
+	var gFloor;
+	var curFloor;
+	var listeners = d3.map();
+	FloorBar.EventType = {EVENT_FLOOR_CHANGE: "FloorChange"};
+	//init();
+	(function(){
+		Object.defineProperty(FloorBar, "hRect", {
+			get: function(){return hRect}
+		});
+		Object.defineProperty(FloorBar, "dia", {
+			get: function(){return dia}
+		});
+	});
+	FloorBar.init = init;
+	function init(){
+		g.attr("width", w).attr("height", h)
+			.attr('id',"floor-bar");
+		hRect = h / 17;
+		dia = hRect < w ? hRect : w;
+		gFloor = g.selectAll("g.floor").data(d3.range(1,18));
+		var gEnter = gFloor.enter().append("g").attr("class", "floor");
+		gEnter.append("circle");
+		gEnter.append("text");
+		gFloor.attr('transform', function(d,i){
+			var dy = hRect*i;
+			return "translate(0,"+dy+")";
+		}).attr("id",function(d){return "floor-"+d});
+		gFloor.selectAll("circle")
+			.attr("cx", dia/2).attr("cy", dia/2).attr("r", dia/2);
+		gFloor.selectAll("text").text(function(i){return i})
+			.attr("dy", dia/2+4).attr("dx", dia/2).style("text-anchor", "middle");
+		//
+		gFloor.on("click", function(d){
+			gFloor.selectAll("circle").classed('pushed', false);
+			var that = d3.select(this);
+			that.select("circle").classed("pushed", true);
+			// TODO
+			curFloor = d;
+			fireEvent(FloorBar.EventType.EVENT_FLOOR_CHANGE, curFloor);
+		});
+		_set_init_floor(1);
+		//
+		function _set_init_floor(f){
+			curFloor = f;
+			d3.select("#floor-"+curFloor + " > circle").classed("pushed", true);
+			// TODO
+			fireEvent(FloorBar.EventType.EVENT_FLOOR_CHANGE, curFloor);
+		}
+		//
+		gFloor.exit().remove();
+	}
+	FloorBar.addFloorChangeListener = function(obj){
+		addEventListener(FloorBar.EventType.EVENT_FLOOR_CHANGE, obj);
+	}
+	function addEventListener(type, obj){
+		if(!listeners.has(type)){
+			listeners.set(type,[obj]);
+		}else{
+			listeners.get(type).push(obj);
+		}
+	}
+	function removeEventListener(type, obj){
+		if(!listeners.has(type)){
+			return;
+		}else{
+			var objs = listeners.get(type);
+			var len = objs.length, i = -1;
+			while(++i < len){
+				if(objs[i] === obj){
+					break;
+				}
+			}
+			if(i == len) return;
+			objs = objs.slice(0,i).concat(objs.slice(i+1,len));
+			listeners.put(type, objs);
+		}
+	}
+	function fireEvent(type){
+		var params = Array.prototype.slice.call(arguments, 1); 
+		var objs = listeners.get(type);
+		if(!objs || !objs.length) return;
+		var i = -1, len = objs.length;
+		while(++i < len){
+			var fn = objs[i]["on"+type];
+			fn.apply(objs[i], params);
+		}
+	}
+	//
+	return FloorBar;
+}
+
 
 /*
  * global variable required:
@@ -16,13 +111,59 @@ WifiVis.FloorDetail = function(selector, _iF){
 	function FloorDetail(){}
 	var iF;
 	// defs
-	var markerEndId = "arrowMarkerEnd";
+	var markerEndId = "path-arrow";
 	(function(){
 		var svg = d3.select(selector + "> svg");
 		utils.initArrowMarker(svg, markerEndId);
+		utils.initArrowMarker(svg, markerEndId + "-hilight");
 	})();
 	//
-	var o = utils.initSVG(selector, [0, 20, 0, 0]), g = o.g;
+	var o = utils.initSVG(selector, [0, 40, 0, 0]), g = o.g;
+	var bar = WifiVis.FloorBar(o.svg.append("g"), 40, o.h);
+	bar.addFloorChangeListener(FloorDetail);
+	FloorDetail.addFloorChangeListener = function(obj){
+		bar.addFloorChangeListener(obj);
+	};
+	//
+	var listeners = d3.map();
+	FloorDetail.EventType = {
+		AP_CLICK: "ApClick",
+		DEVICE_SELECT: "DeviceSelect"
+	}
+	FloorDetail.addEventListener = addEventListener;
+	function addEventListener(type, obj){
+		if(!listeners.has(type)){
+			listeners.set(type,[obj]);
+		}else{
+			listeners.get(type).push(obj);
+		}
+	}
+	function removeEventListener(type, obj){
+		if(!listeners.has(type)){
+			return;
+		}else{
+			var objs = listeners.get(type);
+			var len = objs.length, i = -1;
+			while(++i < len){
+				if(objs[i] === obj){
+					break;
+				}
+			}
+			if(i == len) return;
+			objs = objs.slice(0,i).concat(objs.slice(i+1,len));
+			listeners.put(type, objs);
+		}
+	}
+	function fireEvent(type){
+		var params = Array.prototype.slice.call(arguments, 1); 
+		var objs = listeners.get(type);
+		if(!objs || !objs.length) return;
+		var i = -1, len = objs.length;
+		while(++i < len){
+			var fn = objs[i]["on"+type];
+			fn.apply(objs[i], params);
+		}
+	}
 	//
 	var imgOriSize = {}, imgSize = {},
 			x = d3.scale.linear(), y = d3.scale.linear(),
@@ -39,16 +180,22 @@ WifiVis.FloorDetail = function(selector, _iF){
 	//gFloorLabel.append('text');
 	var imgOffset = [20,20];
 
-	if(_iF){
-		changeFloor(_iF);
-	}
 	var graphinfo;
 	//
 	FloorDetail.changeFloor = changeFloor;
+	FloorDetail.onFloorChange = function(f){
+		changeFloor(f);
+		update_ap_device(apLst);
+		gPath.selectAll("path.link").remove();
+		var initRange = [timeFrom, timeTo];
+		update_links(initRange);
+	};
 	FloorDetail.move = moveImage;
 	FloorDetail.moveRelative = moveRelative;
 	FloorDetail.update_ap_device = update_ap_device;
-	FloorDetail.update_links = function(range){
+	FloorDetail.update_links = update_links;
+	bar.init();
+	function update_links(range){
 		if(!apMap){
 			console.error("no global variable apMap");
 			return;
@@ -59,23 +206,22 @@ WifiVis.FloorDetail = function(selector, _iF){
 			}
 			var links = graphinfo.filter(function(link){
 				var from = apMap.get(link.source),
-							to = apMap.get(link.target);
+				to = apMap.get(link.target);
 				return from.floor == iF && to.floor == iF;
 			});
 			_update_links(links);
 			return;
 		}
 		var from = new Date(range[0]), to = new Date(range[1]);
-		var params = {start: +from.getTime(), end: +to.getTime()};
-		var url = WifiVis.RequestURL.graphinfo(params);
-		d3.json(url,function(err, _graphinfo){
+		db.graph_info(from, to, function(_graphinfo){
 			graphinfo = _graphinfo;
 			console.log(graphinfo.length);
 			var links = graphinfo.filter(function(link){
 				var from = apMap.get(link.source),
-							to = apMap.get(link.target);
+				to = apMap.get(link.target);
 				return from.floor == iF && to.floor == iF;
 			});
+			console.log(links);
 			_update_links(links);
 		});
 	};
@@ -174,23 +320,34 @@ WifiVis.FloorDetail = function(selector, _iF){
 		//console.log("device list", deviceLst.length, deviceLst.slice(0,10));
 		var dvLst = gAps.selectAll("circle.device")
 			.data(deviceLst, function(d){return d.mac});
-		dvLst.enter().append("circle")
-			.attr("class", "device")
-			.attr("cx", function(d) {return d.x})
-			.attr("cy", function(d){return d.y})
-			.attr("r", 0);
+		var dvEnter = dvLst.enter().append("circle").attr("class", "device");
+		dvEnter.each(function(d){
+			var circle = d3.select(this);
+			var device = d.device;
+			var preR = device.previousRecord();
+			if(!preR){
+				circle.attr("cx", -20).attr("cy", 0)
+					.style("fill","red").attr("r", 10);
+			}else{
+				circle.attr("cx", -20)
+					.attr("cy", o.h/17*preR.floor).attr("r",10);
+			}
+		});
 		dvLst.on("mouseover", function(d){
 			// TODO
 			d3.select(this).append("title").text(d.mac);
 		}).on("mouseout", function(d){
 			d3.select(this).selectAll('title').remove();
-		}).transition().attr("cx", function(d){return d.x})
+		});
+		dvLst.style("fill",null)
+			.transition().attr("cx", function(d){return d.x})
 			.attr("cy", function(d){return d.y})
 			.attr("r", function(d){return 4});
 		//dvLst.exit().transition().attr("cx", 0).attr("cy",0).remove();
 		dvLst.exit().remove();
 		return;
 	}
+	var nSelectedAp = 0;
 	function _update_aps(aps){
 		var apSel = gAps.selectAll("circle.ap")
 			.data(aps,function(ap){return ap.apid});
@@ -198,30 +355,77 @@ WifiVis.FloorDetail = function(selector, _iF){
 		apSel.attr("cx", function(d){return x(d.pos_x)})
 			.attr("cy", function(d){return y(d.pos_y)})
 			.attr("r", function(d){return 20})
-			.on("mouseover", function(d){
+			.on("click", function(d){
+				var selected = d3.select(this).classed("hilight");
+				d3.select(this).classed("hilight",!selected);
 				// TODO
-				timeline.add_ap_timeline(d.apid);
-				//console.log(d);
-				d3.select(this).classed("hilight",true);
-				d3.select(this).append('title').text(d.name);
-				//
-				gPath.selectAll("path.link").classed("fade", function(l){
-					if(l.source == d.apid){
-						return false;
+				if(!selected){
+					gPath.selectAll("path.link").attr("class", function(d){
+						if(d3.select(this).classed("hilight")){
+							return "link hilight";
+						}
+						if(d3.select(this).classed("bidirect")){
+							return "link bidirect";
+						}
+						if(d3.select(this).classed("reverse")){
+							return "link reverse";
+						}
+						return "link fade";
+					});
+					d3.selectAll($("path.link[source="+d.apid+"]"))
+						.attr("class", function(d){
+							if(d3.select(this).classed("fade")){
+								return "link hilight";
+							}
+							if(d3.select(this).classed("reverse")){
+								return "link bidirect";
+							}
+							console.warn("may not happen");
+						});
+					d3.selectAll($("path.link[target="+d.apid+"]"))
+						.attr("class", function(d){
+							if(d3.select(this).classed("fade")){
+								return "link reverse";
+							}
+							if(d3.select(this).classed("hilight")){
+								return "link bidirect";
+							}
+							console.warn("may not happen");
+						});
+					nSelectedAp ++;
+				}else{
+					d3.selectAll($("path.link[source="+d.apid+"]"))
+						.attr("class", function(d){
+							if(d3.select(this).classed("bidirect")){
+								return "link reverse";
+							}
+							if(d3.select(this).classed("hilight")){
+								return "link fade";
+							}
+							console.warn("may not happen");
+						});
+					d3.selectAll($("path.link[target="+d.apid+"]"))
+						.attr("class", function(d){
+							if(d3.select(this).classed("bidirect")){
+								return "link hilight";
+							}
+							if(d3.select(this).classed("reverse")){
+								return "link fade";
+							}
+							console.warn("may not happen");
+						});
+					nSelectedAp --;
+					if(nSelectedAp == 0){
+						d3.selectAll("path.link").attr("class", "link");
 					}
-					return true;
-				});
-			}).on("mouseout", function(d){
-				d3.select(this).classed("hilight",false);
-				d3.select(this).selectAll("title").remove();
-				timeline.remove_ap_timeline();
+				}
 				//
-				gPath.selectAll("path.link").classed("fade", false);
+				fireEvent(FloorDetail.EventType.AP_CLICK, d, !selected);
 			});
 		apSel.exit().remove();
 	}
 	function _update_links(links){
-		console.log("links:",links.length, links.slice(0,10));
+		//console.log("links:",links.length, links.slice(0,10));
 		links.forEach(function(link){
 			var sourceAp = apMap.get(link.source);
 			var targetAp = apMap.get(link.target);
@@ -235,17 +439,23 @@ WifiVis.FloorDetail = function(selector, _iF){
 		var gLine = gPath.selectAll("path.link").data(links,function(l){
 			return l.source + "," + l.target;
 		});
-		gLine.enter().append("path").attr("class","link").style("stroke", "#8C564B");
+		gLine.enter().append("path").attr("class","link");
 		gLine.attr("d",function(d){
-			var p1 = [x(d.x1),y(d.y1)];
-      var p2 = [x(d.x2),y(d.y2)];
+			var p1 = [x(d.x1),y(d.y1), 20];
+      var p2 = [x(d.x2),y(d.y2), 20];
 			return arcline([p1,p2]);
-		}).on("mousemove", function(d){
+		}).attr("source", function(l){return l.source})
+		.attr("target", function(l){return l.target})
+		.on("mousemove", function(d){
 			// TODO
-			d3.select(this).style("stroke","red");
+			/*d3.select(this).style("stroke","#000000").attr("opacity", 1);
+			d3.select(this).append("title").text(function(d){
+				return d.weight;
+			});*/
 		}).on("mouseout", function(d){
 			// TODO
-			d3.select(this).style("stroke", "#8C564B")
+			/*d3.select(this).style("stroke", "rgb(115, 115, 115)").attr("opacity", 0.7);
+			d3.select(this).selectAll("title").remove();*/
 		}).transition().attr("marker-end", "url(#"+markerEndId+")")
 		.style("stroke-width",function(d){return Math.log(d.weight+3)*3});
 		gLine.exit().transition().style("stroke-width",0).remove();
@@ -258,7 +468,6 @@ WifiVis.FloorDetail = function(selector, _iF){
 		var aps = apLst.filter(function(ap){
 			return ap.floor == iF;
 		});
-		console.log("aps on floor", aps.length);
 		_update_aps(aps);
 		_update_device(aps);
 	}
@@ -269,7 +478,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 			.transition()
 			.attr('transform', "translate("+imgOffset[0]+","+imgOffset[1]+")");
 		//
-		utils.log(["move image:", imgOffset]);
+		console.log("move image:", imgOffset);
 	}
 	function moveRelative(offset){
 		var dx = offset[0], dy = offset[1];
