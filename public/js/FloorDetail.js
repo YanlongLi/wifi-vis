@@ -99,7 +99,7 @@ WifiVis.FloorBar = function(g,w,h){
  * apLst:
  * apMap:
  */
-floor_image_size = WifiVis.FLOOR_IMG_SIZE;
+var floor_image_size = WifiVis.FLOOR_IMG_SIZE;
 
 /*
  * the interface:
@@ -184,6 +184,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 	var imgOffset = [20,20];
 
 	var graphinfo;
+	var nSelectedAp = 0;
 	//
 	FloorDetail.changeFloor = changeFloor;
 	FloorDetail.onFloorChange = function(f){
@@ -192,6 +193,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 		gPath.selectAll("path.link").remove();
 		var initRange = [timeFrom, timeTo];
 		update_links(initRange);
+		nSelectedAp = 0;
 	};
 	FloorDetail.onApClick = function(ap){
 		if(ap.floor != iF){
@@ -273,7 +275,6 @@ WifiVis.FloorDetail = function(selector, _iF){
 			if(extent[0][0] <= d.x && d.x < extent[1][0]
 					&& extent[0][1] <= d.y && d.y < extent[1][1]){
 				d.device.selected = true;
-				console.log("one device selected");
 			}
 		});
 		gAps.selectAll("circle.device").classed("selected", function(d){
@@ -360,7 +361,6 @@ WifiVis.FloorDetail = function(selector, _iF){
 		dvLst.exit().remove();
 		return;
 	}
-	var nSelectedAp = 0;
 	function _update_aps(aps){
 		var apSel = gAps.selectAll("circle.ap")
 			.data(aps,function(ap){return ap.apid});
@@ -371,64 +371,52 @@ WifiVis.FloorDetail = function(selector, _iF){
 			.on("click", _on_ap_click);
 		apSel.exit().remove();
 	}
+	var apcolor = WifiVis.AP_COLOR;
 	function _on_ap_click(d){
 		var selected = d3.select(this).classed("hilight");
-		d3.select(this).classed("hilight",!selected);
+		d3.select(this).classed("hilight",!selected)
+			.style("fill",function(d){
+				return selected? null: apcolor(d.apid);
+			});
 		// TODO
 		if(!selected){
 			gPath.selectAll("path.link").attr("class", function(d){
 				if(d3.select(this).classed("hilight")){
-					return "link hilight";
-				}
-				if(d3.select(this).classed("bidirect")){
-					return "link bidirect";
+					return d3.select(this).attr("class");
 				}
 				if(d3.select(this).classed("reverse")){
-					return "link reverse";
+					return d3.select(this).attr("class");
 				}
 				return "link fade";
 			});
 			d3.selectAll($("#path-wrapper path.link[source="+d.apid+"]"))
-				.attr("class", function(d){
-					if(d3.select(this).classed("fade")){
-						return "link hilight";
-					}
-					if(d3.select(this).classed("reverse")){
-						return "link bidirect";
-					}
-					console.warn("may not happen");
+				.classed("hilight",true)
+				.style("stroke",function(d){
+					return apcolor(d.source);
 				});
 			d3.selectAll($("#path-wrapper path.link[target="+d.apid+"]"))
 				.attr("class", function(d){
-					if(d3.select(this).classed("fade")){
-						return "link reverse";
-					}
 					if(d3.select(this).classed("hilight")){
-						return "link bidirect";
+						return "link fade reverse hilight";
 					}
-					console.warn("may not happen");
+					return "link face reverse";
 				});
 			nSelectedAp ++;
 		}else{
 			d3.selectAll($("#path-wrapper path.link[source="+d.apid+"]"))
+				.style("stroke",null)
 				.attr("class", function(d){
-					if(d3.select(this).classed("bidirect")){
-						return "link reverse";
+					if(d3.select(this).classed("reverse")){
+						return "link fade reverse";
 					}
-					if(d3.select(this).classed("hilight")){
-						return "link fade";
-					}
-					console.warn("may not happen");
+					return "link fade";
 				});
 			d3.selectAll($("#path-wrapper path.link[target="+d.apid+"]"))
 				.attr("class", function(d){
-					if(d3.select(this).classed("bidirect")){
+					if(d3.select(this).classed("hilight")){
 						return "link hilight";
 					}
-					if(d3.select(this).classed("reverse")){
-						return "link fade";
-					}
-					console.warn("may not happen");
+					return "link fade";
 				});
 			nSelectedAp --;
 			if(nSelectedAp == 0){

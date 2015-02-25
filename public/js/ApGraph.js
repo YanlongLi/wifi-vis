@@ -168,7 +168,12 @@ WifiVis.ApGraph = function(){
 		console.log("apGraph", "onApClick");
 		sNode.filter(function(d){
 				return d.apid == ap.apid
-		}).classed("selected", flag);
+		}).style("fill", function(d){
+			if(!flag){
+				return null;
+			}
+			return WifiVis.AP_COLOR(d.apid);
+		});
 	}
 	ApGraph.onApMouseEnter = function(ap){
 		console.log("apGraph", "onApMouseEnter");
