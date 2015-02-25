@@ -111,7 +111,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 	function FloorDetail(){}
 	var iF;
 	// defs
-	var markerEndId = "arrowMarkerEnd";
+	var markerEndId = "path-arrow";
 	(function(){
 		var svg = d3.select(selector + "> svg");
 		utils.initArrowMarker(svg, markerEndId);
@@ -347,6 +347,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 		dvLst.exit().remove();
 		return;
 	}
+	var nSelectedAp = 0;
 	function _update_aps(aps){
 		var apSel = gAps.selectAll("circle.ap")
 			.data(aps,function(ap){return ap.apid});
@@ -358,6 +359,66 @@ WifiVis.FloorDetail = function(selector, _iF){
 				var selected = d3.select(this).classed("hilight");
 				d3.select(this).classed("hilight",!selected);
 				// TODO
+				if(!selected){
+					gPath.selectAll("path.link").attr("class", function(d){
+						if(d3.select(this).classed("hilight")){
+							return "link hilight";
+						}
+						if(d3.select(this).classed("bidirect")){
+							return "link bidirect";
+						}
+						if(d3.select(this).classed("reverse")){
+							return "link reverse";
+						}
+						return "link fade";
+					});
+					d3.selectAll($("path.link[source="+d.apid+"]"))
+						.attr("class", function(d){
+							if(d3.select(this).classed("fade")){
+								return "link hilight";
+							}
+							if(d3.select(this).classed("reverse")){
+								return "link bidirect";
+							}
+							console.warn("may not happen");
+						});
+					d3.selectAll($("path.link[target="+d.apid+"]"))
+						.attr("class", function(d){
+							if(d3.select(this).classed("fade")){
+								return "link reverse";
+							}
+							if(d3.select(this).classed("hilight")){
+								return "link bidirect";
+							}
+							console.warn("may not happen");
+						});
+					nSelectedAp ++;
+				}else{
+					d3.selectAll($("path.link[source="+d.apid+"]"))
+						.attr("class", function(d){
+							if(d3.select(this).classed("bidirect")){
+								return "link reverse";
+							}
+							if(d3.select(this).classed("hilight")){
+								return "link fade";
+							}
+							console.warn("may not happen");
+						});
+					d3.selectAll($("path.link[target="+d.apid+"]"))
+						.attr("class", function(d){
+							if(d3.select(this).classed("bidirect")){
+								return "link hilight";
+							}
+							if(d3.select(this).classed("reverse")){
+								return "link fade";
+							}
+							console.warn("may not happen");
+						});
+					nSelectedAp --;
+					if(nSelectedAp == 0){
+						d3.selectAll("path.link").attr("class", "link");
+					}
+				}
 				//
 				fireEvent(FloorDetail.EventType.AP_CLICK, d, !selected);
 			});
@@ -378,24 +439,23 @@ WifiVis.FloorDetail = function(selector, _iF){
 		var gLine = gPath.selectAll("path.link").data(links,function(l){
 			return l.source + "," + l.target;
 		});
-		gLine.enter().append("path").attr("class","link").style("stroke", "rgb(115, 115, 115)");
+		gLine.enter().append("path").attr("class","link");
 		gLine.attr("d",function(d){
 			var p1 = [x(d.x1),y(d.y1), 20];
       var p2 = [x(d.x2),y(d.y2), 20];
 			return arcline([p1,p2]);
 		}).attr("source", function(l){return l.source})
 		.attr("target", function(l){return l.target})
-		.style("opacity", 0.7)
 		.on("mousemove", function(d){
 			// TODO
-			d3.select(this).style("stroke","#000000").attr("opacity", 1);
+			/*d3.select(this).style("stroke","#000000").attr("opacity", 1);
 			d3.select(this).append("title").text(function(d){
 				return d.weight;
-			});
+			});*/
 		}).on("mouseout", function(d){
 			// TODO
-			d3.select(this).style("stroke", "rgb(115, 115, 115)").attr("opacity", 0.7);
-			d3.select(this).selectAll("title").remove();
+			/*d3.select(this).style("stroke", "rgb(115, 115, 115)").attr("opacity", 0.7);
+			d3.select(this).selectAll("title").remove();*/
 		}).transition().attr("marker-end", "url(#"+markerEndId+")")
 		.style("stroke-width",function(d){return Math.log(d.weight+3)*3});
 		gLine.exit().transition().style("stroke-width",0).remove();
