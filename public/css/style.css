@@ -85,9 +85,21 @@ rect.placeholder{
 	cursor: pointer;
 }
 
-#aps-graph-wrapper circle.node{
-	/*fill: #265D26;*/
+#aps-graph-wrapper circle.ap{
 	stroke: #565656;
+	fill: #666666;
+}
+
+#aps-graph-wrapper circle.hilight{
+	fill: #669933;
+	stroke: #575555;
+	stroke-width: 2px;
+}
+
+#aps-graph-wrapper circle.selected{
+	fill: #006633;
+	stroke: #575555;
+	stroke-width: 2px;
 }
 
 #aps-graph-wrapper line.link{
