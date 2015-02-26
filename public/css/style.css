@@ -51,19 +51,15 @@ rect.placeholder{
 
 #aps-graph-wrapper circle.ap{
 	stroke: #565656;
-	fill: #666666;
+	fill: #868686;
+	opacity: 1;
 }
 
 #aps-graph-wrapper circle.hilight{
 	fill: #669933;
 	stroke: #575555;
 	stroke-width: 2px;
-}
-
-#aps-graph-wrapper circle.selected{
-	fill: #006633;
-	stroke: #575555;
-	stroke-width: 2px;
+	opacity: 1;
 }
 
 #aps-graph-wrapper line.link{

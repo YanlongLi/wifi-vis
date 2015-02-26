@@ -372,7 +372,9 @@ WifiVis.FloorDetail = function(selector, _iF){
 		apSel.attr("cx", function(d){return x(d.pos_x)})
 			.attr("cy", function(d){return y(d.pos_y)})
 			.attr("r", function(d){return 20})
-			.on("click", _on_ap_click);
+			.on("click", _on_ap_click)
+			.on("mouseenter", _on_ap_enter)
+			.on("mouseleave", _on_ap_leave);
 		apSel.exit().remove();
 	}
 	var apcolor = WifiVis.AP_COLOR;
@@ -429,6 +431,36 @@ WifiVis.FloorDetail = function(selector, _iF){
 		}
 		//
 		fireEvent(FloorDetail.EventType.AP_CLICK, d, !selected);
+	}
+	function _on_ap_enter(d){
+		d3.select(this).append("title").text(d.name);
+		if(!d3.select(this).classed("hilight")){
+			return;
+		}
+		gPath.selectAll("path.link").style("opacity", function(d){
+			var that = d3.select(this);
+			var c = that.attr("class");
+			if(c == "link fade reverse"){
+				return 0;
+			}
+			return that.attr("opacity");
+		});
+		fireEvent(FloorDetail.EventType.AP_MOUSE_MOVE, d);
+	}
+	function _on_ap_leave(d){
+		d3.select(this).select("title").remove();
+		if(!d3.select(this).classed("hilight")){
+			return;
+		}
+		gPath.selectAll("path.link").style("opacity", function(d){
+			var that = d3.select(this);
+			var c = that.attr("class");
+			if(c == "link fade reverse"){
+				return null;
+			}
+			return that.attr("opacity");
+		});
+		fireEvent(FloorDetail.EventType.AP_MOUSE_LEAVE, d);
 	}
 	function _update_links(links){
 		//console.log("links:",links.length, links.slice(0,10));
