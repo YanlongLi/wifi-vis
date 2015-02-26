@@ -15,7 +15,7 @@ db.init(function(){
 	loading_tip.add_tip("done");
 	setTimeout(function(){
 		$("#mask").css("visibility", "hidden");
-		$("#timeline-option-bar").css("visibility", "visible");
+		$("#timeline-option-bar").css("visibility", "hidden");
 		init();
 	}, 500);
 });
@@ -23,7 +23,7 @@ db.init(function(){
 
 var curF = 1;
 var tracer;
-var floorDetail, floorsNav, curF = 6;
+var floorDetail, floorsNav;
 var tlSize, timeline, tlBrush;
 var apGraph;
 
@@ -55,7 +55,12 @@ function init(){
 		.onBrushEnd(onEnd);
 	// apGraph
 	apGraph = WifiVis.ApGraph();
-	//
+	floorDetail.addFloorChangeListener(apGraph);
+	floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, apGraph);
+	floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_ENTER, apGraph);
+	floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_LEAVE, apGraph); 
+	tlBrush.addEventListener(tlBrush.EventType.EVENT_BRUSH_END, apGraph);
+	apGraph.addEventListener(apGraph.EventType.AP_CLICK, floorDetail);
 	//
 	//tracer.gotoTime((timeFrom.getTime()+timeTo.getTime())/2);
 	//floorDetail.update_links([timeFrom.getTime(),timeTo.getTime()]);
@@ -63,6 +68,7 @@ function init(){
 	//floorDetail.update_ap_device(apLst);
 	timeline.update();
 	apGraph.draw();
+	floorDetail.set_init_floor();
 }
 
 function init_aplst_records(){

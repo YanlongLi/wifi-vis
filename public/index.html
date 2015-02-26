@@ -17,18 +17,18 @@
 			<div id="loading-tip"></div>
 		</div>
 	</div>
-	<div id="floor-nav-wrapper">
-		<div id="floor-wrapper"></div>
-	</div>
 	<div id="floor-detail-wrapper">
 		<svg width="100%" height="100%"></svg>
 	</div>
 	<div id="aps-graph-wrapper">
-		<div id="edge-filter-slider"></div>
+		<div style="visibility:hidden; height:0">
+			<span>Edge Filter:</span>
+			<div id="edge-filter-slider"></div>
+		</div>
 		<svg width="100%" height="100%"></svg>
 	</div>
 	<div id='timeline-wrapper'>
-		<div id="timeline-option-bar">
+		<div id="timeline-option-bar" style="visibility:hidden; position: absolute; top:0; left:0;">
 			step
 			<select name="step" id="step">
 				<option value="minute">minute</option>
@@ -45,16 +45,13 @@
 	</div>
 	<script type="text/javascript" src="jslib/bootstrap/js/bootstrap.js"></script>
 	<script type="text/javascript" src="jslib/queue.js"></script>
-	<script type="text/javascript" src="js/WifiVis.js"></script>
 	<script type="text/javascript" src="js/utils.js"></script>
 	<script type="text/javascript" src="db/WFV.js"></script>
 	<script type="text/javascript" src="db/db.js"></script>
 	<script type="text/javascript" src="js/RecordTracer.js"></script>
 	<script type="text/javascript" src="js/Timeline.js"></script>
-	<script type="text/javascript" src="js/timeVisUtils.js"></script>
 	<script type="text/javascript" src="js/data.js"></script>
 	<script type="text/javascript" src="js/FloorDetail.js"></script>
-	<script type="text/javascript" src="js/Floors.js"></script>
 	<script type="text/javascript" src="js/ApGraph.js"></script>
 	<script type="text/javascript" src="js/main.js"></script>
 </body>

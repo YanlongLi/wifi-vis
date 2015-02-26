@@ -6,7 +6,7 @@ WifiVis.FloorBar = function(g,w,h){
 	var curFloor;
 	var listeners = d3.map();
 	FloorBar.EventType = {EVENT_FLOOR_CHANGE: "FloorChange"};
-	//init();
+	init();
 	(function(){
 		Object.defineProperty(FloorBar, "hRect", {
 			get: function(){return hRect}
@@ -15,7 +15,7 @@ WifiVis.FloorBar = function(g,w,h){
 			get: function(){return dia}
 		});
 	});
-	FloorBar.init = init;
+	//FloorBar.init = init;
 	function init(){
 		g.attr("width", w).attr("height", h)
 			.attr('id',"floor-bar");
@@ -42,16 +42,17 @@ WifiVis.FloorBar = function(g,w,h){
 			curFloor = d;
 			fireEvent(FloorBar.EventType.EVENT_FLOOR_CHANGE, curFloor);
 		});
-		_set_init_floor(1);
+		//	_set_init_floor(1);
 		//
-		function _set_init_floor(f){
-			curFloor = f;
-			d3.select("#floor-"+curFloor + " > circle").classed("pushed", true);
-			// TODO
-			fireEvent(FloorBar.EventType.EVENT_FLOOR_CHANGE, curFloor);
-		}
 		//
 		gFloor.exit().remove();
+	}
+	FloorBar.set_init_floor = _set_init_floor;
+	function _set_init_floor(f){
+		curFloor = f;
+		d3.select("#floor-"+curFloor + " > circle").classed("pushed", true);
+		// TODO
+		fireEvent(FloorBar.EventType.EVENT_FLOOR_CHANGE, curFloor);
 	}
 	FloorBar.addFloorChangeListener = function(obj){
 		addEventListener(FloorBar.EventType.EVENT_FLOOR_CHANGE, obj);
@@ -99,7 +100,7 @@ WifiVis.FloorBar = function(g,w,h){
  * apLst:
  * apMap:
  */
-floor_image_size = WifiVis.FLOOR_IMG_SIZE;
+var floor_image_size = WifiVis.FLOOR_IMG_SIZE;
 
 /*
  * the interface:
@@ -128,9 +129,12 @@ WifiVis.FloorDetail = function(selector, _iF){
 	var listeners = d3.map();
 	FloorDetail.EventType = {
 		AP_CLICK: "ApClick",
+		AP_MOUSE_ENTER: "ApMouseEnter",
+		AP_MOUSE_LEAVE: "ApMouseLeave",
 		DEVICE_SELECT: "DeviceSelect"
 	}
 	FloorDetail.addEventListener = addEventListener;
+	FloorDetail.removeEventListener = removeEventListener;
 	function addEventListener(type, obj){
 		if(!listeners.has(type)){
 			listeners.set(type,[obj]);
@@ -181,20 +185,35 @@ WifiVis.FloorDetail = function(selector, _iF){
 	var imgOffset = [20,20];
 
 	var graphinfo;
+	var nSelectedAp = 0;
 	//
 	FloorDetail.changeFloor = changeFloor;
+	FloorDetail.set_init_floor = function(){
+		bar.set_init_floor(1);
+	}
 	FloorDetail.onFloorChange = function(f){
 		changeFloor(f);
 		update_ap_device(apLst);
 		gPath.selectAll("path.link").remove();
 		var initRange = [timeFrom, timeTo];
 		update_links(initRange);
+		nSelectedAp = 0;
 	};
+	FloorDetail.onApClick = function(ap){
+		if(ap.floor != iF){
+			return;
+		}
+		var apSel = gAps.selectAll("circle.ap").filter(function(d){
+			return d.apid == ap.apid;
+		}).each(function(d,i){
+			_on_ap_click.call(this, d, i);
+		});
+	}
 	FloorDetail.move = moveImage;
 	FloorDetail.moveRelative = moveRelative;
 	FloorDetail.update_ap_device = update_ap_device;
 	FloorDetail.update_links = update_links;
-	bar.init();
+	//bar.init();
 	function update_links(range){
 		if(!apMap){
 			console.error("no global variable apMap");
@@ -260,7 +279,6 @@ WifiVis.FloorDetail = function(selector, _iF){
 			if(extent[0][0] <= d.x && d.x < extent[1][0]
 					&& extent[0][1] <= d.y && d.y < extent[1][1]){
 				d.device.selected = true;
-				console.log("one device selected");
 			}
 		});
 		gAps.selectAll("circle.device").classed("selected", function(d){
@@ -347,7 +365,6 @@ WifiVis.FloorDetail = function(selector, _iF){
 		dvLst.exit().remove();
 		return;
 	}
-	var nSelectedAp = 0;
 	function _update_aps(aps){
 		var apSel = gAps.selectAll("circle.ap")
 			.data(aps,function(ap){return ap.apid});
@@ -355,74 +372,95 @@ WifiVis.FloorDetail = function(selector, _iF){
 		apSel.attr("cx", function(d){return x(d.pos_x)})
 			.attr("cy", function(d){return y(d.pos_y)})
 			.attr("r", function(d){return 20})
-			.on("click", function(d){
-				var selected = d3.select(this).classed("hilight");
-				d3.select(this).classed("hilight",!selected);
-				// TODO
-				if(!selected){
-					gPath.selectAll("path.link").attr("class", function(d){
-						if(d3.select(this).classed("hilight")){
-							return "link hilight";
-						}
-						if(d3.select(this).classed("bidirect")){
-							return "link bidirect";
-						}
-						if(d3.select(this).classed("reverse")){
-							return "link reverse";
-						}
-						return "link fade";
-					});
-					d3.selectAll($("path.link[source="+d.apid+"]"))
-						.attr("class", function(d){
-							if(d3.select(this).classed("fade")){
-								return "link hilight";
-							}
-							if(d3.select(this).classed("reverse")){
-								return "link bidirect";
-							}
-							console.warn("may not happen");
-						});
-					d3.selectAll($("path.link[target="+d.apid+"]"))
-						.attr("class", function(d){
-							if(d3.select(this).classed("fade")){
-								return "link reverse";
-							}
-							if(d3.select(this).classed("hilight")){
-								return "link bidirect";
-							}
-							console.warn("may not happen");
-						});
-					nSelectedAp ++;
-				}else{
-					d3.selectAll($("path.link[source="+d.apid+"]"))
-						.attr("class", function(d){
-							if(d3.select(this).classed("bidirect")){
-								return "link reverse";
-							}
-							if(d3.select(this).classed("hilight")){
-								return "link fade";
-							}
-							console.warn("may not happen");
-						});
-					d3.selectAll($("path.link[target="+d.apid+"]"))
-						.attr("class", function(d){
-							if(d3.select(this).classed("bidirect")){
-								return "link hilight";
-							}
-							if(d3.select(this).classed("reverse")){
-								return "link fade";
-							}
-							console.warn("may not happen");
-						});
-					nSelectedAp --;
-					if(nSelectedAp == 0){
-						d3.selectAll("path.link").attr("class", "link");
-					}
-				}
-				//
-				fireEvent(FloorDetail.EventType.AP_CLICK, d, !selected);
-			});
+			.on("click", _on_ap_click)
+			.on("mouseenter", _on_ap_enter)
+			.on("mouseleave", _on_ap_leave);
 		apSel.exit().remove();
+	}
+	var apcolor = WifiVis.AP_COLOR;
+	function _on_ap_click(d){
+		var selected = d3.select(this).classed("hilight");
+		d3.select(this).classed("hilight",!selected)
+			.style("fill",function(d){
+				return selected? null: apcolor(d.apid);
+			});
+		// TODO
+		if(!selected){
+			gPath.selectAll("path.link").attr("class", function(d){
+				if(d3.select(this).classed("hilight")){
+					return d3.select(this).attr("class");
+				}
+				if(d3.select(this).classed("reverse")){
+					return d3.select(this).attr("class");
+				}
+				return "link fade";
+			});
+			d3.selectAll($("#path-wrapper path.link[source="+d.apid+"]"))
+				.classed("hilight",true)
+				.style("stroke",function(d){
+					return apcolor(d.source);
+				});
+			d3.selectAll($("#path-wrapper path.link[target="+d.apid+"]"))
+				.attr("class", function(d){
+					if(d3.select(this).classed("hilight")){
+						return "link fade reverse hilight";
+					}
+					return "link fade reverse";
+				});
+			nSelectedAp ++;
+		}else{
+			d3.selectAll($("#path-wrapper path.link[source="+d.apid+"]"))
+				.style("stroke",null)
+				.attr("class", function(d){
+					if(d3.select(this).classed("reverse")){
+						return "link fade reverse";
+					}
+					return "link fade";
+				});
+			d3.selectAll($("#path-wrapper path.link[target="+d.apid+"]"))
+				.attr("class", function(d){
+					if(d3.select(this).classed("hilight")){
+						return "link hilight";
+					}
+					return "link fade";
+				});
+			nSelectedAp --;
+			if(nSelectedAp == 0){
+				d3.selectAll("#path-wrapper path.link").attr("class", "link");
+			}
+		}
+		//
+		fireEvent(FloorDetail.EventType.AP_CLICK, d, !selected);
+	}
+	function _on_ap_enter(d){
+		d3.select(this).append("title").text(d.name);
+		if(!d3.select(this).classed("hilight")){
+			return;
+		}
+		gPath.selectAll("path.link").style("opacity", function(d){
+			var that = d3.select(this);
+			var c = that.attr("class");
+			if(c == "link fade reverse"){
+				return 0;
+			}
+			return that.attr("opacity");
+		});
+		fireEvent(FloorDetail.EventType.AP_MOUSE_MOVE, d);
+	}
+	function _on_ap_leave(d){
+		d3.select(this).select("title").remove();
+		if(!d3.select(this).classed("hilight")){
+			return;
+		}
+		gPath.selectAll("path.link").style("opacity", function(d){
+			var that = d3.select(this);
+			var c = that.attr("class");
+			if(c == "link fade reverse"){
+				return null;
+			}
+			return that.attr("opacity");
+		});
+		fireEvent(FloorDetail.EventType.AP_MOUSE_LEAVE, d);
 	}
 	function _update_links(links){
 		//console.log("links:",links.length, links.slice(0,10));
@@ -439,7 +477,9 @@ WifiVis.FloorDetail = function(selector, _iF){
 		var gLine = gPath.selectAll("path.link").data(links,function(l){
 			return l.source + "," + l.target;
 		});
-		gLine.enter().append("path").attr("class","link");
+		gLine.enter().append("path").attr("class",function(d){
+			return nSelectedAp?"link fade":"link";
+		});
 		gLine.attr("d",function(d){
 			var p1 = [x(d.x1),y(d.y1), 20];
       var p2 = [x(d.x2),y(d.y2), 20];
@@ -452,12 +492,12 @@ WifiVis.FloorDetail = function(selector, _iF){
 			d3.select(this).append("title").text(function(d){
 				return d.weight;
 			});*/
-		}).on("mouseout", function(d){
+		}).on("mouseleave", function(d){
 			// TODO
 			/*d3.select(this).style("stroke", "rgb(115, 115, 115)").attr("opacity", 0.7);
 			d3.select(this).selectAll("title").remove();*/
 		}).transition().attr("marker-end", "url(#"+markerEndId+")")
-		.style("stroke-width",function(d){return Math.log(d.weight+3)*3});
+		.style("stroke-width",function(d){return Math.log10(d.weight+3)*3});
 		gLine.exit().transition().style("stroke-width",0).remove();
 	}
 	function update_ap_device(apLst){

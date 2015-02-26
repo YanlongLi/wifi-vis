@@ -4,3 +4,5 @@ public/jslib/
 *.log
 test.*
 *.swp
+makefile
+deploy.sh
