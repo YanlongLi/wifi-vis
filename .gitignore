@@ -1,6 +1,5 @@
 node_modules/
 public/data/
-public/jslib/
 *.log
 test.*
 *.swp
