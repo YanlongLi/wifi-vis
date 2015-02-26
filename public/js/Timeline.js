@@ -29,6 +29,9 @@ WifiVis.Timeline = function(id, opt){
 	g.append("g").attr("id", "timeline-x-axis-"+ tid).attr("class","x axis");
 //		.attr("transform", "translate(0,"+size.height+")")
 	g.append("g").attr("id", "timeline-y-axis-"+ tid).attr("class","y axis");
+	g.append("g").attr("class","y-description")
+		.attr("transform","translate(6,"+10+")")
+		.append("text").text("records number/per 20 minutes");
 
 	g.append("path").attr("class", "basic-timeline");
 	g.append("g").attr("id","ap-timeline-container");
@@ -82,7 +85,8 @@ WifiVis.Timeline = function(id, opt){
 				i = 1;
 			}
 			if(i == d.length){
-				console.warn("mouse pos overflow");
+				console.log("mouse pos overflow");
+				mouseleave();
 				return;
 			}
 			var dx = x(new Date(d[i-1].time));

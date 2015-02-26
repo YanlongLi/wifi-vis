@@ -497,7 +497,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 			/*d3.select(this).style("stroke", "rgb(115, 115, 115)").attr("opacity", 0.7);
 			d3.select(this).selectAll("title").remove();*/
 		}).transition().attr("marker-end", "url(#"+markerEndId+")")
-		.style("stroke-width",function(d){return Math.log(d.weight+3)*3});
+		.style("stroke-width",function(d){return Math.log10(d.weight+3)*3});
 		gLine.exit().transition().style("stroke-width",0).remove();
 	}
 	function update_ap_device(apLst){
