@@ -231,8 +231,9 @@ rect.placeholder{
 }
 .timeline path.basic-timeline{
 	stroke-width: 2;
-	fill: #97CDFF;
-	stroke: green;
+	fill: #669933;
+	stroke: rgba(0, 102, 51, 1);
+	opacity: 0.6;
 }
 .timeline .timeline-title{
 }

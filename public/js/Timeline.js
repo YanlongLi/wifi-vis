@@ -487,7 +487,6 @@ WifiVis.TimelineBrush = function(timeline, opt){
 		extent = e;
 		onBrushMove(e);
 		fireEvent(TimelineBrush.EventType.EVENT_BRUSH_MOVE, e);
-		d3.event.stopPropagation();
 	}
 	function cbBrushEnd(){
 		console.log("brush end");
