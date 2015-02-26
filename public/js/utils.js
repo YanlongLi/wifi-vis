@@ -1,5 +1,4 @@
 var utils = utils ? utils : {};
-utils.DEBUG = true;
 utils.getSize = function(sel){
 	var tc = $(sel);
 	return {
@@ -13,14 +12,30 @@ utils.getSize = function(sel){
 	};
 };
 
+utils.initG = function(g, _w, _h, mgs){
+	var mg = [0, 0, 0, 0];
+	if(mgs){
+		mgs[0] && (mg[0] = mg[1] = mg[2] = mg[3] = mgs[0]);
+		mgs[1] && (mg[1] = mg[3] = mgs[1]);
+		mgs[2] && (mg[2] = mgs[2]);
+		mgs[3] && (mg[3] = mgs[3]);
+	}
+	var w = _w - mg[1] - mg[3];
+			h = _h - mg[0] - mg[2];
+	g.attr("transform", "translate("+mg[3]+","+mg[0]+")");
+	return {width: w, height: h};
+}
+
 utils.initSVG = function(sel, mgs){
 	var size = utils.getSize(sel);
 	var svg = d3.select(sel + " > svg").attr("width", size.width()).attr("height", size.height());
 	var mg = [0, 0, 0, 0];
-	mgs[0] && (mg[0] = mg[1] = mg[2] = mg[3] = mgs[0]);
-	mgs[1] && (mg[1] = mg[3] = mgs[1]);
-	mgs[2] && (mg[2] = mgs[2]);
-	mgs[3] && (mg[3] = mgs[3]);
+	if(mgs){
+		mgs[0] && (mg[0] = mg[1] = mg[2] = mg[3] = mgs[0]);
+		mgs[1] && (mg[1] = mg[3] = mgs[1]);
+		mgs[2] && (mg[2] = mgs[2]);
+		mgs[3] && (mg[3] = mgs[3]);
+	}
 	var w = size.width() - mg[1] - mg[3];
 			h = size.height() - mg[0] - mg[2];
 	var g = svg.append("g").attr("transform", "translate("+mg[3]+","+mg[0]+")");
@@ -31,22 +46,6 @@ utils.initSVG = function(sel, mgs){
 };
 utils.identity = function(x){return x};
 
-utils.waitUntil = function(condition, on_finished, interval, timeout) {
-    if(!timeout) timeout = 1e100;
-    var time_started = new Date().getTime();
-    var timer = setInterval(function() {
-        if(condition()) {
-            clearInterval(timer);
-            if(on_finished) on_finished(true);
-        }
-        if(new Date().getTime() - time_started > timeout) {
-            clearInterval(timer);
-            if(on_finished) on_finished(false);        
-        }
-    }, interval ? interval : 100);
-};
-//
-//module.exports = utils;
 utils.initArrowMarker = function(svg, markerId){
 	svg.append("svg:defs").append("svg:marker")
 		.attr("id",markerId)
