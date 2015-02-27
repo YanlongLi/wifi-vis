@@ -5,11 +5,11 @@
 }
 
 #aps-wrapper{}
-#aps-wrapper circle.device{
+#aps-wrapper rect.device{
 	fill: #8C564B;
 	stroke: #FFFFFF;
 }
-#aps-wrapper circle.device.selected{
+#aps-wrapper rect.device.selected{
 	fill: red;
 }
 #aps-wrapper circle.ap{
