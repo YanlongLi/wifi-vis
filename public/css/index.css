@@ -19,11 +19,20 @@
 }
 
 #floor-bar-circles .floor circle{
-	fill: red;
+	fill: #006633;
 }
 
 #floor-bar-circles .floor text{
 
+}
+
+#floor-bar-aps .floor .bar rect{
+	fill: #666633;	
+}
+
+#floor-bar-tls .floor path{
+	stroke: #455F50;
+	fill: none;
 }
 
 #floor-detail-wrapper{
