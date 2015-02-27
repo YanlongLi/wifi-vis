@@ -2,6 +2,28 @@ var WFV = {};
 
 var WifiVis = WFV;
 
+WFV.Message = {
+	FloorChange     : "FloorChange"     , //{floor  : }
+
+	ApSelect        : "ApSelect"        , //{apid   : []}
+	ApDeSelect      : "ApDeSelect"      , //{apid   : []}
+
+	DeviceSelect    : "DeviceSelect"    , //{device : []}
+	DeviceDeSelect  : "DeviceDeSelect"  , //{device : []}
+
+	TimePointChange : "TimePointChange" , //{time   : }
+	TimeRangeChange : "TimeRangeChange" , //{range  : []}
+};
+
+ObserverManager.setMessageCollection((function(){
+	var collection = [];
+	for(key in WFV.Message){
+		collection.push(WFV.Message[key]);
+	}
+	console.log(collection);
+	return collection;
+}()));
+
 WFV.AP_COLOR = (function(){
 	var colors = [
 		"#B28A00", "#B2AE00", "#42B200",
