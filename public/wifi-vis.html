@@ -1,5 +1,5 @@
 <html>
-<head><title>Wifi Data</title>
+<head><title>360 Wifi Visualization</title>
 	<meta charset="utf-8">
 	<!---->
 	<script type="text/javascript" src="jslib/jquery-2.1.1.js"></script>
@@ -8,13 +8,24 @@
 	<link rel="stylesheet" href="jslib/bootstrap/css/bootstrap.css"/>
 	<link rel="stylesheet" href="jslib/bootstrap/css/bootstrap-theme.css"/>
 	<link rel="stylesheet" href="jslib/d3.slider.css"/>
+	<link rel="stylesheet" href="css/floor-bar.css"/>
+	<link rel="stylesheet" href="css/floor-detail.css"/>
+	<link rel="stylesheet" href="css/aps-graph.css"/>
+	<link rel="stylesheet" href="css/timeline.css"/>
+	<link rel="stylesheet" href="css/other.css"/>
 	<link rel="stylesheet" href="css/index.css"/>
 </head>
 <body>
-	<div class="navbar navbar-default navbar-fixed-top">
-		<div class="container">
+	<div id="mask">
+		<div class="loading">
+			<h1>loading data ......</h1>
+			<div id="loading-tip"></div>
 		</div>
 	</div>
+	<!--<div class="navbar navbar-default navbar-fixed-top">
+		<div class="container">
+		</div>
+		</div>-->
 	<div id="main-view">
 		<div style="position: relative; left:0; right:0; width: 100%; height: 100%;">
 			<div id="floor-bar-wrapper">
@@ -26,16 +37,45 @@
 					</g>
 				</svg>
 			</div>
-			<div id="floor-detail-wrapper"></div>
-			<div id="ap-graph-wrapper"></div>
-			<div id="timeline-wrapper"></div>
+			<div id="floor-detail-wrapper">
+				<svg width="100%" height="100%"></svg>
+			</div>
+			<div id="aps-graph-wrapper">
+				<div style="visibility:hidden; height:0">
+					<span>Edge Filter:</span>
+					<div id="edge-filter-slider"></div>
+				</div>
+				<svg width="100%" height="100%"></svg>
+			</div>
+			<div id="timeline-wrapper">
+
+				<div id="timeline-option-bar" style="visibility:hidden; position: absolute; top:0; left:0;">
+					step
+					<select name="step" id="step">
+						<option value="minute">minute</option>
+						<option value="hour">hour</option>
+						<option value="day">day</option>
+					</select>
+					step-count
+					<input type="text" id="step-count" value="20"></input>
+					<input type="button" id="btn-step" value="change"></input>
+				</div>
+				<div id='timeline-wrapper-inner'>
+					<svg id='timeline-wrapper-svg'></svg>
+				</div>
+			</div>
 		</div>
 	</div>
 	<script type="text/javascript" src="jslib/bootstrap/js/bootstrap.js"></script>
 	<script type="text/javascript" src="js/utils.js"></script>
+	<script type="text/javascript" src="js/ObserverManager.js"></script>
 	<script type="text/javascript" src="WFV.js"></script>
 	<script type="text/javascript" src="db/db.js"></script>
+	<script type="text/javascript" src="js/RecordTracer.js"></script>
 	<script type="text/javascript" src="view/FloorBar.js"></script>
+	<script type="text/javascript" src="js/Timeline.js"></script>
+	<script type="text/javascript" src="js/FloorDetail.js"></script>
+	<script type="text/javascript" src="js/ApGraph.js"></script>
 	<script type="text/javascript" src="newtest.js"></script>
 
 </body>

@@ -1,0 +1,62 @@
+#floor-background{
+	/*plan image*/
+	position: relative;	
+	opacity: 0.4;
+}
+
+#aps-wrapper{}
+#aps-wrapper rect.device{
+	fill: #8C564B;
+	stroke: #FFFFFF;
+}
+#aps-wrapper rect.device.selected{
+	fill: red;
+}
+#aps-wrapper circle.ap{
+	fill: #669933;
+}
+#aps-wrapper circle.hilight{
+	fill: #006633;
+	stroke: #575555;
+	stroke-width: 2px;
+}
+
+#path-wrapper{}
+
+#path-arrow{
+	fill: #003300;
+	opacity: 0;
+}
+#path-wrapper path.link{
+	fill: none;
+	stroke: #669933;
+	opacity: 0.5;
+}
+
+#path-wrapper path.fade{
+	opacity: 0;
+}
+
+#path-wrapper path.hilight{
+	opacity: 1;
+	stroke: #006633;
+}
+
+#path-wrapper path.reverse{
+	opacity: 1;
+	stroke: #669933;
+}
+#path-wrapper path.bidirect{
+	opacity: 1;
+	/*stroke: #333300;*/
+	stroke: #006633;
+}
+
+.floor-label text{
+	text-anchor: middle;
+	fill: rgb(82, 84, 6);
+	opacity: 0.2;
+	font-size: 120px;
+	/*stroke: rgb(255, 242, 0);*/
+	stroke-width: 2;
+}

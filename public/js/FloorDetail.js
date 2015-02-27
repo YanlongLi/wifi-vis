@@ -281,7 +281,7 @@ WifiVis.FloorDetail = function(selector, _iF){
 				d.device.selected = true;
 			}
 		});
-		gAps.selectAll("circle.device").classed("selected", function(d){
+		gAps.selectAll("rect.device").classed("selected", function(d){
 			if(d.device.selected){
 				return true;
 			}
@@ -336,19 +336,19 @@ WifiVis.FloorDetail = function(selector, _iF){
 			});
 		});
 		//console.log("device list", deviceLst.length, deviceLst.slice(0,10));
-		var dvLst = gAps.selectAll("circle.device")
+		var dvLst = gAps.selectAll("rect.device")
 			.data(deviceLst, function(d){return d.mac});
-		var dvEnter = dvLst.enter().append("circle").attr("class", "device");
+		var dvEnter = dvLst.enter().append("rect").attr("class", "device");
 		dvEnter.each(function(d){
 			var circle = d3.select(this);
 			var device = d.device;
 			var preR = device.previousRecord();
 			if(!preR){
-				circle.attr("cx", -20).attr("cy", 0)
-					.style("fill","red").attr("r", 10);
+				circle.attr("x", -20).attr("y", 0)
+					.style("fill","red").attr("width", 10).attr("height", 10);
 			}else{
-				circle.attr("cx", -20)
-					.attr("cy", o.h/17*preR.floor).attr("r",10);
+				circle.attr("x", -20)
+					.attr("y", o.h/17*preR.floor).attr("width",10).attr("height", 10);
 			}
 		});
 		dvLst.on("mouseover", function(d){
@@ -358,9 +358,9 @@ WifiVis.FloorDetail = function(selector, _iF){
 			d3.select(this).selectAll('title').remove();
 		});
 		dvLst.style("fill",null)
-			.transition().attr("cx", function(d){return d.x})
-			.attr("cy", function(d){return d.y})
-			.attr("r", function(d){return 4});
+			.transition().attr("x", function(d){return d.x})
+			.attr("y", function(d){return d.y})
+			.attr("width", 8).attr("height", 8);
 		//dvLst.exit().transition().attr("cx", 0).attr("cy",0).remove();
 		dvLst.exit().remove();
 		return;
