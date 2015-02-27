@@ -1,4 +1,4 @@
-WFV.FloorBar = function(){
+WFV.FloorBar_ = function(){
 	function FloorBar(){}
 	// variables
 	var wrapper = $("#floor-bar-wrapper"),
@@ -82,9 +82,10 @@ WFV.FloorBar = function(){
 		}
 		floors.select("circle").datum(function(d){return d})
 			.attr("cx", per_h/2).attr("cy", per_h/2)
+			.attr("count",function(d){return d.count})
 			.attr("r", function(d){
 				var r = scale(d.count);
-				return  isNaN(r) ? 1 : r;
+				return  isNaN(r) || r < 1 ? 1 : r;
 			});
 		floors.transition().attr("transform", function(d,i){
 			var dy = per_h * (d.floor - 1);
