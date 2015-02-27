@@ -1,3 +1,22 @@
+(function(){
+	Date.prototype.to_date = function(){
+		var format = d3.time.format("%Y-%m-%d");
+		return format(this);
+	}
+	Date.prototype.to_date_str = function(){
+		var format = d3.time.format("%Y-%m-%d");
+		return format(this);
+	}
+	Date.prototype.to_time_str = function(){
+		var format = d3.time.format("%Y-%m-%d %H:%M:%S");
+		return format(this);
+	}
+	Date.prototype.to_24_str = function(){
+		var format = d3.time.format("%H:%M:%S");
+		return format(this);
+	}
+})();
+
 var WFV = WFV || {};
 
 //
@@ -22,24 +41,11 @@ var loading_tip = (function(){
 
 // convert a Date obj to Date Obj
 WFV.time_to_date= function(time){
-	var str = WFV.date_format(time);
-	return WFV.date_format.parse(str);
+	var format = d3.time.format("%Y-%m-%d");
+	var str = format(time);
+	return format.parse(str);
 }
 
-Date.prototype.to_date = function(){
-	return WFV.time_to_date(this);
-}
-Date.prototype.to_date_str = function(){
-	return WFV.date_format(this);
-}
-Date.prototype.to_time_str = function(){
-	var format = d3.time.format("%Y-%m-%d %H:%M:%S");
-	return format(this);
-}
-Date.prototype.to_24_str = function(){
-	var format = d3.time.format("%H:%M:%S");
-	return format(this);
-}
 
 WFV.file_path = function(date){
 	var fname = WFV.date_format(date);

@@ -1,0 +1,42 @@
+<html>
+<head><title>Wifi Data</title>
+	<meta charset="utf-8">
+	<!---->
+	<script type="text/javascript" src="jslib/jquery-2.1.1.js"></script>
+	<script type="text/javascript" src="jslib/d3/d3.js"></script>
+	<script type="text/javascript" src="jslib/d3.slider.js"></script>
+	<link rel="stylesheet" href="jslib/bootstrap/css/bootstrap.css"/>
+	<link rel="stylesheet" href="jslib/bootstrap/css/bootstrap-theme.css"/>
+	<link rel="stylesheet" href="jslib/d3.slider.css"/>
+	<link rel="stylesheet" href="css/index.css"/>
+</head>
+<body>
+	<div class="navbar navbar-default navbar-fixed-top">
+		<div class="container">
+		</div>
+	</div>
+	<div id="main-view">
+		<div style="position: relative; left:0; right:0; width: 100%; height: 100%;">
+			<div id="floor-bar-wrapper">
+				<svg>
+					<g id="floor-bar">
+						<g id="floor-bar-circles"></g>
+						<g id="floor-bar-aps"></g>
+						<g id="floor-bar-tls"></g>
+					</g>
+				</svg>
+			</div>
+			<div id="floor-detail-wrapper"></div>
+			<div id="ap-graph-wrapper"></div>
+			<div id="timeline-wrapper"></div>
+		</div>
+	</div>
+	<script type="text/javascript" src="jslib/bootstrap/js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/utils.js"></script>
+	<script type="text/javascript" src="WFV.js"></script>
+	<script type="text/javascript" src="db/db.js"></script>
+	<script type="text/javascript" src="view/FloorBar.js"></script>
+	<script type="text/javascript" src="main.js"></script>
+
+</body>
+</html>
