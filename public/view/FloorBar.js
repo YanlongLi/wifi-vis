@@ -32,7 +32,6 @@ WFV.FloorBar_ = function(){
 			o.count = d3.sum(o.aps, function(ap){return ap.count});
 			return o;
 		});
-		console.log(_data)
 		return _data;
 	})());
 
@@ -50,19 +49,15 @@ WFV.FloorBar_ = function(){
 		if(message == WFV.Message.ApSelect){
 			var ids = data.apid;
 			ids.forEach(function(apid){
-				console.log(apid);
 				var bar = $("#floor-bar-aps .floor .bar[apid="+apid+"]");
 				bar.attr("class", "bar selected");
-				console.log(bar[0].outerHTML);
 			});
 		}
 		if(message == WFV.Message.ApDeSelect){
 			var ids = data.apid;
-			console.log("on deselect")
 			ids.forEach(function(apid){
 				var bar = $("#floor-bar-aps .floor .bar[apid="+apid+"]");
 				bar.attr("class", "bar");
-				console.log(bar[0].outerHTML);
 			});
 		}
 	}
@@ -94,7 +89,6 @@ WFV.FloorBar_ = function(){
 			if($(this).attr("_selected")){
 				return;
 			}
-			console.log("on mouse leave");
 			var data = {_this: this, apid: [$(this).attr("apid")]}
 			ObserverManager.post(WFV.Message.ApDeSelect, data);
 		});
@@ -198,11 +192,7 @@ WFV.FloorBar_ = function(){
 			}).attr("width", w_bar - bar_gap)
 			.attr("height", function(d){
 				var h = per_h - scale(d.count);
-				if(h < 0){
-					console.log(d.count);
-					console.log(scale.domain());
-				}
-				return h;
+				return h < 1 ? 1 : h;
 			});
 		})
 		floors.transition().attr("transform", function(d,i){
