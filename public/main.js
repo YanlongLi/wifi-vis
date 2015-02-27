@@ -1,4 +1,3 @@
-var floor_bar = WFV.FloorBar_();
 
 var timeFrom = new Date(2013,8,2),
 		timeTo   = new Date(2013,8,3);
@@ -8,6 +7,8 @@ var apLst = [], apMap = d3.map();
 var records = [];
 
 var tracer;
+
+var floor_bar = WFV.FloorBar_();
 
 var floorDetail, floorsNav;
 var tlSize, timeline, tlBrush;
@@ -42,7 +43,10 @@ db.init(function(){
 
 function init(){
 	tracer = RecordTracer.CreateTracer();
-	floorDetail = WifiVis.FloorDetail("#floor-detail-wrapper");
+	floorDetail = WifiVis.FloorDetail();
+	ObserverManager.post(WFV.Message.TimePointChange, {time:new Date(2013,08,02,12)});
+	ObserverManager.post(WFV.Message.FloorChange, {floor:1});
+	/*
 	// init timeline
 	tlSize = utils.getSize("#timeline-wrapper-inner");
 	var svg = d3.select("#timeline-wrapper-inner > svg")
@@ -69,10 +73,10 @@ function init(){
 	apGraph.addEventListener(apGraph.EventType.AP_CLICK, floorDetail);
 	//
 	timeline.update();
-	apGraph.draw();
-	floorDetail.set_init_floor();
+	apGraph.draw(); */
 }
 
+/*
 function onStart(extent){
 }
 function onMove(extent){
@@ -91,11 +95,4 @@ function onEnd(extent){
 	tracer.gotoTime(new Date(e0));
 	floorDetail.update_ap_device(apLst);
 	floorDetail.update_links([e0, e1]);
-	// apGraph
-	/*
-	var allRecords = recordCenter.findAllRecords(function(r){
-		return r.dateTime >= e0
-			&& r.dateTime <= e1;
-	});
-	apGraph.draw(allRecords);*/
-}
+}*/
