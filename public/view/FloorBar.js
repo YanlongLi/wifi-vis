@@ -16,7 +16,7 @@ WFV.FloorBar_ = function(){
 			.y(function(d){return y_line_scale(d.count)});
 	
 	//
-	var selected_ap = [], current_floor;
+	var selected_aps = [], current_floor;
 	var time_range, time_point;
 	//
 	init_svg();
@@ -35,6 +35,72 @@ WFV.FloorBar_ = function(){
 		console.log(_data)
 		return _data;
 	})());
+
+	init_interaction();
+	/*
+	 * Event Listen
+	 */
+	ObserverManager.addListener(FloorBar);
+	FloorBar.OMListen = function(message, data){
+		if(message == WFV.Message.FloorChange){
+			current_floor = data.floor;
+			$("#floor-bar-circles .floor").attr("class","floor");
+			$(data._this).attr("class", "floor selected");
+		}
+		if(message == WFV.Message.ApSelect){
+			var ids = data.apid;
+			ids.forEach(function(apid){
+				console.log(apid);
+				var bar = $("#floor-bar-aps .floor .bar[apid="+apid+"]");
+				bar.attr("class", "bar selected");
+				console.log(bar[0].outerHTML);
+			});
+		}
+		if(message == WFV.Message.ApDeSelect){
+			var ids = data.apid;
+			console.log("on deselect")
+			ids.forEach(function(apid){
+				var bar = $("#floor-bar-aps .floor .bar[apid="+apid+"]");
+				bar.attr("class", "bar");
+				console.log(bar[0].outerHTML);
+			});
+		}
+	}
+	function init_interaction(){
+		$(document).on("click", "#floor-bar-circles .floor", function(e){
+			var data = {_this: this, floor: $(this).attr("floor-id")}
+			ObserverManager.post(WFV.Message.FloorChange, data);
+		});
+		$(document).on("click", "#floor-bar-aps .floor .bar", function(e){
+			if($(this).attr("_selected")){
+				$(this).attr("_selected", null);
+				var data = {_this: this, apid: [$(this).attr("apid")]}
+				ObserverManager.post(WFV.Message.ApDeSelect, data);
+				return;
+			}else{
+				$(this).attr("_selected", true);
+				var data = {_this: this, apid: [$(this).attr("apid")]}
+				ObserverManager.post(WFV.Message.ApSelect, data);
+			}
+		});
+		$(document).on("mouseenter", "#floor-bar-aps .floor .bar", function(e){
+			if($(this).attr("_selected")){
+				return;
+			}
+			var data = {_this: this, apid: [$(this).attr("apid")]}
+			ObserverManager.post(WFV.Message.ApSelect, data);
+		});
+		$(document).on("mouseleave", "#floor-bar-aps .floor .bar", function(e){
+			if($(this).attr("_selected")){
+				return;
+			}
+			console.log("on mouse leave");
+			var data = {_this: this, apid: [$(this).attr("apid")]}
+			ObserverManager.post(WFV.Message.ApDeSelect, data);
+		});
+
+		
+	}
 
 	//setTimeout(change_view, 1000);
 
@@ -79,6 +145,7 @@ WFV.FloorBar_ = function(){
 			floors = floors.data(_data, function(d){return d.floor});
 			var floors_enter = floors.enter().append("g").attr("class","floor");
 			floors_enter.append("circle");
+			floors.attr("floor-id", function(d){return d.floor});
 		}
 		floors.select("circle").datum(function(d){return d})
 			.attr("cx", per_h/2).attr("cy", per_h/2)
@@ -112,6 +179,8 @@ WFV.FloorBar_ = function(){
 			var bars = floors.selectAll("g.bar").data(function(d){return d.aps});
 			var bar_enter = bars.enter().append("g").attr("class", "bar");
 			bar_enter.append("rect");
+			//
+			bars.attr("apid", function(d){return d.apid});
 		}
 		w_bar = (size.width - per_h) / max_ap_number;
 		floors.each(function(d){
