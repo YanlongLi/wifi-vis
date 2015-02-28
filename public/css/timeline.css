@@ -6,15 +6,17 @@
 }
 
 #timeline-floor g.line path{
-	fill: none;
+	fill: #A2CE85;
 	stroke: #666633;
 	stroke-width: 2;
+	opacity: 0.6;
 }
 
 #timeline-ap g.line path{
-	fill:none;
+	fill: #666633;
 	stroke: blue;
 	stroke-width: 2;
+	opacity: 0.4;
 }
 
 /*
