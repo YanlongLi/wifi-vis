@@ -242,6 +242,27 @@ WFV_DB.prototype.path_by_mac = function(mac, from, to, cb){
 	}
 }
 
+WFV_DB.prototype.ap_bar_data = function(from, to, cb){
+	// generage ap_bar_data, [floor:, aps:[{apid, count}], count:]
+	this.records_by_interval(from, to, _structure_records);
+	function _structure_records(records){
+		var data = d3.nest().key(function(r){return r.floor}).sortKeys(d3.asceding)
+			.key(function(r){return r.apid}).sortKeys(d3.asceding)
+			.rollup(function(leaves){return leaves.length})
+			.entries(records);
+		data.forEach(function(f){
+			f.floor = +f.key; delete f.key;
+			f.aps = f.values; delete f.values;
+			f.aps.forEach(function(ap){
+				ap.apid = +ap.key; delete ap.key;
+				ap.count = ap.values; delete ap.values;
+			});
+			f.count = d3.sum(f.aps, function(ap){return ap.count});
+		});
+		cb && cb(data);
+	}
+}
+
 /*
  * graph_info function return a array of links,
  * the nodes are aps
