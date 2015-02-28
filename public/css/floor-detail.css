@@ -6,15 +6,13 @@
 
 #aps-wrapper{}
 #aps-wrapper .ap circle{
-	fill: #F9E13D;
+	fill: #669933;
 	opacity: 0.5;
-	stroke: #333333;
-	stroke-width: 3;
+	/*stroke: #333333;
+	stroke-width: 3;*/
 }
 #aps-wrapper .ap.hilight circle{
 	fill: #006633;
-	stroke: #575555;
-	stroke-width: 5;
 }
 
 #device-wrapper .device rect{
@@ -28,27 +26,52 @@
 
 #path-wrapper{}
 
-#path-arrow{
-	fill: #003300;
-	opacity: 1;
+#path-arrow-normal{
+	fill: #669933;
+	opacity: 0.5;
+}
+
+#path-arrow-fade{
+	opacity: 0;
+}
+
+#path-arrow-reverse{
+	fill: #669933;
+}
+
+#path-arrow-hilight{
+	fill: #006633;
+}
+
+#path-arrow-hover{
+	fill: #1D3D35;
 }
 
 #path-wrapper .link path{
 	fill: none;
 	stroke: #669933;
 	opacity: 0.5;
+	marker-end: url("#path-arrow-normal");
 }
 
 #path-wrapper .fade path{
 	opacity: 0;
+	marker-end: url("#path-arrow-fade");
 }
 
 #path-wrapper .hilight path{
 	opacity: 1;
 	stroke: #006633;
+	marker-end: url("#path-arrow-hilight");
 }
 
 #path-wrapper .reverse path{
 	opacity: 1;
 	stroke: #669933;
+	marker-end: url("#path-arrow-reverse");
+}
+
+#path-wrapper .hover path{
+	stroke: #1D3D35;
+	marker-end: url("#path-arrow-hover");
 }
