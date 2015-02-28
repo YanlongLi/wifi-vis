@@ -77,7 +77,7 @@ function init(){
 	// apGraph.addEventListener(apGraph.EventType.AP_CLICK, floorDetail);
 	// //
 	// timeline.update();
-	// apGraph.draw(); 
+	apGraph.draw(); 
 }
 
 /*

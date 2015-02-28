@@ -1,6 +1,6 @@
 importScripts("../../jslib/tsne.js")
 
-var opt = {epsilon: 10};
+var opt = {epsilon: 2};
 var tSNE = new tsnejs.tSNE(opt);
 var _distanceMatrix;
 
@@ -17,7 +17,6 @@ onmessage = function(event) {
         tSNE.setDataDist(distanceMatrix, false);
         start(distanceMatrix, 500);
     }
-    
 };
 
 function start(distanceMatrix, iter) {
@@ -28,8 +27,9 @@ function start(distanceMatrix, iter) {
             clearInterval(iterTimer);
         }
         tSNE.step();
-        postMessage(tSNE.getSolution());        
-    }, 10)
+        // if (count > 300)
+            postMessage(tSNE.getSolution());        
+    }, 50)
     // for (var i = 0; i < iter; i++) {
     //  if (workTimestamp != messageTimestamp) {
     //      console.log("break");
