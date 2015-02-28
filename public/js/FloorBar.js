@@ -6,7 +6,7 @@ WFV.FloorBar_ = function(){
 	d3.select("#floor-bar-wrapper > svg")
 		.attr("width", "100%").attr("height", "100%");
 	var g = d3.select("#floor-bar"), size;
-	var per_h, w_bar, bar_gap = 2, max_ap_number;
+	var per_h, w_bar, bar_gap = 2, max_ap_number = 24;
 	var circle_scale = d3.scale.log().clamp(true),
 		y_bar_scale    = d3.scale.linear(),
 		x_line_scale   = d3.time.scale(),
@@ -48,12 +48,14 @@ WFV.FloorBar_ = function(){
 				bar.attr("class", "bar");
 			});
 		}
-		if(message == WFV.Message.TimeRangeChange){
+		if(message == WFV.Message.TimeRangeChanged){
 			time_range = data.range;
 			x_line_scale.domain(time_range);
-			db.ap_bar_data(time_range[0], time_range[1], function(_data){
-				update_ap_bars(_data);
-			});
+			db.ap_bar_data(time_range[0], time_range[1], update_ap_bars);
+			// TODO floor tl data
+		}
+		if(message == WFV.Message.TimePointChange){
+			// TODO
 		}
 	}
 	function init_interaction(){
@@ -119,13 +121,22 @@ WFV.FloorBar_ = function(){
 	function update_floor_circle(_data){
 		// [{floor:, count:}]	
 		// if no _data, update size
-		var scale = circle_scale.range([0, per_h/2]);
+		var scale = circle_scale.range([2, per_h/2]);
 		var floors = g.select("#floor-bar-circles").selectAll("g.floor");
 		if(_data){
 			var extent = d3.extent(_data, function(d){return d.count});
 			extent[0] = extent[0] ? extent[0] : 1;
+			extent[1] = extent[1] > extent[0] ? extent[1] : extent[0] + 1;
 			scale.domain(extent);
-			console.log(scale.domain(), scale.range());
+			//console.log(scale.domain(), scale.range());
+			if(isNaN(extent[1])){
+				var c_a = Array.prototype
+					.concat.apply([], _data.map(function(d){
+						return d.count;
+					}));
+				console.log(c_a);
+				console.warn("elegal domain")
+			}
 			floors = floors.data(_data, function(d){return d.floor});
 			var floors_enter = floors.enter().append("g").attr("class","floor");
 			floors_enter.append("circle");
@@ -143,7 +154,8 @@ WFV.FloorBar_ = function(){
 				return  isNaN(r) || r < 1 ? 1 : r;
 			});
 		floors.transition().attr("transform", function(d,i){
-			var dy = per_h * i;
+			//var dy = per_h * i;
+			var dy = per_h * (d.floor -1);
 			return "translate(0,"+dy+")";
 		});
 	}
@@ -155,12 +167,10 @@ WFV.FloorBar_ = function(){
 		//var bars = floors.selectAll("g.bar");
 		if(_data){
 			max_ap_number = d3.max(_data,function(d){return d.aps.length});
-			var all_aps = Array.prototype.concat.apply([], _data.map(function(d){
-				return d.aps
-			}));
-			var extent = d3.extent(all_aps, function(d){return d.count+2});
-			extent[0] = 0;
-			scale.domain(extent);
+			var max_count = d3.max(_data,function(f){
+				return d3.max(f.aps, function(d){return d.count});
+			});
+			scale.domain([0, max_count + 2]);
 			floors = floors.data(_data, function(d){return d.floor});
 			floors.enter().append('g').attr('class',"floor");
 			//
@@ -171,10 +181,13 @@ WFV.FloorBar_ = function(){
 			bars.attr("apid", function(d){return d.apid});
 		}
 		w_bar = (size.width - per_h) / max_ap_number;
-		floors.each(function(d){
+		floors.attr("floor", function(d){return d.floor}).each(function(d){
 			// sort ap bars
-			var bars = d3.select(this).selectAll("g.bar").sort(function(d1, d2){
-				var a = d1.count, b = d2.count;
+			var bars = d3.select(this).selectAll("g.bar")
+				.data(function(d){return d.aps})
+				.sort(function(d1, d2){
+				//var a = d1.count, b = d2.count;
+				var a = d1.apid, b = d2.apid;
 				return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
 			});
 			bars.transition().attr("transform", function(d,i){
@@ -182,7 +195,7 @@ WFV.FloorBar_ = function(){
 				return "translate("+dx+")";
 			});
 			bars.select("rect").attr("x", bar_gap).attr("y", function(d){
-				return dy = scale(d.count);
+				return scale(d.count);
 			}).attr("width", w_bar - bar_gap)
 			.attr("height", function(d){
 				var h = per_h - scale(d.count);
@@ -194,7 +207,8 @@ WFV.FloorBar_ = function(){
 			return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
 		});
 		floors.transition().attr("transform", function(d,i){
-			var dy = per_h * i
+			//var dy = per_h * i
+			var dy = per_h * (d.floor -1);
 			return "translate(0,"+dy+")";
 		});
 		if(_data){

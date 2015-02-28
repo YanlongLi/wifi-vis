@@ -1,369 +1,192 @@
-//var d3 = require("d3");
-//var utils = require("./utils");
-/*
- * Timeline()
- * _data: raw data
- * id: element id
- * opt.size: timeline size
- * opt.tid: timeline id
- * opt.style: element style class
- */
-WifiVis.Timeline = function(id, opt){
+WFV.Timeline = function(_time_range){
 	function Timeline(){}
 	//
-	var data;
-	var g = d3.select(id),
-			tid = opt.tid || (100 + Math.round(Math.random() * 100)),
-			size;
-	g.attr("class", opt.style || "timeline");
-	var x = d3.time.scale(), y = d3.scale.linear(),
-			xAxis, yAxis, line,
-			extent;
-	xAxis = d3.svg.axis().scale(x).orient("bottom")
-		.tickSize(2,0,4).tickSubdivide(0)
+	var svg = $("#timeline-svg"), size;
+	var g = d3.select("#timeline-g").attr("class", "timeline");
+	//
+	var all_time_range = _time_range, time_range, time_point; 
+	console.log(all_time_range);
+	var x = d3.time.scale().domain(all_time_range),
+		y = d3.scale.linear(), y_floor = d3.scale.linear();
+	var xAxis = d3.svg.axis().scale(x).orient("bottom")
+		.tickSize(2,0,4).tickSubdivide(0);
 		//.tickFormat(function(d){return new Date(d).to_24_str()});
-	yAxis = d3.svg.axis().scale(y).orient("left")
-		.ticks(5);
-	var aplineColor = WifiVis.AP_COLOR;
-		//
-	g.append("g").attr("id", "timeline-x-axis-"+ tid).attr("class","x axis");
-//		.attr("transform", "translate(0,"+size.height+")")
-	g.append("g").attr("id", "timeline-y-axis-"+ tid).attr("class","y axis");
-	g.append("g").attr("class","y-description")
-		.attr("transform","translate(6,"+10+")")
-		.append("text").text("records number/per 20 minutes");
-
-	g.append("path").attr("class", "basic-timeline");
-	g.append("g").attr("id","ap-timeline-container");
-	var apLine = g.select("#ap-timeline-container");
-	var gPop;
-	(function(){
-		var pW = 200, pH = 60;
-		gPop = g.append("g").attr("id", "popup").attr("opacity", 0);
-		gPop.append("rect").attr("width", pW).attr("height", pH)
-			.attr("fill", "black").attr("opacity", 0.13);
-		gPop.append("g").attr("class","time").append("rect")
-			.attr("width", 200).attr("height",20).style("fill","#FFFFFF");
-		gPop.select("g.time").append("text").attr("dy",16);
-	})();
-	var shownData, strokeColor;
-	//
-	var from, to;
-	var IS_LOAD_DATA = false, curF = 1;
-	var curStep = "minute", stepCount = 20;
-	var brushLst = [];
-	//
-	$("#btn-step").click(function(){
-		curStep = $("#step").val();
-		stepCount = $("#step-count").val();
-		set_step(curStep, stepCount);
-	});
-	//
-	
-	var mouseTime;
-	g.on("mouseenter", mouseenter)
-		.on("mousemove", mousemove)
-		.on("mouseleave",mouseleave);
-	function mouseenter(){
-		apLine.selectAll("circle, text").attr("opacity", 1);
-	}
-	function mousemove(){
-		var _ref = d3.mouse(this);
-		var mx = _ref[0], my = _ref[1];
-		if(mx <= 0 || my <= 0){
-			mouseleave();
-			return;
-		}
-		mouseenter();
-		mouseTime = x.invert(mx);
-		var popData = [];
-		apLine.selectAll("text").attr("transform",function(d){
-			var i = -1;
-			while(++i < d.length && d[i].time - mouseTime < 0){
-			}
-			if(i == 0){
-				i = 1;
-			}
-			if(i == d.length){
-				console.log("mouse pos overflow");
-				mouseleave();
-				return;
-			}
-			var dx = x(new Date(d[i-1].time));
-			var dy = y(d[i-1].count);
-			//
-			var pData = {name: d.ap.name, count:d[i-1].count};
-			//
-			return "translate("+dx+","+dy+")";
-		});
-		apLine.selectAll("circle").each(function(d){
-			var i = -1;
-			while(++i < d.length && d[i].time - mouseTime < 0){
-			}
-			if(i == 0){
-				i = 1;
-			}
-			if(i == d.length){
-				console.warn("mouse pos overflow");
-				return;
-			}
-			var dx = x(new Date(d[i-1].time));
-			var dy = y(d[i-1].count);
-			//
-			var pData = {name: d.ap.name, count:d[i-1].count, ap: d.ap};
-			popData.push(pData);
-			//
-			d3.select(this).attr("transform", "translate("+dx+","+dy+")");
-		});
-		if(!popData.length){
-			return;
-		}
-		gPop.select("g.time").select("text").text(mouseTime.to_time_str());
-		popData.sort(function(d1, d2){
-			return d2.count - d1.count;
-		});
-		var popItem= gPop.selectAll("g.text")
-			.data(popData,function(d){return d.name});
-			//.data(popData,function(d){return d.name});
-		popItem.enter().append("g").attr("class","text").each(function(d){
-			d3.select(this).append("rect").attr("height", 20).attr("width", 200)
-				.attr("fill", function(d){
-					return aplineColor(d.ap.apid);
-				});
-			d3.select(this).append("text").attr("class","name");
-			d3.select(this).append("text").attr("class","count");
-		});
-		popItem.attr("transform",function(d,i){
-			var dy = (i+1) * 20;
-			return "translate(0,"+dy+")";
-		}).each(function(d){
-			d3.select(this).select("text.name").attr("dy",16)
-				.attr("dx",20)
-				.text(function(d){return d.name});
-			d3.select(this).select("text.count").attr("dy",16)
-				.attr("dx", 80)
-				.text(function(d){return d.count});
-		});
-		popItem.exit().remove();
-		gPop.attr("transform","translate("+mx+","+my+")")
-			.attr("height", 20*popData.length+20);
-		gPop.attr("opacity",1);
-	}
-	function mouseleave(){
-		apLine.selectAll("circle, text").attr("opacity", 0);
-		gPop.attr("opacity", 0);
-	}
-	//
-	Timeline.change_floor = function(){
-		IS_LOAD_DATA = false;
-		update();
-	}
-	Timeline.onFloorChange = function(f){
-		curF = f;
-		IS_LOAD_DATA = false;
-		update();
-		apLine.selectAll("g.ap-line").remove();
-	}
-	Timeline.onApClick = add_ap_timeline;
-	Timeline.add_ap_timeline = add_ap_timeline;
-	Timeline.set_step = set_step;
-	Timeline.set_range = set_range;
-	Timeline.update = update;
-	Timeline.add_brush= addBrush;
-	Timeline.set_size= function(_){
-		if(_){
-			size = _;
-			x.range([0, size.width]);
-			y.range([size.height, 0]);
-			console.log("init timeline size:", _);
-			return Timeline;
-		}
-		return size;
-	};
-	Timeline.strokeColor = function(_){
-		if(_){
-			strokeColor = _;
-			return Timeline;
-		}
-		return strokeColor;
-	};
-	//
-	// getters and setters
-	(function(){
-		Object.defineProperty(Timeline, "g", {
-			get: function(){return g}
-		});// base group of timeline
-		Object.defineProperty(Timeline, "size", {
-			get: function(){return size}
-		});// timeline size
-		Object.defineProperty(Timeline, "x", {
-			get: function(){return x}
-		});
-		Object.defineProperty(Timeline, "y", {
-			get: function(){return y}
-		});
-		Object.defineProperty(Timeline, "data", {
-			get: function(){return data}
-		});
-		Object.defineProperty(Timeline, "shownData", {
-			get: function(){return shownData}
-		});
-		Object.defineProperty(Timeline, "brushLst", {
-			get: function(){return brushLst}
-		});
-	})();
-	//
-	function set_step(step, count){
-		curStep = step ? step : curStep;
-		stepCount = count ? count : stepCount;
-		load_data();
-		update();
-		return Timeline;
-	}
-	function set_range(range){
-		if(!arguments.length){
-			from = timeFrom;
-			to = timeTo;
-		}else{
-			from = range[0];
-			to = range[1];
-		}
-		IS_LOAD_DATA = false;
-		//load_data();
-		//update();
-		return Timeline;
-	}
-	function load_data(){
-		// need global variable: timeFrom, timeTo
-		from = from ? from : timeFrom;
-		to = to ? to : timeTo;
-		//
-		var params = {
-			start     : (new Date(from)).getTime(),
-			end       : (new Date(to)).getTime(),
-			step      : curStep,
-			stepcount : +stepCount,
-			floor     : curF 
-		};
-		//
-		timeline_data(params, function(_data){
-			data = _data;
-			var format = d3.time.format("%Y-%m-%d %H:%M:%S");
-			console.log("load data:",
-					format(new Date(data.start)),
-					format(new Date(data.end)),
-					data.time.length);
-			console.log("count:",data.count.join(","));
-			shownData = data.time.map(function(time,i){
-				return {
-					time   : time,
-					count  : data.count[i],
-					values : data.values[i]
-				}
-			});
-			IS_LOAD_DATA = true;
-			update();
-		});
-		return Timeline;
-	}
-	/*
-	 * _size: size of the timeline view, optional
-	 * strokeColor: line color, optional
-	 * title: optional
-	 */
-	function update(_size, _strokeColor, title){
-		if(!IS_LOAD_DATA){
-			load_data();
-			return;
-		}
-		size = _size || size;
-		if(!size){
-			console.warn("renderTimeline: no render size");
-		}
-		strokeColor = _strokeColor || strokeColor;
-		// shownData:{start:, end:, time:, count:[], values:[]}
-		//extent = d3.extent(shownData.time);
-		x.range([0, size.width]).domain(d3.extent(data.time)).nice();
-		y.range([size.height, 0]).domain([0,d3.max(data.count)]).nice();
-		line = d3.svg.area()
-		//	.interpolate("monotone")
+	var yAxis = d3.svg.axis().scale(y).orient("left")
+		.tickFormat(d3.format(",.0f"));
+	var line = d3.svg.line()//.interpolate("monotone")
 			.x(function(d){return x(d.time)})
 			.y(function(d){return y(d.count)})
-			.x0(function(d){ return x(d.time)})
-			.y0(function(d){return y(0)});
-		g.select("#timeline-x-axis-"+ tid)
-			.attr("transform", "translate(0,"+size.height+")").call(xAxis);
-		g.select("#timeline-y-axis-"+ tid).call(yAxis);
-		// draw line
-		//g.selectAll("path.basic-timeline").remove();
-		var sel = g.select("path.basic-timeline").datum(shownData);
-		sel.attr("d", line).style("stroke", strokeColor);
-		// title
-		title && (renderTitle(title));
-		return Timeline;
+			//.x0(function(d){ return x(d.time)})
+			//.y0(function(d){return y(0)});
+	var brush = d3.svg.brush().x(x)
+		.on("brushstart", onBrushStart)
+		.on("brush", onBrushMove)
+		.on("brushend", onBrushEnd);
+	function onBrushStart(){
+		console.log("brush start");
 	}
-	function add_ap_timeline(ap, flag){
-		var apid = ap.apid;
-		if(!flag){
-			g.select("#ap-timeline-"+apid).remove();
-			return;
+	function onBrushMove(e){
+		time_range  = d3.event.target.extent();
+		if(time_point - time_range[0] != 0){
+			time_point = time_range[0];
+			ObserverManager.post(WFV.Message.TimePointChange, {time: time_point});
 		}
-		from = from ? from : timeFrom;
-		to = to ? to : timeTo;
-		var params = {
-			start     : (new Date(from)).getTime(),
-			end       : (new Date(to)).getTime(),
-			step      : curStep,
-			stepcount : +stepCount,
-			apid : apid
+		ObserverManager.post(WFV.Message.TimeRangeChange, {range: time_range});
+	}
+	function onBrushEnd(){
+		if(!d3.event.sourceEvent) return;
+		var range = d3.event.target.extent();
+		var step = TIME_STEP[step_by] * step_count;
+		if(brush.empty() || range[1] - range[0] < step){
+			range = all_time_range;
 		}
-		timeline_data(params, function( _data){
-			var apTlData = _data.time.map(function(time,i){
-				return {
-					time   : time,
-					count  : _data.count[i],
-					values : _data.values[i]
-				}
-			});
-			apTlData.ap = ap;
-			console.log("ap",apid,"timeline count:",_data.count.join(","));
-			// draw
-			var sel = apLine.append("g").attr("class","ap-line")
-				.attr("id","ap-timeline-"+apid).datum(apTlData);
-			var path = sel.append("path").attr("class","ap-timeline");
-			sel.append("circle").attr("opacity", 0).attr("r",5);
-			sel.append("text").attr("opacity", 0).text(function(d){
-				return d.ap.name;
-			});
-			apLine.selectAll("path.ap-timeline")
-				.attr("d", line).style("stroke",function(d){
-					return aplineColor(d.ap.apid);
+		ObserverManager.post(WFV.Message.TimeRangeChanged, {range: time_range});
+	}
+	//
+	var current_floor, sel_aps, 
+		floor_data_status = d3.range(0,18).map(function(){return false});
+	//
+	var step_by = "hour", step_count = 1;
+	var TIME_STEP = WFV.TIME_STEP;
+	var TIMELINE_TYPE = {
+		all: "timeline_type_all",
+		floor: "timeline_type_floor",
+		ap: "timeline_type_ap"
+	}
+
+	init_svg();
+
+	(function(){// append 1-17 floor lines, init invisible
+		var fls = g.select("#timeline-floor")
+			.selectAll("g.line").data(d3.range(1,18));
+		fls.enter().append("g").attr("class", "line").append("path");
+		fls.attr("floor", function(d){return d})
+			.attr("id", function(d){return "tl-floor-"+d})
+			.attr("visibility", "hidden");
+	})();
+
+	g.select("#timeline-basic").attr("class", "line").append("path");
+	_timeline_data(TIMELINE_TYPE.all, null, update_basic_timeline);
+	
+	ObserverManager.post(WFV.Message.TimeRangeChanged, {range: all_time_range});
+
+	function init_svg(){
+		var _w = svg.width(), _h = svg.height();
+		size = utils.initG(g, _w, _h, [0, 20, 20,40]);
+		x.range([0, size.width]).nice();
+		y.range([size.height, 0]).nice();
+		y_floor.range([size.height, 0]).nice();
+		g.select("#x-axis").attr("class", "x axis")
+			.attr("transform", "translate(0,"+size.height+")")
+			.call(xAxis);
+		g.select("#y-axis").attr("class", "y axis")
+			.attr("transform", "translate(0,0)")
+			.call(yAxis);
+		//
+		g.select("#brush").attr("class", "brush")
+			.call(brush).selectAll("rect").attr("height", size.height);
+	}
+	//
+	ObserverManager.addListener(Timeline);
+	Timeline.OMListen = function(message, data){
+		if(message == WFV.Message.FloorChange){
+			console.log("timeline on floor change", data.floor)
+			current_floor = +data.floor;
+			g.select("#timeline-floor")
+				.selectAll(" g.line").style("visibility", "hidden");
+			g.select("#tl-floor-"+current_floor).style("visibility", "visible");
+			if(!floor_data_status[current_floor]){
+				_timeline_data(TIMELINE_TYPE.floor, current_floor, function(_data){
+					update_floor_timeline(_data);
+					floor_data_status[current_floor] = true;
 				});
-			//
-		});
-		return Timeline;
+			}
+		}
+		if(message == WFV.Message.ApSelect){
+			// TODO
+		}
+		if(message == WFV.Message.ApDeselect){
+			// TODO
+		}
+		if(message == WFV.Message.TimePointChange){
+			// TODO
+		}
+		if(message == WFV.Message.TimeRangeChange){
+			// TODO	
+		}
+	}
+	function init_interaction(){
+		// TODO
+	}
+	$(window).resize(function(e){
+		init_svg();
+		update_basic_timeline();
+		update_floor_timeline();
+		update_ap_timeline();
+	});
+	//
+	function update_basic_timeline(_data){
+		// {time:[],count:[];,values:[]}
+		// if no _data, update
+		var tl = g.select("#timeline-basic").select("path");
+		if(_data){
+			y.domain([0, d3.max(_data,function(d){return d.count})]);
+			g.select("#y-axis").call(yAxis);
+			tl.datum(_data);
+		}
+		tl.attr("d", line)
+	}
+	function update_ap_timeline(_data){
+		// {time:,count;,values:[], apid:}
+		// if _data, add; no _data, update
+		if(_data){
+			var tl = d3.select("#timeline-ap")
+				.append("g").attr("class","line").datum(_data)
+				.attr("apid", function(d){return d.apid});
+			tl.append("path").datum(function(d){return d})
+				.attr("d", line);
+		}else{
+			var tl = d3.select("#timeline-ap").selectAll("g.line");
+			var lines = tl.select("path").attr("d", line);
+		}
+	}
+	function update_floor_timeline(_data){
+		// {time:,count;,values:[],floor:}
+		// if _data, add; no _data, update
+		if(_data){
+			var tl = d3.select("#timeline-floor")
+				.select("#tl-floor-"+_data.floor).datum(_data);
+			tl.select("path").datum(function(d){return d})
+				.attr("d", line);
+				//.attr("visibility", "visible");
+		}else{
+			var tl = d3.select("#timeline-floor").selectAll("g.line");
+			var lines = tl.select("path").attr("d", line);
+		}
 	}
 	/*
-	 *
+	 * help function
 	 */
-	function renderTitle(title){
-		var gTitle = g.append("g").attr("class","timeline-title")
-			.attr("transform","translate(-10,"+size.height/2+")");
-		gTitle.append("text").text(title);
-		return Timeline;
-	}
-	function addBrush(brush){
-		brushLst.push(brush);
-		return Timeline;
+	function _timeline_data(type, id, cb){
+		// type
+		// 0: total records, 1: by floor, 2: by apid
+		var step      = TIME_STEP[step_by] * step_count;
+		var from = all_time_range[0], to = all_time_range[1];
+		if(type == TIMELINE_TYPE.all){
+			db.tl_data_all(from, to, step, cb);	
+		}else if(type == TIMELINE_TYPE.floor){
+			var floor     = id;
+			db.tl_data_floor(from, to, step, floor, cb);
+		}else if(type == TIMELINE_TYPE.ap){
+			var apid = id;
+			db.tl_data_apid(from, to, step, apid, cb);
+		}else{
+			console.warn("unkonw timeline type");
+		}
 	}
 	return Timeline;
-};
+}
 
-/*
- * TimelineBrush()
- * timeline: Timeline object
- * opt.brushClass
- */
 WifiVis.TimelineBrush = function(timeline, opt){
 	function TimelineBrush(){};
 	//
@@ -377,76 +200,12 @@ WifiVis.TimelineBrush = function(timeline, opt){
 			onBrushMove = function(){},
 			onBrushEnd = function(){};
 
-			
-	// getter and setter
-	(function(){
-		Object.defineProperty(TimelineBrush, "timeline",{
-			get: function(){return tl}
-		});
-		Object.defineProperty(TimelineBrush, "x", {
-			get: function(){return x}
-		});
-		Object.defineProperty(TimelineBrush, "y", {
-			get: function(){return y}
-		});
-		Object.defineProperty(TimelineBrush, "g", {
-			get: function(){return gBrush}
-		});
-		Object.defineProperty(TimelineBrush, "brush", {
-			get: function(){return brush}
-		});
-		Object.defineProperty(TimelineBrush, "extent", {
-			get: function(){return extent}
-		});
-	})();
 	// clear odl brush
 	g.select("g.brush").remove();
 	g.select("g."+brushClass).remove();
 	var brush, extent, gBrush = g.append("g").attr("class", brushClass);
 
 	setBrush();
-	//
-	var listeners = d3.map();
-	TimelineBrush.EventType = {
-		EVENT_BRUSH_START: "BrushStart",
-		EVENT_BRUSH_MOVE: "BrushMove",
-		EVENT_BRUSH_END: "BrushEnd"
-	};
-	TimelineBrush.addEventListener = addEventListener;
-	TimelineBrush.removeEventListener = removeEventListener;
-	function addEventListener(type, obj){
-		if(!listeners.has(type)){
-			listeners.set(type,[obj]);
-		}else{
-			listeners.get(type).push(obj);
-		}
-	}
-	function removeEventListener(type, obj){
-		if(!listeners.has(type)){
-			return;
-		}else{
-			var objs = listeners.get(type);
-			var len = objs.length, i = -1;
-			while(++i < len){
-				if(objs[i] === obj){
-					break;
-				}
-			}
-			if(i == len) return;
-			objs = objs.slice(0,i).concat(objs.slice(i+1,len));
-			listeners.put(type, objs);
-		}
-	}
-	function fireEvent(type){
-		var params = Array.prototype.slice.call(arguments, 1); 
-		var objs = listeners.get(type);
-		if(!objs || !objs.length) return;
-		var i = -1, len = objs.length;
-		while(++i < len){
-			var fn = objs[i]["on"+type];
-			fn.apply(objs[i], params);
-		}
-	}
 	TimelineBrush.addBrushStartListener = function(obj){
 		addEventListener(TimelineBrush.EventType.EVENT_BRUSH_START, obj);
 		return TimelineBrush;
@@ -591,26 +350,3 @@ WifiVis.TimelineBrush = function(timeline, opt){
 	}
 	return TimelineBrush;
 };
-
-//module.exports = Timeline;
-
-var TIME_STEP = {
-	second : 1000,
-	minute : 60*1000,
-	hour   : 60*60*1000,
-	day    : 60*60*24*1000
-};
-
-function timeline_data(params, cb){
-	var stepBy    = params.step || "hour";
-	var stepcount = +(params.stepcount || 1);
-	var step      = TIME_STEP[stepBy] * stepcount;
-	var floor     = params.floor;
-	var apid = params.apid;
-	console.log(apid);
-	if(undefined == apid){
-		db.tl_data(timeFrom, timeTo, step, floor, cb);
-	}else{
-		db.tl_data_apid(timeFrom, timeTo, step, apid, cb);
-	}
-}
