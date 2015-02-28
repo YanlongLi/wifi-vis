@@ -6,18 +6,18 @@ WFV.Timeline = function(_time_range){
 	//
 	var all_time_range = _time_range, time_range, time_point; 
 	console.log(all_time_range);
-	var x = d3.time.scale().domain(all_time_range),
-		y = d3.scale.linear(), y_floor = d3.scale.linear();
+	var x = d3.time.scale().domain(all_time_range);
+	var ys = [d3.scale.linear(), d3.scale.linear(), d3.scale.linear()],
+		y = ys[0];
+	var floor_max_count = d3.map(), ap_max_count = d3.map();
 	var xAxis = d3.svg.axis().scale(x).orient("bottom")
 		.tickSize(2,0,4).tickSubdivide(0);
 		//.tickFormat(function(d){return new Date(d).to_24_str()});
-	var yAxis = d3.svg.axis().scale(y).orient("left")
+	var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5)
 		.tickFormat(d3.format(",.0f"));
-	var line = d3.svg.line()//.interpolate("monotone")
+	var line = d3.svg.line().interpolate("monotone")
 			.x(function(d){return x(d.time)})
-			.y(function(d){return y(d.count)})
-			//.x0(function(d){ return x(d.time)})
-			//.y0(function(d){return y(0)});
+			.y(function(d){return y(d.count)});
 	var brush = d3.svg.brush().x(x)
 		.on("brushstart", onBrushStart)
 		.on("brush", onBrushMove)
@@ -46,7 +46,7 @@ WFV.Timeline = function(_time_range){
 	var current_floor, sel_aps, 
 		floor_data_status = d3.range(0,18).map(function(){return false});
 	//
-	var step_by = "hour", step_count = 1;
+	var step_by = "minute", step_count = 20;
 	var TIME_STEP = WFV.TIME_STEP;
 	var TIMELINE_TYPE = {
 		all: "timeline_type_all",
@@ -62,7 +62,7 @@ WFV.Timeline = function(_time_range){
 		fls.enter().append("g").attr("class", "line").append("path");
 		fls.attr("floor", function(d){return d})
 			.attr("id", function(d){return "tl-floor-"+d})
-			.attr("visibility", "hidden");
+			.attr("opacity", 0);
 	})();
 
 	g.select("#timeline-basic").attr("class", "line").append("path");
@@ -72,10 +72,11 @@ WFV.Timeline = function(_time_range){
 
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
-		size = utils.initG(g, _w, _h, [0, 20, 20,40]);
+		size = utils.initG(g, _w, _h, [10, 20, 20,40]);
 		x.range([0, size.width]).nice();
-		y.range([size.height, 0]).nice();
-		y_floor.range([size.height, 0]).nice();
+		ys[0].range([size.height, 0]).nice();
+		ys[1].range([size.height, 0]).nice();
+		ys[2].range([size.height, 0]).nice();
 		g.select("#x-axis").attr("class", "x axis")
 			.attr("transform", "translate(0,"+size.height+")")
 			.call(xAxis);
@@ -90,23 +91,47 @@ WFV.Timeline = function(_time_range){
 	ObserverManager.addListener(Timeline);
 	Timeline.OMListen = function(message, data){
 		if(message == WFV.Message.FloorChange){
+			change_scale(1);
 			console.log("timeline on floor change", data.floor)
 			current_floor = +data.floor;
 			g.select("#timeline-floor")
-				.selectAll(" g.line").style("visibility", "hidden");
-			g.select("#tl-floor-"+current_floor).style("visibility", "visible");
+				.selectAll(" g.line").style("opacity", 0);
+			g.select("#tl-floor-"+current_floor).style("opacity",1);
 			if(!floor_data_status[current_floor]){
 				_timeline_data(TIMELINE_TYPE.floor, current_floor, function(_data){
 					update_floor_timeline(_data);
 					floor_data_status[current_floor] = true;
 				});
 			}
+			// hide all ap lines
+			g.select("#timeline-ap").selectAll("g.line").style("opacity",0);
+		}
+		if(message == WFV.Message.FloorSelect){
+			// TODO
+		}
+		if(message == WFV.Message.FloorDeSelected){
+			// TODO
 		}
 		if(message == WFV.Message.ApSelect){
-			// TODO
+			var apids = data.apid;
+			apids.forEach(function(apid){
+				if(ap_max_count.get(apid)){
+					g.select("#timeline-ap-"+apid).style("opacity",1);
+				}else{
+					_timeline_data(TIMELINE_TYPE.ap, apid, update_ap_timeline);
+				}
+			});
 		}
-		if(message == WFV.Message.ApDeselect){
-			// TODO
+		if(message == WFV.Message.ApDeSelect){
+			var apids = data.apid;
+			console.log("deselect", apids, ap_max_count.values());
+			apids.forEach(function(apid){
+				// console.log(apid, ap_max_count.keys());
+				if(ap_max_count.get(apid)){
+					//g.select("#timeline-ap-"+apid).style("opacity",0);
+					$("#timeline-ap-"+apid).css("opacity",0);
+				}
+			});
 		}
 		if(message == WFV.Message.TimePointChange){
 			// TODO
@@ -124,25 +149,43 @@ WFV.Timeline = function(_time_range){
 		update_floor_timeline();
 		update_ap_timeline();
 	});
+	function change_scale(type){
+		// type:0,all; 1:floor; 2:ap
+		y = ys[type];
+		d3.select("#timeline-basic")
+			.style("opacity", type == 0 ? 1:0);
+		d3.select("#timeline-floor")
+			.style("opacity", type == 2 ? 0:1);
+		d3.select("#timeline-ap").style("opacity",1);
+		yAxis.scale(y);
+		init_svg();
+		update_basic_timeline();
+		update_floor_timeline();
+		update_ap_timeline();
+	}
 	//
 	function update_basic_timeline(_data){
 		// {time:[],count:[];,values:[]}
 		// if no _data, update
 		var tl = g.select("#timeline-basic").select("path");
 		if(_data){
-			y.domain([0, d3.max(_data,function(d){return d.count})]);
+			ys[0].domain([0, d3.max(_data,function(d){return d.count})]).nice();
 			g.select("#y-axis").call(yAxis);
 			tl.datum(_data);
 		}
 		tl.attr("d", line)
 	}
 	function update_ap_timeline(_data){
-		// {time:,count;,values:[], apid:}
+		// [{time:,count;,values:[]}].apid:
 		// if _data, add; no _data, update
 		if(_data){
+			var cmax = d3.max(_data, function(d){return d.count});
+			ap_max_count.set(_data.apid, cmax);
+			ys[2].domain([0, d3.max(ap_max_count.values())]).nice();
 			var tl = d3.select("#timeline-ap")
 				.append("g").attr("class","line").datum(_data)
-				.attr("apid", function(d){return d.apid});
+				.attr("apid", function(d){return d.apid})
+				.attr("id", function(d){return "timeline-ap-"+d.apid});
 			tl.append("path").datum(function(d){return d})
 				.attr("d", line);
 		}else{
@@ -154,11 +197,14 @@ WFV.Timeline = function(_time_range){
 		// {time:,count;,values:[],floor:}
 		// if _data, add; no _data, update
 		if(_data){
+			var cmax = d3.max(_data, function(d){return d.count});
+			floor_max_count.set(_data.apid, cmax);
+			ys[1].domain([0, d3.max(floor_max_count.values())]).nice();
+			//
 			var tl = d3.select("#timeline-floor")
 				.select("#tl-floor-"+_data.floor).datum(_data);
 			tl.select("path").datum(function(d){return d})
 				.attr("d", line);
-				//.attr("visibility", "visible");
 		}else{
 			var tl = d3.select("#timeline-floor").selectAll("g.line");
 			var lines = tl.select("path").attr("d", line);
@@ -179,7 +225,7 @@ WFV.Timeline = function(_time_range){
 			db.tl_data_floor(from, to, step, floor, cb);
 		}else if(type == TIMELINE_TYPE.ap){
 			var apid = id;
-			db.tl_data_apid(from, to, step, apid, cb);
+			db.tl_data_ap(from, to, step, apid, cb);
 		}else{
 			console.warn("unkonw timeline type");
 		}

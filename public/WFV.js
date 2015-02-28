@@ -7,8 +7,8 @@ WFV.Message = {
 	FloorSelect      : "FloorSelect"      , //{floor  : []} not include the current floor
 	FloorDeselect    : "FloorDeselect"    , //{floor  : []} not include the current floor
 
-	ApSelect         : "ApSelect"         , //{apid   : []}
-	ApDeSelect       : "ApDeSelect"       , //{apid   : []}
+	ApSelect         : "ApSelect"         , //{apid   : [], click:}
+	ApDeSelect       : "ApDeSelect"       , //{apid   : [], click:}
 
 	DeviceSelect     : "DeviceSelect"     , //{device : []}
 	DeviceDeSelect   : "DeviceDeSelect"   , //{device : []}

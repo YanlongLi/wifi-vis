@@ -33,12 +33,21 @@ WFV.FloorBar_ = function(){
 			$("#floor-bar-circles .floor[floor-id="+current_floor+"]")
 				.attr("class", "floor selected");
 			//$(data._this).attr("class", "floor selected");
+			var sels = $("#floor-bar-aps .floor g.selected");
+			sels.attr("class", "bar").attr('_selected', null);
+			var apids = sels.map(function(){
+					return $(this).attr("apid");
+				}).get();
+			apids.length && ObserverManager.post(WFV.Message.ApDeSelect, {apid:apids, click:true});
 		}
 		if(message == WFV.Message.ApSelect){
 			var ids = data.apid;
 			ids.forEach(function(apid){
 				var bar = $("#floor-bar-aps .floor .bar[apid="+apid+"]");
 				bar.attr("class", "bar selected");
+				if(data.click){
+					bar.attr("_selected", true);	
+				}
 			});
 		}
 		if(message == WFV.Message.ApDeSelect){
@@ -46,6 +55,9 @@ WFV.FloorBar_ = function(){
 			ids.forEach(function(apid){
 				var bar = $("#floor-bar-aps .floor .bar[apid="+apid+"]");
 				bar.attr("class", "bar");
+				if(data.click){
+					bar.attr("_selected", null);
+				}
 			});
 		}
 		if(message == WFV.Message.TimeRangeChanged){
@@ -66,12 +78,12 @@ WFV.FloorBar_ = function(){
 		$(document).on("click", "#floor-bar-aps .floor .bar", function(e){
 			if($(this).attr("_selected")){
 				$(this).attr("_selected", null);
-				var data = {apid: [$(this).attr("apid")]}
+				var data = {apid: [$(this).attr("apid")], click: true}
 				ObserverManager.post(WFV.Message.ApDeSelect, data);
 				return;
 			}else{
 				$(this).attr("_selected", true);
-				var data = {apid: [$(this).attr("apid")]}
+				var data = {apid: [$(this).attr("apid")], click: true};
 				ObserverManager.post(WFV.Message.ApSelect, data);
 			}
 		});
