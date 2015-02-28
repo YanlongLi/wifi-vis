@@ -12,7 +12,9 @@
 	opacity: 1;
 }
 
-#aps-graph-wrapper line.link{
+#aps-graph-wrapper line.ap-link{
 	stroke:#887E7C; 
 	stroke-width: 1;
+    opacity: 0.3;
 }
+
