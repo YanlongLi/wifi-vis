@@ -63,18 +63,19 @@ function init(){
 	tlBrush = WifiVis.TimelineBrush(timeline)
 		.onBrushMove(onMove)
 		.onBrushEnd(onEnd);
+	*/
 	// apGraph
 	apGraph = WifiVis.ApGraph();
 	apGraph.init();
-	floorDetail.addFloorChangeListener(apGraph);
-	floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, apGraph);
-	floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_ENTER, apGraph);
-	floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_LEAVE, apGraph); 
-	tlBrush.addEventListener(tlBrush.EventType.EVENT_BRUSH_END, apGraph);
-	apGraph.addEventListener(apGraph.EventType.AP_CLICK, floorDetail);
-	//
-	timeline.update();
-	apGraph.draw(); */
+	// floorDetail.addFloorChangeListener(apGraph);
+	// floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, apGraph);
+	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_ENTER, apGraph);
+	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_LEAVE, apGraph); 
+	// tlBrush.addEventListener(tlBrush.EventType.EVENT_BRUSH_END, apGraph);
+	// apGraph.addEventListener(apGraph.EventType.AP_CLICK, floorDetail);
+	// //
+	// timeline.update();
+	// apGraph.draw(); 
 }
 
 /*

@@ -5,9 +5,10 @@ WifiVis.ApGraph = function(){
 	var color = WifiVis.FLOOR_COLOR;
 	var color = d3.scale.category20();
 
-	var DIV_ID = "aps-graph-wrapperaps-graph-wrapper";
+	var DIV_ID = "aps-graph-wrapper"
 	var o = utils.initSVG("#"+DIV_ID,[0]);
-	ooo = o;
+
+	console.log("init SVG", $("#"+DIV_ID));
 	var g = o.g, w = o.w, h = o.h, r = 6;
 
 	var nodes, links, sNode, sLink;
@@ -77,8 +78,7 @@ WifiVis.ApGraph = function(){
 		});
 	}
 
-	function render() {
-		console.log("render")
+	function render() {		
 		var _this = this;
 		var minX = _.min(dotPositions, function(d) {return d[0]})[0];
 		var maxX = _.max(dotPositions, function(d) {return d[0]})[0];
@@ -87,13 +87,14 @@ WifiVis.ApGraph = function(){
 		var width = o.w;
 			height = o.h;
 		width = height = Math.min(width, height) - 20;
-		ggg = g;
+		console.log("render", width, height)
 		if (g.selectAll(".doc-dot").size() == 0) {
 			g.selectAll(".doc-dot")
 				.data(dotPositions)
 				.enter()
 				.append("circle")
 				.attr("class", "doc-dot")  
+				.attr("r", 5)
 				// .attr("doc-id", function(d, index) {
 				// 	return _this.documents[index].id;
 				// })
@@ -215,6 +216,12 @@ WifiVis.ApGraph = function(){
 		}
 	}
 
+	function mapping(value, vMin, vMax, tMin, tMax) {
+		value = value < vMin ? vMin : value;
+		value = value > vMax ? vMax : value;
+		return (value - vMin) / (vMax - vMin) * (tMax - tMin) + tMin;
+	}	
+
 
 	
 	// Event Type
@@ -288,5 +295,7 @@ WifiVis.ApGraph = function(){
 		// TODO
 		//update(extent);
 	}
+
+
 	return ApGraph;
 };
