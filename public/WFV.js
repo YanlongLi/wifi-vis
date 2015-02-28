@@ -3,19 +3,22 @@ var WFV = {};
 var WifiVis = WFV;
 
 WFV.Message = {
-	FloorChange     : "FloorChange"     , //{floor  : }
+	FloorChange      : "FloorChange"      , //{floor  : }
+	FloorSelect      : "FloorSelect"      , //{floor  : []} not include the current floor
+	FloorDeselect    : "FloorDeselect"    , //{floor  : []} not include the current floor
 
-	ApSelect        : "ApSelect"        , //{apid   : []}
-	ApDeSelect      : "ApDeSelect"      , //{apid   : []}
+	ApSelect         : "ApSelect"         , //{apid   : []}
+	ApDeSelect       : "ApDeSelect"       , //{apid   : []}
 
-	DeviceSelect    : "DeviceSelect"    , //{device : []}
-	DeviceDeSelect  : "DeviceDeSelect"  , //{device : []}
+	DeviceSelect     : "DeviceSelect"     , //{device : []}
+	DeviceDeSelect   : "DeviceDeSelect"   , //{device : []}
 
-	PathSelect   : "PathSelect"   , // {sid , tid , weight}
-	PathDeSelect : "PathDeSelect" , // {sid , tid , weight}
+	PathSelect       : "PathSelect"       , // {sid   , tid                               , weight}
+	PathDeSelect     : "PathDeSelect"     , // {sid   , tid                               , weight}
 
-	TimePointChange : "TimePointChange" , //{time   : }
-	TimeRangeChange : "TimeRangeChange"  //{range  : []}
+	TimePointChange  : "TimePointChange"  , //{time   : }
+	TimeRangeChange  : "TimeRangeChange"  , //{range  : []}
+	TimeRangeChanged : "TimeRangeChanged" , //{range  : []}
 };
 
 ObserverManager.setMessageCollection((function(){
@@ -26,6 +29,13 @@ ObserverManager.setMessageCollection((function(){
 	console.log(collection);
 	return collection;
 }()));
+
+WFV.TIME_STEP = {
+	second : 1000,
+	minute : 60*1000,
+	hour   : 60*60*1000,
+	day    : 60*60*24*1000
+};
 
 WFV.AP_COLOR = (function(){
 	var colors = [

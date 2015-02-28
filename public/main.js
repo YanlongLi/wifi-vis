@@ -10,8 +10,7 @@ var tracer;
 
 var floor_bar = WFV.FloorBar_();
 
-var floorDetail, floorsNav;
-var tlSize, timeline, tlBrush;
+var floorDetail, floorsNav, timeline;
 var apGraph;
 
 var loading_tip = loading_tip || {};
@@ -43,7 +42,8 @@ db.init(function(){
 
 function init(){
 	tracer = RecordTracer.CreateTracer();
-	floorDetail = WifiVis.FloorDetail();
+	floorDetail = WFV.FloorDetail();
+	timeline = WFV.Timeline([timeFrom, timeTo]);
 	ObserverManager.post(WFV.Message.TimeRangeChange,
 			{range:[new Date(2013,08,02,12), new Date(2013,08,02,16)]});
 	ObserverManager.post(WFV.Message.TimePointChange, {time:new Date(2013,08,02,12)});
