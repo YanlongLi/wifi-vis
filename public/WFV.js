@@ -11,8 +11,11 @@ WFV.Message = {
 	DeviceSelect    : "DeviceSelect"    , //{device : []}
 	DeviceDeSelect  : "DeviceDeSelect"  , //{device : []}
 
+	PathSelect   : "PathSelect"   , // {sid , tid , weight}
+	PathDeSelect : "PathDeSelect" , // {sid , tid , weight}
+
 	TimePointChange : "TimePointChange" , //{time   : }
-	TimeRangeChange : "TimeRangeChange" , //{range  : []}
+	TimeRangeChange : "TimeRangeChange"  //{range  : []}
 };
 
 ObserverManager.setMessageCollection((function(){

@@ -38,7 +38,20 @@
 				</svg>
 			</div>
 			<div id="floor-detail-wrapper">
-				<svg width="100%" height="100%"></svg>
+				<svg width="100%" height="100%" id="floor-detail-svg">
+					<defs>
+					<marker id="path-arrow" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="4" markerHeight="3" orient="auto">
+					<path d="M0,0L5,2.5L0,5"></path>
+					</marker>
+					</defs>
+					<g id="floor-detail-g">
+						<image id="floor-background"></image>
+						<g id="brush-select"></g>
+						<g id="path-wrapper"></g>
+						<g id="aps-wrapper"></g>
+						<g id="device-wrapper"></g>
+					</g>
+				</svg>
 			</div>
 			<div id="aps-graph-wrapper">
 				<div style="visibility:hidden; height:0">

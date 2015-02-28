@@ -5,58 +5,73 @@
 }
 
 #aps-wrapper{}
-#aps-wrapper rect.device{
+#aps-wrapper .ap circle{
+	fill: #669933;
+	opacity: 0.5;
+	/*stroke: #333333;
+	stroke-width: 3;*/
+}
+#aps-wrapper .ap.hilight circle{
+	fill: #006633;
+}
+
+#device-wrapper .device rect{
 	fill: #8C564B;
 	stroke: #FFFFFF;
 }
-#aps-wrapper rect.device.selected{
+
+#device-wrapper .device.selected rect{
 	fill: red;
-}
-#aps-wrapper circle.ap{
-	fill: #669933;
-}
-#aps-wrapper circle.hilight{
-	fill: #006633;
-	stroke: #575555;
-	stroke-width: 2px;
 }
 
 #path-wrapper{}
 
-#path-arrow{
-	fill: #003300;
-	opacity: 0;
-}
-#path-wrapper path.link{
-	fill: none;
-	stroke: #669933;
+#path-arrow-normal{
+	fill: #669933;
 	opacity: 0.5;
 }
 
-#path-wrapper path.fade{
+#path-arrow-fade{
 	opacity: 0;
 }
 
-#path-wrapper path.hilight{
-	opacity: 1;
-	stroke: #006633;
+#path-arrow-reverse{
+	fill: #669933;
 }
 
-#path-wrapper path.reverse{
+#path-arrow-hilight{
+	fill: #006633;
+}
+
+#path-arrow-hover{
+	fill: #1D3D35;
+}
+
+#path-wrapper .link path{
+	fill: none;
+	stroke: #669933;
+	opacity: 0.5;
+	marker-end: url("#path-arrow-normal");
+}
+
+#path-wrapper .fade path{
+	opacity: 0;
+	marker-end: url("#path-arrow-fade");
+}
+
+#path-wrapper .hilight path{
+	opacity: 1;
+	stroke: #006633;
+	marker-end: url("#path-arrow-hilight");
+}
+
+#path-wrapper .reverse path{
 	opacity: 1;
 	stroke: #669933;
-}
-#path-wrapper path.bidirect{
-	opacity: 1;
-	/*stroke: #333300;*/
-	stroke: #006633;
+	marker-end: url("#path-arrow-reverse");
 }
 
-.floor-label text{
-	text-anchor: middle;
-	fill: rgb(82, 84, 6);
-	opacity: 0.2;
-	font-size: 120px;
-	/*stroke: rgb(255, 242, 0);*/
-	stroke-width: 2;
+#path-wrapper .hover path{
+	stroke: #1D3D35;
+	marker-end: url("#path-arrow-hover");
 }
