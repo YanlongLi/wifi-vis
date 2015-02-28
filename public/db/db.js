@@ -311,24 +311,27 @@ WFV_DB.prototype.graph_info = function(from, to, cb){
 	}
 }
 
-WFV_DB.prototype.tl_data = function(from, to, step, floor, cb){
+WFV_DB.prototype.tl_data_all = function(from, to, step, cb){
 	this.records_by_interval(from, to, function(records){
-		console.log(records[0])
-		records = records.filter(function(r){return r.floor == +floor});
 		var tl_data = generate_tl_data(records, from.getTime(), to.getTime(), step);
 		cb(tl_data);
 	});
 }
-WFV_DB.prototype.tl_data_apid = function(from, to, step, apid, cb){
+
+WFV_DB.prototype.tl_data_floor = function(from, to, step, floor, cb){
 	this.records_by_interval(from, to, function(records){
-		if(apid){
-			var rs = records.filter(function(r){return r.apid == +apid});
-			var tl_data = generate_tl_data(rs, from.getTime(), to.getTime(), step);
-			cb(tl_data);
-		}else{
-			var tl_data = generate_tl_data(records, from.getTime(), to.getTime(), step);
-			cb(tl_data);
-		}
+		records = records.filter(function(r){return +r.floor == +floor});
+		var tl_data = generate_tl_data(records, from.getTime(), to.getTime(), step);
+		tl_data.floor = floor;
+		cb(tl_data);
+	});
+}
+WFV_DB.prototype.tl_data_ap = function(from, to, step, apid, cb){
+	this.records_by_interval(from, to, function(records){
+		records = records.filter(function(r){return +r.apid == +apid});
+		var tl_data = generate_tl_data(records, from.getTime(), to.getTime(), step);
+		tl_data.apid = apid;
+		cb(tl_data);
 	});		
 }
 /*
@@ -363,5 +366,12 @@ function generate_tl_data(records, start, end, step){
 		count[iBin]++;
 		values[iBin].push(records[i]);
 	}
-	return res;
+	var data = res;
+	return data.time.map(function(time,i){
+		return {
+			time   : time,
+			count  : data.count[i],
+			values : data.values[i]
+		}
+	});
 }

@@ -94,7 +94,9 @@ WifiVis.FloorDetail = function(){
 				$("#path-wrapper g.link").attr("class", 'link');
 			}
 			apids.forEach(function(apid){
-				$("#aps-wrapper g.ap[apid="+apid+"]").attr("class","ap hilight");
+				var _sel = data.click ? true:null;
+				$("#aps-wrapper g.ap[apid="+apid+"]").attr("class","ap hilight")
+					.attr("_selected", _sel);
 				// hilight path
 				$("#path-wrapper g.link").not(".hilight, .reverse")
 					.attr("class","link fade");
@@ -115,7 +117,8 @@ WifiVis.FloorDetail = function(){
 				if((index = selected_aps.indexOf(apid)) < 0) return;
 				selected_aps = selected_aps.slice(0,index)
 					.concat(selected_aps.slice(index+1, selected_aps.length));
-				ele.attr("class","ap");
+				var _sel = data.click ? true:null;
+				ele.attr("class","ap").attr("_selected", _sel);
 				// hilight path
 				$("#path-wrapper g.link.reverse.hilight[sid="+apid+"]")
 					.attr('class', "link fade reverse");
@@ -138,7 +141,7 @@ WifiVis.FloorDetail = function(){
 			update_aps(aps);
 			update_device(aps);
 		}
-		if(message == WFV.Message.TimeRangeChange){
+		if(message == WFV.Message.TimeRangeChanged){
 			time_range = data.range;
 			load_new_data(function(){
 				update_links(links);
@@ -150,21 +153,25 @@ WifiVis.FloorDetail = function(){
 			var apid = $(this).attr("apid");
 			if($(this).attr("_selected")){
 				$(this).attr("_selected", null);
-				ObserverManager.post(WFV.Message.ApDeSelect, {apid: [+apid]});
+				ObserverManager.post(WFV.Message.ApDeSelect, {apid: [+apid], click:true});
 			}else{
 				$(this).attr("_selected", true);
-				ObserverManager.post(WFV.Message.ApSelect, {apid: [+apid]});
+				ObserverManager.post(WFV.Message.ApSelect, {apid: [+apid], click:true});
 			}
 		});
 		$(document).on("mouseenter", "#aps-wrapper g.ap", function(e){
 			var apid = $(this).attr("apid");
 			$(this).find("circle").attr("stroke", "#575555").attr("stroke-width", 4);
-			ObserverManager.post(WFV.Message.ApSelect, {apid: [+apid]});
+			if(!$(this).attr("_selected")){
+				ObserverManager.post(WFV.Message.ApSelect, {apid: [+apid]});
+			}
 		});
 		$(document).on("mouseleave", "#aps-wrapper g.ap", function(e){
 			var apid = $(this).attr("apid");
 			$(this).find("circle").attr("stroke", null).attr("stroke-width", null);
-			ObserverManager.post(WFV.Message.ApDeSelect, {apid: [+apid]});
+			if(!$(this).attr("_selected")){
+				ObserverManager.post(WFV.Message.ApDeSelect, {apid: [+apid]});
+			}
 		});
 		$(document).on("mouseenter", "#path-wrapper g.link", function(e){
 			var opa = d3.select(this).style("opacity");
@@ -247,9 +254,9 @@ WifiVis.FloorDetail = function(){
 		// if no _data, resize
 		var gAps = g.select("#aps-wrapper").selectAll("g.ap");
 		if(_data){
-			var extent = d3.extent(_data, function(d){return d.cluster.count});
-			extent[0] = extent[0] > 1 ? extent[0] : 1;
-			r_scale.domain(extent);
+			var cmax= d3.max(_data, function(d){return d.cluster.count});
+			cmax = cmax > 2 ? cmax : 2;
+			r_scale.domain([1, cmax]);
 			gAps = gAps.data(_data, function(d){return d.apid});
 			var ap_enter = gAps.enter().append("g").attr("class", "ap");
 			ap_enter.append("circle");
@@ -260,7 +267,12 @@ WifiVis.FloorDetail = function(){
 			.attr("cx", function(d){return x(d.pos_x)})
 			.attr("cy", function(d){return y(d.pos_y)})
 			.attr("r", function(d){
-				return r_scale(d.cluster.count);
+				var r = r_scale(d.cluster.count);
+				if(isNaN(r)){
+					console.log(r_scale.domain(), r_scale.range(), d.cluster);
+					console.warn("illegal r", r);
+				}
+				return r;
 			});
 	}
 	function update_links(_data){

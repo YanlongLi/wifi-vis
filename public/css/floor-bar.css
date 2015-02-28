@@ -1,9 +1,14 @@
 #floor-bar-circles .floor circle{
-	fill: #006633;
+	fill: #A2CE85;
 }
 
 #floor-bar-circles .floor.selected circle{
-	fill: #A2CE85;
+	fill: #006633;
+}
+
+#floor-bar-circles .floor.hover circle{
+	stroke: #AFA765;
+	stroke-width: 2;
 }
 
 #floor-bar-circles .floor text{
