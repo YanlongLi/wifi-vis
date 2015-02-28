@@ -78,13 +78,14 @@ WifiVis.FloorDetail = function(){
 			});
 		}
 		if(message == WFV.Message.ApSelect){
-			var apids = data.apid;
+			var apids = data.apid.filter(function(apid){
+				return apMap.get(apid).floor == current_floor;
+			});
 			if(!apids.length) return;
 			if(apids.length == 1){
 				if(selected_aps.indexOf(apids[0]) >= 0) return;
 				selected_aps.push(apids[0]);
 			}else{
-				// TODO, remove apids not at the floor
 				apids = apids.filter(function(apid){
 					return apMap.get(apid).floor == current_floor;
 				});
@@ -102,17 +103,18 @@ WifiVis.FloorDetail = function(){
 			});
 		}
 		if(message == WFV.Message.ApDeSelect){
-			var apids = data.apid;
-			apids.forEach(function(apid){
+			var apids = data.apid.filter(function(apid){
+				return apMap.get(apid).floor == current_floor;
+			});
+			apids.length && apids.forEach(function(apid){
 				var ele = $("#aps-wrapper g.ap[apid="+apid+"]");
 				if(ele.attr("_selected")){
 					return;
 				}
 				var index;
-				if((index = selected_aps.indexOf(+apid)) < 0) return;
+				if((index = selected_aps.indexOf(apid)) < 0) return;
 				selected_aps = selected_aps.slice(0,index)
 					.concat(selected_aps.slice(index+1, selected_aps.length));
-				console.log("selected aps:", selected_aps.length);
 				ele.attr("class","ap");
 				// hilight path
 				$("#path-wrapper g.link.reverse.hilight[sid="+apid+"]")
@@ -123,10 +125,10 @@ WifiVis.FloorDetail = function(){
 					.not(".hilight").attr("class", "link fade");
 				$("#path-wrapper g.link.reverse.hilight[tid="+apid+"]")
 					.attr("class","link fade hilight");
-				if(!selected_aps.length){
-					$("#path-wrapper g.link").attr("class", "link");
-				}
 			});
+			if(!selected_aps.length){
+				$("#path-wrapper g.link").attr("class", "link");
+			}
 		}
 		if(message == WFV.Message.DeviceSelect){
 		}
