@@ -20,20 +20,6 @@ WFV.FloorBar_ = function(){
 	var time_range, time_point;
 	//
 	init_svg();
-	
-	update_ap_bars((function(){
-		var _data = d3.range(1,18).map(function(d){
-			var o = {floor:d};
-			o.aps = d3.range(1, Math.random()*20).map(function(d){
-				var ap = {apid:d};
-				ap.count = Math.random() * 100 +1;
-				return ap;
-			})
-			o.count = d3.sum(o.aps, function(ap){return ap.count});
-			return o;
-		});
-		return _data;
-	})());
 
 	init_interaction();
 	/*
@@ -62,6 +48,13 @@ WFV.FloorBar_ = function(){
 				bar.attr("class", "bar");
 			});
 		}
+		if(message == WFV.Message.TimeRangeChange){
+			time_range = data.range;
+			x_line_scale.domain(time_range);
+			db.ap_bar_data(time_range[0], time_range[1], function(_data){
+				update_ap_bars(_data);
+			});
+		}
 	}
 	function init_interaction(){
 		$(document).on("click", "#floor-bar-circles .floor", function(e){
@@ -82,6 +75,7 @@ WFV.FloorBar_ = function(){
 		});
 		$(document).on("mouseenter", "#floor-bar-aps .floor .bar", function(e){
 			if($(this).attr("_selected")){
+				d3.select(this).classed("hover", true);
 				return;
 			}
 			var data = {apid: [$(this).attr("apid")]}
@@ -89,6 +83,7 @@ WFV.FloorBar_ = function(){
 		});
 		$(document).on("mouseleave", "#floor-bar-aps .floor .bar", function(e){
 			if($(this).attr("_selected")){
+				d3.select(this).classed("hover", false);
 				return;
 			}
 			var data = {apid: [$(this).attr("apid")]}
@@ -117,14 +112,6 @@ WFV.FloorBar_ = function(){
 			g.select("#floor-bar-tls").style("visibility", "hidden");
 		}
 	}
-	//
-	function change_time_range(range, time){
-		time_range = range;
-		x_line_scale.domain(time_range);
-		// TODO
-		// update_ap_bars(), update_floor_tls()
-	}
-
 	function chagne_time_point(time){
 		time_point = time;
 		// TODO
@@ -138,11 +125,16 @@ WFV.FloorBar_ = function(){
 			var extent = d3.extent(_data, function(d){return d.count});
 			extent[0] = extent[0] ? extent[0] : 1;
 			scale.domain(extent);
+			console.log(scale.domain(), scale.range());
 			floors = floors.data(_data, function(d){return d.floor});
 			var floors_enter = floors.enter().append("g").attr("class","floor");
 			floors_enter.append("circle");
 			floors.attr("floor-id", function(d){return d.floor});
 		}
+		floors.sort(function(f1, f2){
+			var a = f1.floor, b = f2.floor;
+			return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
+		});
 		floors.select("circle").datum(function(d){return d})
 			.attr("cx", per_h/2).attr("cy", per_h/2)
 			.attr("count",function(d){return d.count})
@@ -151,7 +143,7 @@ WFV.FloorBar_ = function(){
 				return  isNaN(r) || r < 1 ? 1 : r;
 			});
 		floors.transition().attr("transform", function(d,i){
-			var dy = per_h * (d.floor - 1);
+			var dy = per_h * i;
 			return "translate(0,"+dy+")";
 		});
 	}
@@ -196,9 +188,13 @@ WFV.FloorBar_ = function(){
 				var h = per_h - scale(d.count);
 				return h < 1 ? 1 : h;
 			});
-		})
+		});
+		floors.sort(function(f1, f2){
+			var a = f1.floor, b = f2.floor;
+			return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
+		});
 		floors.transition().attr("transform", function(d,i){
-			var dy = per_h * (d.floor - 1);
+			var dy = per_h * i
 			return "translate(0,"+dy+")";
 		});
 		if(_data){
