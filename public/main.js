@@ -44,6 +44,8 @@ db.init(function(){
 function init(){
 	tracer = RecordTracer.CreateTracer();
 	floorDetail = WifiVis.FloorDetail();
+	ObserverManager.post(WFV.Message.TimeRangeChange,
+			{range:[new Date(2013,08,02,12), new Date(2013,08,02,16)]});
 	ObserverManager.post(WFV.Message.TimePointChange, {time:new Date(2013,08,02,12)});
 	ObserverManager.post(WFV.Message.FloorChange, {floor:1});
 	/*
