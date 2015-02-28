@@ -61,6 +61,7 @@ function init(){
 		.onBrushEnd(onEnd);
 	// apGraph
 	apGraph = WifiVis.ApGraph();
+	apGraph.init();
 	floorDetail.addFloorChangeListener(apGraph);
 	floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, apGraph);
 	floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_ENTER, apGraph);

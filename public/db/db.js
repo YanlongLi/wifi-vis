@@ -87,7 +87,9 @@ WFV_DB.prototype.init = function(cb){
 			console.log("result: ", aps.length);
 			loading_tip.add_tip("result: " +  aps.length);
 			that.aps = aps;
+			var _id = 0;
 			aps.forEach(function(ap){
+				ap._id = _id++;
 				ap.apid = +ap.apid;
 				ap.floor = +ap.floor;
 				ap.pos_x = +ap.x;
