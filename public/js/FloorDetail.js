@@ -64,7 +64,7 @@ WifiVis.FloorDetail = function(){
 	}
 	ObserverManager.addListener(FloorDetail);
 	FloorDetail.OMListen = function(message, data){
-		if(message == WFV.Message.FloorChange){
+		if(message == WFV.Message1.FloorChange){
 			current_floor = data.floor;
 			change_image();
 			resize_image();
@@ -77,7 +77,7 @@ WifiVis.FloorDetail = function(){
 				update_links(links);
 			});
 		}
-		if(message == WFV.Message.ApSelect){
+		if(message == WFV.Message1.ApSelect){
 			var apids = data.apid.filter(function(apid){
 				return apMap.get(apid).floor == current_floor;
 			});
@@ -104,7 +104,7 @@ WifiVis.FloorDetail = function(){
 				$("#path-wrapper g.link[tid="+apid+"]").attr("class","link reverse");
 			});
 		}
-		if(message == WFV.Message.ApDeSelect){
+		if(message == WFV.Message1.ApDeSelect){
 			var apids = data.apid.filter(function(apid){
 				return apMap.get(apid).floor == current_floor;
 			});
@@ -133,15 +133,15 @@ WifiVis.FloorDetail = function(){
 				$("#path-wrapper g.link").attr("class", "link");
 			}
 		}
-		if(message == WFV.Message.DeviceSelect){
+		if(message == WFV.Message1.DeviceSelect){
 		}
-		if(message == WFV.Message.TimePointChange){
+		if(message == WFV.Message1.TimePointChange){
 			time_point = data.time;
 			tracer.gotoTime(time_point);
 			update_aps(aps);
 			update_device(aps);
 		}
-		if(message == WFV.Message.TimeRangeChanged){
+		if(message == WFV.Message1.TimeRangeChanged){
 			time_range = data.range;
 			load_new_data(function(){
 				update_links(links);
@@ -153,24 +153,24 @@ WifiVis.FloorDetail = function(){
 			var apid = $(this).attr("apid");
 			if($(this).attr("_selected")){
 				$(this).attr("_selected", null);
-				ObserverManager.post(WFV.Message.ApDeSelect, {apid: [+apid], click:true});
+				ObserverManager.post(WFV.Message1.ApDeSelect, {apid: [+apid], click:true});
 			}else{
 				$(this).attr("_selected", true);
-				ObserverManager.post(WFV.Message.ApSelect, {apid: [+apid], click:true});
+				ObserverManager.post(WFV.Message1.ApSelect, {apid: [+apid], click:true});
 			}
 		});
 		$(document).on("mouseenter", "#aps-wrapper g.ap", function(e){
 			var apid = $(this).attr("apid");
 			$(this).find("circle").attr("stroke", "#575555").attr("stroke-width", 4);
 			if(!$(this).attr("_selected")){
-				ObserverManager.post(WFV.Message.ApSelect, {apid: [+apid]});
+				ObserverManager.post(WFV.Message1.ApSelect, {apid: [+apid]});
 			}
 		});
 		$(document).on("mouseleave", "#aps-wrapper g.ap", function(e){
 			var apid = $(this).attr("apid");
 			$(this).find("circle").attr("stroke", null).attr("stroke-width", null);
 			if(!$(this).attr("_selected")){
-				ObserverManager.post(WFV.Message.ApDeSelect, {apid: [+apid]});
+				ObserverManager.post(WFV.Message1.ApDeSelect, {apid: [+apid]});
 			}
 		});
 		$(document).on("mouseenter", "#path-wrapper g.link", function(e){
@@ -382,7 +382,7 @@ WifiVis.FloorDetail = function(){
 		selected_device = deviceLst.filter(function(d){
 			return d.device.selected;
 		}).map(function(d){return d.mac});
-		ObserverManager.post(WFV.Message.DeviceSelect,
+		ObserverManager.post(WFV.Message1.DeviceSelect,
 				{device:selected_device}, FloorDetail);
 	}
 	//

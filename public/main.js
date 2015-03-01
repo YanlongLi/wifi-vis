@@ -8,7 +8,7 @@ var records = [];
 
 var tracer;
 
-var floor_bar = WFV.FloorBar_();
+var floor_bar = WFV.FloorBar();
 
 var floorDetail, floorsNav, timeline;
 var apGraph;
@@ -44,10 +44,10 @@ function init(){
 	// tracer = RecordTracer.CreateTracer();
 	// floorDetail = WFV.FloorDetail();
 	// timeline = WFV.Timeline([timeFrom, timeTo]);
-	ObserverManager.post(WFV.Message.TimeRangeChange,
+	ObserverManager.post(WFV.Message1.TimeRangeChange,
 			{range:[new Date(2013,08,02,12), new Date(2013,08,02,16)]});
-	ObserverManager.post(WFV.Message.TimePointChange, {time:new Date(2013,08,02,12)});
-	ObserverManager.post(WFV.Message.FloorChange, {floor:1});
+	ObserverManager.post(WFV.Message1.TimePointChange, {time:new Date(2013,08,02,12)});
+	ObserverManager.post(WFV.Message1.FloorChange, {floor:1});
 	/*
 	// init timeline
 	tlSize = utils.getSize("#timeline-wrapper-inner");
