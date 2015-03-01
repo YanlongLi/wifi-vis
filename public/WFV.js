@@ -21,6 +21,26 @@ WFV.Message = {
 	TimeRangeChanged : "TimeRangeChanged" , //{range  : []}
 };
 
+WFV.Message1 = {
+	FloorChange      : "FloorChange"      , //{floor  : }
+	FloorSelect      : "FloorSelect"      , //{floor: [], change:[], isAdd: bool}
+	FloorHover       : "FloorDeselect"    , //{floor: [], change:[], isAdd: bool}
+
+	ApSelect         : "ApSelect"         , //{apid: [], change:[], isAdd: bool}
+	ApHover          : "ApHover"          , //{apid: [], change:[], isAdd: bool}
+
+	DeviceSelect     : "DeviceSelect"     , //{device : [], change:[], isAdd: bool}
+	DeviceHover      : "DeviceHover"   , //{device : [], change:[], isAdd: bool}
+
+	PathSelect       : "PathSelect"       , // {sid   , tid , weight}
+	PathDeSelect     : "PathDeSelect"     , // {sid   , tid , weight}
+
+	TimePointChange  : "TimePointChange"  , //{time   : }
+	TimeRangeChange  : "TimeRangeChange"  , //{range  : []}
+	TimeRangeChanged : "TimeRangeChanged" , //{range  : []}
+};
+
+
 ObserverManager.setMessageCollection((function(){
 	var collection = [];
 	for(key in WFV.Message){

@@ -57,6 +57,8 @@ WifiVis.ApGraph = function(){
 	ApGraph.update = function(range){
 		console.log("update", range)
 		var from = new Date(range[0]), to = new Date(range[1]);
+		var records = db.records_by_interval(from, to)
+		console.log("records", records);
 		db.graph_info(from, to, function(_graphinfo){
 			graphinfo = _graphinfo;
 			var count = 0;
