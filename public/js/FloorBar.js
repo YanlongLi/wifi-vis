@@ -11,10 +11,12 @@ WFV.FloorBar_ = function(){
 		y_bar_scale    = d3.scale.linear(),
 		x_line_scale   = d3.time.scale(),
 		y_line_scale   = d3.scale.linear(),
-		line_generator = d3.svg.line()
+		line_generator = d3.svg.line().interpolate("monotone")
 			.x(function(d){return x_line_scale(d.time)})
 			.y(function(d){return y_line_scale(d.count)});
-	
+	var time_axis = d3.svg.axis().scale(x_line_scale)
+		.orient("bottom")
+		.tickFormat(d3.time.format("%H:%M")).ticks(5);
 	//
 	var selected_aps = [], current_floor;
 	var time_range, time_point;
@@ -22,6 +24,7 @@ WFV.FloorBar_ = function(){
 	init_svg();
 
 	init_interaction();
+
 	/*
 	 * Event Listen
 	 */
@@ -63,8 +66,24 @@ WFV.FloorBar_ = function(){
 		if(message == WFV.Message.TimeRangeChanged){
 			time_range = data.range;
 			x_line_scale.domain(time_range);
+			g.select("#floor-bar-tl-x-axis").call(time_axis.scale(x_line_scale));
 			db.ap_bar_data(time_range[0], time_range[1], update_ap_bars);
-			// TODO floor tl data
+			// floor tl data
+			var step = 1000 * 60 * 20;
+			(function next_f(f, _data, cb){
+				if(f < 18){
+					db.tl_data_floor(time_range[0], time_range[1], step, f, function(d){
+						_data.push({floor:f, tl_data:d});
+						next_f(f+1, _data, cb);
+					});
+				}else{
+					console.log("floor bar on time range chagned, tl data");
+					console.log(_data.length);
+					console.log(_data.map(function(d){return d.tl_data.length}));
+					cb(_data);
+				}
+			})(1, [], update_floor_tls);
+			
 		}
 		if(message == WFV.Message.TimePointChange){
 			// TODO
@@ -117,18 +136,22 @@ WFV.FloorBar_ = function(){
 			var data = {apid: [$(this).attr("apid")]}
 			ObserverManager.post(WFV.Message.ApDeSelect, data);
 		});
-
-		
 	}
 
-	//setTimeout(change_view, 1000);
+	setTimeout(change_view, 2000);
 
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
 		size = utils.initG(g, _w, _h, [20]);
 		per_h = size.height / 17;
+		x_line_scale.range([0, size.width - per_h]);
+		y_line_scale.range([per_h, 0]);
+		//line_generator.y0(per_h);
 		g.selectAll("#floor-bar-aps, #floor-bar-tls")
 			.attr("transform", "translate("+per_h+")");
+		g.select("#floor-bar-tl-x-axis")
+			.attr("class", "x axis")
+			.attr("transform", "translate("+per_h+","+size.height+")");
 	}
 	// change view between tls and ap bars
 	function change_view(){
@@ -168,20 +191,18 @@ WFV.FloorBar_ = function(){
 			floors_enter.append("circle");
 			floors.attr("floor-id", function(d){return d.floor});
 		}
-		floors.sort(function(f1, f2){
-			var a = f1.floor, b = f2.floor;
-			return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
-		});
+		floors.sort(_sort_by_floor);
 		floors.select("circle").datum(function(d){return d})
 			.attr("cx", per_h/2).attr("cy", per_h/2)
 			.attr("count",function(d){return d.count})
 			.attr("r", function(d){
+				console.log("count at floor",d.floor, d.count);
 				var r = scale(d.count);
 				return  isNaN(r) || r < 1 ? 1 : r;
 			});
 		floors.transition().attr("transform", function(d,i){
 			//var dy = per_h * i;
-			var dy = per_h * (d.floor -1);
+			var dy = per_h * i;
 			return "translate(0,"+dy+")";
 		});
 	}
@@ -207,10 +228,7 @@ WFV.FloorBar_ = function(){
 			bars.attr("apid", function(d){return d.apid});
 		}
 		w_bar = (size.width - per_h) / max_ap_number;
-		floors.sort(function(f1, f2){
-			var a = f1.floor, b = f2.floor;
-			return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
-		});
+		floors.sort(_sort_by_floor);
 		floors.attr("floor", function(d){return d.floor}).each(function(d){
 			// sort ap bars
 			var bars = d3.select(this).selectAll("g.bar")
@@ -232,10 +250,6 @@ WFV.FloorBar_ = function(){
 				return h < 1 ? 1 : h;
 			});
 		});
-		floors.sort(function(f1, f2){
-			var a = f1.floor, b = f2.floor;
-			return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
-		});
 		floors.transition().attr("transform", function(d,i){
 			//var dy = per_h * i
 			var dy = per_h * (d.floor -1);
@@ -252,24 +266,29 @@ WFV.FloorBar_ = function(){
 		// [{floor:, tl_data:[{time:, count:}]}]
 		// if no _data, resize timelines
 		var floors = g.select("#floor-bar-tls").selectAll("g.floor");
-		x_line_scale.range([0, size.width - per_h]);
-		y_line_scale.range([per_h, 0]);
+		//x_line_scale.range([0, size.width - per_h]);
+		//y_line_scale.range([per_h, 0]);
 		if(_data){
-			var extents = _data.map(function(d){
-				return d3.extent(d.tl_data, function(d){return d.count});
-			})
-			var extent = d3.extent(Array.prototype.concat.apply([], extents));
-			extent[0] = 0;
-			y_line_scale.domain(extent);
+			var cmax = d3.max(_data, function(d){
+				return d3.max(d.tl_data, function(d){return d.count});
+			});
+			(cmax <= 0) && (console.warn("illegal cmax", cmax));
+			y_line_scale.domain([0, cmax]);
+			console.log("floor bar tl scale", y_line_scale.domain(), y_line_scale.range());
 			//
-			floors = floor.data(_data, function(d){return d.floor});
-			var floor_enter = floor.enter().append("g").attr("class", "floor");
+			floors = floors.data(_data, function(d){return d.floor});
+			var floor_enter = floors.enter().append("g").attr("class", "floor");
 			floor_enter.append("path");
 		}
-		floors.selectAll("path").datum(function(d){return d})
-			.attr("d", line_generator);
+		floors.sort(_sort_by_floor);
+		floors.attr("id", function(d){
+			return "floor-bar-tl-"+d.floor;
+		}).each(function(d){
+			d3.select(this).select("path").datum(function(d){return d.tl_data})
+				.attr("d", line_generator);
+		});
 		floors.transition().attr("transform", function(d,i){
-			var dy = per_h * (d.floor - 1);
+			var dy = per_h * i;
 			return "translate(0,"+dy+")";
 		});
 	}
@@ -278,6 +297,10 @@ WFV.FloorBar_ = function(){
 		// update_floor_circle();
 		update_ap_bars();
 	});
+	function _sort_by_floor(f1, f2){
+		var a = f1.floor, b = f2.floor;
+		return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
+	}
 
 	return FloorBar;
 }

@@ -63,7 +63,7 @@ WFV.Timeline = function(_time_range){
 		fls.enter().append("g").attr("class", "line").append("path");
 		fls.attr("floor", function(d){return d})
 			.attr("id", function(d){return "tl-floor-"+d})
-			.attr("opacity", 0);
+			.attr("visibility", "hidden");
 		d3.range(1,18).forEach(_show_floor);
 	})();
 
@@ -97,9 +97,9 @@ WFV.Timeline = function(_time_range){
 			console.log("timeline on floor change", data.floor)
 			current_floor = +data.floor;
 			g.select("#timeline-floor")
-				.selectAll(" g.line").style("opacity", 0)
+				.selectAll(" g.line").style("visibility", "hidden")
 				.classed("cur", false);
-			g.select("#tl-floor-"+current_floor).style("opacity",1)
+			g.select("#tl-floor-"+current_floor).style("visibility","visible")
 				.classed("cur", true);
 			_show_floor(current_floor, true);
 		}
@@ -122,7 +122,7 @@ WFV.Timeline = function(_time_range){
 			var apids = data.apid;
 			apids.forEach(function(apid){
 				if(ap_max_count.get(apid)){
-					g.select("#timeline-ap-"+apid).style("opacity",1);
+					g.select("#timeline-ap-"+apid).style("visibility","visible");
 				}else{
 					_timeline_data(TIMELINE_TYPE.ap, apid, update_ap_timeline);
 				}
@@ -134,8 +134,8 @@ WFV.Timeline = function(_time_range){
 			apids.forEach(function(apid){
 				// console.log(apid, ap_max_count.keys());
 				if(ap_max_count.get(apid)){
-					//g.select("#timeline-ap-"+apid).style("opacity",0);
-					$("#timeline-ap-"+apid).css("opacity",0);
+					g.select("#timeline-ap-"+apid).style("visibility","hidden");
+					//$("#timeline-ap-"+apid).css("opacity",0);
 				}
 			});
 		}
@@ -159,10 +159,10 @@ WFV.Timeline = function(_time_range){
 		// type:0,all; 1:floor; 2:ap
 		y = ys[type];
 		d3.select("#timeline-basic")
-			.style("opacity", type == 0 ? 1:0);
+			.style("visibility", type == 0 ? "visible":"hidden");
 		d3.select("#timeline-floor")
-			.style("opacity", type == 2 ? 0:1);
-		d3.select("#timeline-ap").style("opacity",1);
+			.style("visibility", type == 2 ? "hidden":"visible");
+		d3.select("#timeline-ap").style("visibility","visible");
 		yAxis.scale(y);
 		init_svg();
 		update_basic_timeline();
@@ -206,7 +206,7 @@ WFV.Timeline = function(_time_range){
 		if(b && !floor_data_status[floor]){
 			_timeline_data(TIMELINE_TYPE.floor, floor, update_floor_timeline);
 		}
-		g.select("#tl-floor-"+floor).style("opacity", b ? "1" : "0");
+		g.select("#tl-floor-"+floor).style("visibility", b ? "visible" : "hidden");
 	}
 	function update_floor_timeline(_data){
 		// {time:,count;,values:[],floor:}
