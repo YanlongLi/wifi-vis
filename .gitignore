@@ -5,3 +5,4 @@ test.*
 *.swp
 makefile
 deploy.sh
+tags
