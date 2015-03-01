@@ -40,6 +40,7 @@ WFV.Timeline = function(_time_range){
 		if(brush.empty() || range[1] - range[0] < step){
 			range = all_time_range;
 		}
+		time_range = range;
 		ObserverManager.post(WFV.Message.TimeRangeChanged, {range: time_range});
 	}
 	//

@@ -207,14 +207,18 @@ WFV.FloorBar_ = function(){
 			bars.attr("apid", function(d){return d.apid});
 		}
 		w_bar = (size.width - per_h) / max_ap_number;
+		floors.sort(function(f1, f2){
+			var a = f1.floor, b = f2.floor;
+			return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
+		});
 		floors.attr("floor", function(d){return d.floor}).each(function(d){
 			// sort ap bars
 			var bars = d3.select(this).selectAll("g.bar")
-				.data(function(d){return d.aps})
+				.data(function(d){return d.aps}, function(d){return d.apid})
 				.sort(function(d1, d2){
-				//var a = d1.count, b = d2.count;
-				var a = d1.apid, b = d2.apid;
-				return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
+					//var a = d1.count, b = d2.count;
+					var a = d1.apid, b = d2.apid;
+					return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NbN;
 			});
 			bars.transition().attr("transform", function(d,i){
 				var dx = i * w_bar;
