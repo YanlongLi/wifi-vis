@@ -20,8 +20,10 @@ WifiVis.ApGraph = function(){
 	var tsneWorker;
 
 	var graphinfo;
+
+	var spinner	
 	
-	var edgeFilterWeight = 30;
+	var edgeFilterWeight = 50;
 
 	// var slider = d3.slider().axis(d3.svg.axis().orient("top")).min(20).max(150)
 	// 	.step(1)
@@ -36,7 +38,7 @@ WifiVis.ApGraph = function(){
 	//
 	ApGraph.init = function(){
 		var _this = this;
-
+		spinner = utils.createSpinner(5, 5);
 		processData();
 		worker = new Worker("js/workers/tsneWorker.js");
 		tsneWorker = worker;
@@ -56,6 +58,7 @@ WifiVis.ApGraph = function(){
 	
 	ApGraph.update = function(range){
 		console.log("update", range)
+		spinner.spin($("#" + DIV_ID).get(0));
 		var from = new Date(range[0]), to = new Date(range[1]);
 		var records = db.records_by_interval(from, to)
 		console.log("records", records);
@@ -89,7 +92,9 @@ WifiVis.ApGraph = function(){
 		});
 	}
 
-	function render() {		
+	function render() {
+		spinner.stop();	
+
 		var _this = this;
 		var minX = _.min(dotPositions, function(d) {return d[0]})[0];
 		var maxX = _.max(dotPositions, function(d) {return d[0]})[0];
@@ -128,6 +133,10 @@ WifiVis.ApGraph = function(){
 				.enter()
 				.append("line")
 				.attr("class", "ap-link")
+				.style("stroke-width", function(d) {
+					var scale = d3.scale.log().base(6);
+					return scale(d.weight+1) * 1;	
+				})			
 		}
 
 		gNode.selectAll(".ap-dot")
@@ -146,13 +155,12 @@ WifiVis.ApGraph = function(){
 				return y;
 			})
 
-		// gLink.selectAll(".ap-link")
-		// 	.data(links)
-		// 	.attr("x1", function(d) { return d.source.x; })
-		// 	.attr("y1", function(d) { return d.source.y; })
-		// 	.attr("x2", function(d) { return d.target.x; })
-		// 	.attr("y2", function(d) { return d.target.y; })
-
+		gLink.selectAll(".ap-link")
+			.data(links)
+			.attr("x1", function(d) { return d.source.x; })
+			.attr("y1", function(d) { return d.source.y; })
+			.attr("x2", function(d) { return d.target.x; })
+			.attr("y2", function(d) { return d.target.y; })
 
 
 			// .on('mouseover', function(d, index) {
@@ -235,7 +243,10 @@ WifiVis.ApGraph = function(){
 	}
 
 	function getDistance(weight) {
-		return 1 / (weight+1);
+		var distance = 100 - (weight+1) ;
+		if (distance <= 1)
+			return 1;
+		return distance;
 	}
 
 
@@ -248,7 +259,6 @@ WifiVis.ApGraph = function(){
 			.attr("y1", function(d) { return d.source.y; })
 			.attr("x2", function(d) { return d.target.x; })
 			.attr("y2", function(d) { return d.target.y; });
-		//console.log(force.alpha());
 		if(force.alpha() < 0.07){
 			force.stop();
 		}

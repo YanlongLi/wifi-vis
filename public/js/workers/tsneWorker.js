@@ -27,9 +27,9 @@ function start(distanceMatrix, iter) {
             clearInterval(iterTimer);
         }
         tSNE.step();
-        // if (count > 300)
+        if (count > 300)
             postMessage(tSNE.getSolution());        
-    }, 50)
+    }, 10)
     // for (var i = 0; i < iter; i++) {
     //  if (workTimestamp != messageTimestamp) {
     //      console.log("break");
