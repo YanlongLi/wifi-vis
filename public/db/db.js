@@ -322,7 +322,7 @@ WFV_DB.prototype.tl_data_floor = function(from, to, step, floor, cb){
 	this.records_by_interval(from, to, function(records){
 		records = records.filter(function(r){return +r.floor == +floor});
 		var tl_data = generate_tl_data(records, from.getTime(), to.getTime(), step);
-		tl_data.floor = floor;
+		tl_data.floor = +floor;
 		cb(tl_data);
 	});
 }
@@ -330,7 +330,7 @@ WFV_DB.prototype.tl_data_ap = function(from, to, step, apid, cb){
 	this.records_by_interval(from, to, function(records){
 		records = records.filter(function(r){return +r.apid == +apid});
 		var tl_data = generate_tl_data(records, from.getTime(), to.getTime(), step);
-		tl_data.apid = apid;
+		tl_data.apid = +apid;
 		cb(tl_data);
 	});		
 }

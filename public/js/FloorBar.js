@@ -71,10 +71,24 @@ WFV.FloorBar_ = function(){
 		}
 	}
 	function init_interaction(){
+		// for floor circle
 		$(document).on("click", "#floor-bar-circles .floor", function(e){
 			var data = {floor: $(this).attr("floor-id")}
+			console.log("floor changed", data.floor);
 			ObserverManager.post(WFV.Message.FloorChange, data);
 		});
+		$(document).on("mouseenter", "#floor-bar-circles .floor", function(e){
+			d3.select(this).classed("hover", true);
+			var sel_f = $(this).attr("floor-id");
+			console.log("floor select", sel_f);
+			ObserverManager.post(WFV.Message.FloorSelect, {floor:[sel_f]});
+		});
+		$(document).on("mouseleave", "#floor-bar-circles .floor", function(e){
+			d3.select(this).classed("hover", false);
+			var sel_f = $(this).attr("floor-id");
+			ObserverManager.post(WFV.Message.FloorDeSelect, {floor:[sel_f]});
+		});
+		// for bars
 		$(document).on("click", "#floor-bar-aps .floor .bar", function(e){
 			if($(this).attr("_selected")){
 				$(this).attr("_selected", null);

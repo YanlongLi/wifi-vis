@@ -63,6 +63,7 @@ WFV.Timeline = function(_time_range){
 		fls.attr("floor", function(d){return d})
 			.attr("id", function(d){return "tl-floor-"+d})
 			.attr("opacity", 0);
+		d3.range(1,18).forEach(_show_floor);
 	})();
 
 	g.select("#timeline-basic").attr("class", "line").append("path");
@@ -72,7 +73,7 @@ WFV.Timeline = function(_time_range){
 
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
-		size = utils.initG(g, _w, _h, [10, 20, 20,40]);
+		size = utils.initG(g, _w, _h, [10, 20, 20, 50]);
 		x.range([0, size.width]).nice();
 		ys[0].range([size.height, 0]).nice();
 		ys[1].range([size.height, 0]).nice();
@@ -95,22 +96,26 @@ WFV.Timeline = function(_time_range){
 			console.log("timeline on floor change", data.floor)
 			current_floor = +data.floor;
 			g.select("#timeline-floor")
-				.selectAll(" g.line").style("opacity", 0);
-			g.select("#tl-floor-"+current_floor).style("opacity",1);
-			if(!floor_data_status[current_floor]){
-				_timeline_data(TIMELINE_TYPE.floor, current_floor, function(_data){
-					update_floor_timeline(_data);
-					floor_data_status[current_floor] = true;
-				});
-			}
-			// hide all ap lines
-			g.select("#timeline-ap").selectAll("g.line").style("opacity",0);
+				.selectAll(" g.line").style("opacity", 0)
+				.classed("cur", false);
+			g.select("#tl-floor-"+current_floor).style("opacity",1)
+				.classed("cur", true);
+			_show_floor(current_floor, true);
 		}
 		if(message == WFV.Message.FloorSelect){
-			// TODO
+			var floors = data.floor;
+			floors.forEach(function(floor){
+				if(floor == current_floor) return;
+				_show_floor(floor, true);
+			});
 		}
-		if(message == WFV.Message.FloorDeSelected){
-			// TODO
+		if(message == WFV.Message.FloorDeSelect){
+			console.log("timeline onfloor deselect", data.floor);
+			var floors = data.floor;
+			floors.forEach(function(floor){
+				if(floor == current_floor) return;
+				_show_floor(floor, false);
+			});
 		}
 		if(message == WFV.Message.ApSelect){
 			var apids = data.apid;
@@ -124,7 +129,7 @@ WFV.Timeline = function(_time_range){
 		}
 		if(message == WFV.Message.ApDeSelect){
 			var apids = data.apid;
-			console.log("deselect", apids, ap_max_count.values());
+			console.log("timeline on ap deselect", apids, ap_max_count.values());
 			apids.forEach(function(apid){
 				// console.log(apid, ap_max_count.keys());
 				if(ap_max_count.get(apid)){
@@ -182,6 +187,7 @@ WFV.Timeline = function(_time_range){
 			var cmax = d3.max(_data, function(d){return d.count});
 			ap_max_count.set(_data.apid, cmax);
 			ys[2].domain([0, d3.max(ap_max_count.values())]).nice();
+			g.select("#y-axis").call(yAxis.scale(y));
 			var tl = d3.select("#timeline-ap")
 				.append("g").attr("class","line").datum(_data)
 				.attr("apid", function(d){return d.apid})
@@ -193,18 +199,32 @@ WFV.Timeline = function(_time_range){
 			var lines = tl.select("path").attr("d", line);
 		}
 	}
+	function _show_floor(floor, b){
+		// load floor data and draw path, 
+		// not change visibility
+		if(b && !floor_data_status[floor]){
+			_timeline_data(TIMELINE_TYPE.floor, floor, update_floor_timeline);
+		}
+		g.select("#tl-floor-"+floor).style("opacity", b ? "1" : "0");
+	}
 	function update_floor_timeline(_data){
 		// {time:,count;,values:[],floor:}
 		// if _data, add; no _data, update
 		if(_data){
 			var cmax = d3.max(_data, function(d){return d.count});
-			floor_max_count.set(_data.apid, cmax);
+			console.log("update_floor_timeline", _data.floor);
+			floor_max_count.set(_data.floor, cmax);
+			console.log("update_floor_timeline, floor_max_count",
+					floor_max_count.values());
 			ys[1].domain([0, d3.max(floor_max_count.values())]).nice();
+			g.select("#y-axis").call(yAxis.scale(y));
 			//
 			var tl = d3.select("#timeline-floor")
 				.select("#tl-floor-"+_data.floor).datum(_data);
 			tl.select("path").datum(function(d){return d})
 				.attr("d", line);
+			//
+			floor_data_status[_data.floor] = true;
 		}else{
 			var tl = d3.select("#timeline-floor").selectAll("g.line");
 			var lines = tl.select("path").attr("d", line);
@@ -232,167 +252,3 @@ WFV.Timeline = function(_time_range){
 	}
 	return Timeline;
 }
-
-WifiVis.TimelineBrush = function(timeline, opt){
-	function TimelineBrush(){};
-	//
-	var g = timeline.g, x = timeline.x, y = timeline.y, tl = timeline;
-	var brushClass = opt && opt.brushClass || "brush",
-			BRUSH_LOCK = false, IN_SELECTION = false, ALL_DEFAULT = true;
-	// some functiion
-	var validateExtent = defaultValidateExtent,
-			adjustExtent;
-	var onBrushStart = function(){},
-			onBrushMove = function(){},
-			onBrushEnd = function(){};
-
-	// clear odl brush
-	g.select("g.brush").remove();
-	g.select("g."+brushClass).remove();
-	var brush, extent, gBrush = g.append("g").attr("class", brushClass);
-
-	setBrush();
-	TimelineBrush.addBrushStartListener = function(obj){
-		addEventListener(TimelineBrush.EventType.EVENT_BRUSH_START, obj);
-		return TimelineBrush;
-	}
-	TimelineBrush.addBrushMoveListener = function(obj){
-		addEventListener(TimelineBrush.EventType.EVENT_BRUSH_MOVE, obj);
-		return TimelineBrush;
-	}
-	TimelineBrush.addBrushEndListener = function(obj){
-		addEventListener(TimelineBrush.EventType.EVENT_BRUSH_END, obj);
-		return TimelineBrush;
-	}
-	/*
-	 *
-	 */
-	function setBrush(){
-		console.log(x.range(), x.domain());
-		brush = d3.svg.brush().x(x)
-			.on("brushstart",cbBrushStart)
-			.on("brush", cbBrushMove)
-			.on("brushend", cbBrushEnd);
-		gBrush.call(brush).selectAll("rect").attr("height", tl.size.height);
-		//gBrush.selectAll("rect.extent").style("fill", "rgba(255,255,255,0.5)");
-	}
-	/*
-	 * call back function for brush
-	 */
-	function cbBrushStart(){
-		console.log("brush begin");
-		gBrush.classed("active", true);
-		BRUSH_LOCK = true;
-		extent = null;
-		onBrushStart();
-		fireEvent(TimelineBrush.EventType.EVENT_BRUSH_START);
-	}
-	function cbBrushMove(){
-		//console.log("brush move");
-		var e = d3.event.target.extent();
-		if(adjustExtent){
-			e = adjustExtent(e);
-		}
-		extent = e;
-		onBrushMove(e);
-		fireEvent(TimelineBrush.EventType.EVENT_BRUSH_MOVE, e);
-	}
-	function cbBrushEnd(){
-		console.log("brush end");
-		var e = d3.event.target.extent();	
-		//utils.log(["brush extent:", e]);
-		//utils.log(["extent distence",e[1] - e[0]], 1);
-		if(adjustExtent){
-			//utils.log(["extent before adjust:", e[0].getTime(), e[1].getTime()]);
-			e = e.map(adjustExtent);
-			//utils.log(["extent after adjust:", e[0].getTime(), e[1].getTime()]);
-			//d3.select(this).transition().call(brush.extent(e)).call(brush.event);
-		}
-		if(!validateExtent(e)){
-			if(ALL_DEFAULT){
-				e = x.domain();
-			}else{
-				IN_SELECTION = false;
-				utils.log(["brush, no selection"], 1);
-				updateBrushTag(true);
-				return;
-			}
-		}
-		extent = e;
-		//
-		onBrushEnd(e);
-		fireEvent(TimelineBrush.EventType.EVENT_BRUSH_END, e);
-		//
-		updateBrushTag(false, e);
-		//
-		IN_SELECTION = true;
-		BRUSH_LOCK = false;
-	}
-	/*
-	 * update brush selection tag
-	 *
-	 */
-	function updateBrushTag(isRemoveAll, e0, e1){
-		if(isRemoveAll){
-			gBrush.selectAll("g.brush-tag").remove();
-			return;
-		}
-	}
-	/*
-	 * some default function
-	 */
-	function defaultValidateExtent(e){
-		var e0 = e[0], e1 = e[1];
-		if(e0 instanceof Date && e1 instanceof Date){
-			return Math.abs(e1 - e0) > 1000;
-		}
-		return e0 !== e1;
-	}
-	function defaultAdjustExtent(e0){
-		return e0;
-	}
-	/*
-	 * validateExtent
-	 * chech whether the select exent a validate extent
-	 */
-	TimelineBrush.validateExtent = function(f){
-		if(f){
-			validateExtent = f;
-			return TimelineBrush;
-		}
-		return validateExtent;
-	};
-	/*
-	 * adjustExtent
-	 * adjust extent
-	 */
-	TimelineBrush.adjustExtent = function(f){
-		if(f){
-			adjustExtent = f.bind(TimelineBrush);
-			return TimelineBrush;
-		}
-		return adjustExtent;
-	};
-	TimelineBrush.onBrushStart = function(f){
-		if(f){
-			onBrushStart = f.bind(TimelineBrush);
-			return TimelineBrush;
-		}
-		return onBrushStart;
-	}
-	TimelineBrush.onBrushMove = function(f){
-		if(f){
-			onBrushMove = f.bind(TimelineBrush);
-			return TimelineBrush;
-		}
-		return onBrushMove;
-	}
-	TimelineBrush.onBrushEnd = function(f){
-		if(f){
-			onBrushEnd = f.bind(TimelineBrush);
-			return TimelineBrush;
-		}
-		return onBrushEnd;
-	}
-	return TimelineBrush;
-};
