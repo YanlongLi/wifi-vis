@@ -33,7 +33,7 @@ WFV.Message = {
 	DeviceHover      : "DeviceHover"   , //{device : [], change:[], isAdd: bool}
 
 	PathSelect       : "PathSelect"       , // {sid   , tid , weight}
-	PathDeSelect     : "PathDeSelect"     , // {sid   , tid , weight}
+	PathDeSelect     : "PathDeselect"     , // {sid   , tid , weight}
 
 	TimePointChange  : "TimePointChange"  , //{time   : }
 	TimeRangeChange  : "TimeRangeChange"  , //{range  : []}
