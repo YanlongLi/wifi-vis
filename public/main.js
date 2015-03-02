@@ -41,9 +41,9 @@ db.init(function(){
 });
 
 function init(){
-	// tracer = RecordTracer.CreateTracer();
-	// floorDetail = WFV.FloorDetail();
-	// timeline = WFV.Timeline([timeFrom, timeTo]);
+	tracer = RecordTracer.CreateTracer();
+	floorDetail = WFV.FloorDetail();
+	timeline = WFV.Timeline([timeFrom, timeTo]);
 	ObserverManager.post(WFV.Message1.TimeRangeChange,
 			{range:[new Date(2013,08,02,12), new Date(2013,08,02,16)]});
 	ObserverManager.post(WFV.Message1.TimePointChange, {time:new Date(2013,08,02,12)});

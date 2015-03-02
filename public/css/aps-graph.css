@@ -18,3 +18,22 @@
     opacity: 0.3;
 }
 
+
+.polygon-selection {
+    stroke: red;
+    stroke-width: 5px;
+    stoke-opacity: 1;
+    fill: #A00000;
+    opacity: 0.2;
+}
+
+.ap-dot[class~=highlight], .ap-dot[class~=temp-highlight] {
+    opacity: 1;
+    stroke: red;
+    stroke-width: 1px;
+}
+
+.ap-dot[class~=dark], .ap-dot[class~=temp-dark] {
+    opacity: 0.1
+    /*stroke: transparent;*/
+}
