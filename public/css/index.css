@@ -7,6 +7,11 @@
 	padding: 10 0 10 0;
 }
 
+#main-view-wrapper div{
+	border: 1px solid #CCCCCC;
+	margin: 10px;
+}
+
 #floor-bar-wrapper{
 	position: absolute;
 	top: 0;
