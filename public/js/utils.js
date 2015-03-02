@@ -38,7 +38,9 @@ utils.initSVG = function(sel, mgs){
 	}
 	var w = size.width() - mg[1] - mg[3];
 			h = size.height() - mg[0] - mg[2];
-	var g = svg.append("g").attr("transform", "translate("+mg[3]+","+mg[0]+")");
+	var g = svg.append("g").attr("transform", "translate("+mg[3]+","+mg[0]+")")
+		.attr("offset-x", mg[3])
+		.attr("offset-y", mg[0]);
 	g.append("rect").attr("class", "placeholder")
 		.attr("width", w).attr("height", h);
 
@@ -150,4 +152,23 @@ utils.createSpinner = function(radius, length) {
     if (length)
         opts.length = length;    
     return new Spinner(opts); 
+}
+
+//检查点是否在多边形内部
+// from https://github.com/substack/point-in-polygon
+utils.pointInPolygon = function(point, vs) {
+	var xi, xj, i, intersect,
+		x = point[0],
+		y = point[1],
+		inside = false;
+	for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+		xi = vs[i][0],
+		yi = vs[i][1],
+		xj = vs[j][0],
+		yj = vs[j][1],
+		intersect = ((yi > y) != (yj > y))
+		  && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+		if (intersect) inside = !inside;
+	}
+	return inside;
 }

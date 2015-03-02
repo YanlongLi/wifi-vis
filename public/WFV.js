@@ -2,26 +2,26 @@ var WFV = {};
 
 var WifiVis = WFV;
 
-WFV.Message = {
-	FloorChange      : "FloorChange"      , //{floor  : }
-	FloorSelect      : "FloorSelect"      , //{floor  : []} not include the current floor
-	FloorDeSelect    : "FloorDeselect"    , //{floor  : []} not include the current floor
+WFV.Message1 = {
+	FloorChange      : "_FloorChange"      , //{floor  : }
+	FloorSelect      : "_FloorSelect"      , //{floor  : []} not include the current floor
+	FloorDeSelect    : "_FloorDeselect"    , //{floor  : []} not include the current floor
 
-	ApSelect         : "ApSelect"         , //{apid   : [], click:}
-	ApDeSelect       : "ApDeSelect"       , //{apid   : [], click:}
+	ApSelect         : "_ApSelect"         , //{apid   : [], click:}
+	ApDeSelect       : "_ApDeSelect"       , //{apid   : [], click:}
 
-	DeviceSelect     : "DeviceSelect"     , //{device : []}
-	DeviceDeSelect   : "DeviceDeSelect"   , //{device : []}
+	DeviceSelect     : "_DeviceSelect"     , //{device : []}
+	DeviceDeSelect   : "_DeviceDeSelect"   , //{device : []}
 
-	PathSelect       : "PathSelect"       , // {sid   , tid                               , weight}
-	PathDeSelect     : "PathDeSelect"     , // {sid   , tid                               , weight}
+	PathSelect       : "_PathSelect"       , // {sid   , tid                               , weight}
+	PathDeSelect     : "_PathDeSelect"     , // {sid   , tid                               , weight}
 
-	TimePointChange  : "TimePointChange"  , //{time   : }
-	TimeRangeChange  : "TimeRangeChange"  , //{range  : []}
-	TimeRangeChanged : "TimeRangeChanged" , //{range  : []}
+	TimePointChange  : "_TimePointChange"  , //{time   : }
+	TimeRangeChange  : "_TimeRangeChange"  , //{range  : []}
+	TimeRangeChanged : "_TimeRangeChanged" , //{range  : []}
 };
 
-WFV.Message1 = {
+WFV.Message = {
 	FloorChange      : "FloorChange"      , //{floor  : }
 	FloorSelect      : "FloorSelect"      , //{floor: [], change:[], isAdd: bool}
 	FloorHover       : "FloorDeselect"    , //{floor: [], change:[], isAdd: bool}
@@ -33,7 +33,7 @@ WFV.Message1 = {
 	DeviceHover      : "DeviceHover"   , //{device : [], change:[], isAdd: bool}
 
 	PathSelect       : "PathSelect"       , // {sid   , tid , weight}
-	PathDeSelect     : "PathDeSelect"     , // {sid   , tid , weight}
+	PathDeSelect     : "PathDeselect"     , // {sid   , tid , weight}
 
 	TimePointChange  : "TimePointChange"  , //{time   : }
 	TimeRangeChange  : "TimeRangeChange"  , //{range  : []}
@@ -43,6 +43,9 @@ WFV.Message1 = {
 
 ObserverManager.setMessageCollection((function(){
 	var collection = [];
+	for(key in WFV.Message1){
+		collection.push(WFV.Message1[key]);
+	}
 	for(key in WFV.Message){
 		collection.push(WFV.Message[key]);
 	}

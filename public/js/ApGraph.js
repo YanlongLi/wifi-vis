@@ -6,13 +6,15 @@ WifiVis.ApGraph = function(){
 	var color = d3.scale.category20();
 
 	var DIV_ID = "aps-graph-wrapper"
+	var gOffset = [10, 10];
 	var o = utils.initSVG("#"+DIV_ID,[10]);
 
-	console.log("init SVG", $("#"+DIV_ID));
+	console.log("o", o)
 	var g = o.g, w = o.w, h = o.h, r = 6;
 
 	var aps, links;
-	var gLink = g.append("g"), gNode = g.append("g");
+	var gLink = g.append("g").attr("class", "links")
+	 gNode = g.append("g").attr("class", "nodes");
 
 	var timeRange = [timeFrom, timeTo];
 	var disMatrix = [], dotPositions;
@@ -47,6 +49,9 @@ WifiVis.ApGraph = function(){
 			dotPositions = event.data;
 			render();
 		}
+		var drag = initDragPolygon();
+        o.svg.call(drag);
+
 	}
 	ApGraph.draw = function(){
 		this.update(timeRange);
@@ -128,15 +133,15 @@ WifiVis.ApGraph = function(){
 					// return gColorScale(topicID);
 				})
 				.attr("opacity", 0.7)   
-			gLink.selectAll(".ap-link")
-				.data(links)
-				.enter()
-				.append("line")
-				.attr("class", "ap-link")
-				.style("stroke-width", function(d) {
-					var scale = d3.scale.log().base(6);
-					return scale(d.weight+1) * 1;	
-				})			
+			// gLink.selectAll(".ap-link")
+			// 	.data(links)
+			// 	.enter()
+			// 	.append("line")
+			// 	.attr("class", "ap-link")
+			// 	.style("stroke-width", function(d) {
+			// 		var scale = d3.scale.log().base(6);
+			// 		return scale(d.weight+1) * 1;	
+			// 	})			
 		}
 
 		gNode.selectAll(".ap-dot")
@@ -155,12 +160,12 @@ WifiVis.ApGraph = function(){
 				return y;
 			})
 
-		gLink.selectAll(".ap-link")
-			.data(links)
-			.attr("x1", function(d) { return d.source.x; })
-			.attr("y1", function(d) { return d.source.y; })
-			.attr("x2", function(d) { return d.target.x; })
-			.attr("y2", function(d) { return d.target.y; })
+		// gLink.selectAll(".ap-link")
+		// 	.data(links)
+		// 	.attr("x1", function(d) { return d.source.x; })
+		// 	.attr("y1", function(d) { return d.source.y; })
+		// 	.attr("x2", function(d) { return d.target.x; })
+		// 	.attr("y2", function(d) { return d.target.y; })
 
 
 			// .on('mouseover', function(d, index) {
@@ -183,50 +188,97 @@ WifiVis.ApGraph = function(){
 			// .on('mouseout', this.tip.hide)         
 	}
 
-	function _update_graph(nodes, links){
-		// //g.selectAll(".node .link").remove();
-		// sNode = gNode.selectAll(".ap").data(nodes, function(d){return d.apid});
-		// sLink = gLink.selectAll(".link").data(links, function(d){
-		// 	return d.source.apid + "," + d.target.apid;
-		// });
-		// //
-		// force.nodes(nodes).links(links).start();
-		// //
-		// sLink.enter().append("line").attr('class',"link");
-		// console.log("link weight:", links.length, d3.extent(links, function(d){return d.weight}));
-		// sLink.attr("source", function(d){return d.source.apid})
-		// 	.attr("target", function(d){return d.target.apid})
-		// 	.style("stroke-width", function(d){
-		// 		var scale = d3.scale.log().base(6);
-		// 		return scale(d.weight+1);
-		// 	}).attr('x1', function(d){return d.source.x})
-		// 	.attr('y1', function(d){return d.source.y})
-		// 	.attr('x2', function(d){return d.target.x})
-		// 	.attr('y2', function(d){return d.target.y});
-		// sLink.exit().remove();
-		// sNode.enter().append("circle").attr("class","ap");
-		// sNode.attr("apid", function(d){return d.apid})
-		// 	.attr("cx", function(d){return d.x})
-		// 	.attr("cy", function(d){return d.y})
-		// 	.attr("r",function(d){
-		// 		if(d.weight > 0){
-		// 			return 8;
-		// 		}
-		// 		return 0;
-		// 	}).call(force.drag);
-		// sNode.on("click", function(ap){
-		// 	// TODO
-		// 	fireEvent(ApGraph.EventType.AP_CLICK, ap);
-		// }).on('mouseover', function(ap){
-		// 	// TODO
-		// 	d3.select(this).append("title")
-		// 		.text((ap.name || "none")+" "+ap.weight);
-		// }).on('mouseout', function(ap){
-		// 	// TODO
-		// 	d3.select(this).selectAll('title').remove();
-		// });
-		// sNode.exit().remove();
-	}
+    function initDragPolygon(){
+        //reference from http://bl.ocks.org/bycoffe/5871227
+        var line = d3.svg.line(),
+        drag = d3.behavior.drag()
+            .on("dragstart", function() {
+                // Empty the coords array.
+                coords = [];
+                svg = d3.select(this);
+
+                // If a selection line already exists,
+                // remove it.
+                svg.select(".polygon-selection").remove();
+                // Add a new selection line.
+                svg.append("path").attr({"class": "polygon-selection"});
+            })
+            .on("drag", function() {
+                // Store the mouse's current position
+                coords.push(d3.mouse(this));
+                svg = d3.select(this);
+                // Change the path of the selection line
+                // to represent the area where the mouse
+                // has been dragged.
+                svg.select(".polygon-selection").attr({
+                  d: line(coords)
+                });
+
+                // Figure out which dots are inside the
+                // drawn path and highlight them.
+
+                // _this.selected = [];
+                // _this.selectedDocuments = [];
+                //由于svgGroup做了居中处理，与svg的坐标系不一致，所以要纠正偏移
+                var offsetX = Number(gOffset[0]),
+                    offsetY = Number(gOffset[1]);
+                console.log("offset:", offsetX, offsetY);
+                // var offsetX = 0, offsetY = 0;
+                var selected = [];
+                svg.selectAll(".ap-dot").each(function(d, i) {
+                    point = [ Number(d3.select(this).attr("cx")) +  offsetX, 
+                            Number(d3.select(this).attr("cy")) +  offsetY];
+                    if (utils.pointInPolygon(point, coords)) {
+                        selected.push(d);
+                        // _this.selectedDocuments.push(doc);
+                    }
+                });
+                highlight(selected);
+            })
+            .on("dragend", function() {
+                svg = d3.select(this);
+                // If the user clicks without having
+                // drawn a path, remove any paths
+                // that were drawn previously.
+                if (coords.length === 0) {
+                	svg.select(".polygon-selection").remove();
+                    // svg.selectAll("path").remove();
+                    unhighlight();
+                    return;
+                }             
+                // Draw a path between the first point
+                // and the last point, to close the path.
+                svg.append("path").attr({
+                    "class": "terminator",
+                    d: line([coords[0], coords[coords.length-1]])
+                });
+                svg.select(".polygon-selection").remove();
+
+                // Post message to update other views
+                // ObserverManager.post("SelectDocuments", 
+                //     {documents: _this.selectedDocuments})   
+ 
+            });
+
+            function unhighlight() {
+                d3.selectAll(".ap-dot").classed("highlight", false);
+            }
+
+            function highlight(dotsData) {
+                // First unhighlight all the circles.
+                unhighlight();
+
+                // Find the circles that have an id
+                // in the array of ids given, and 
+                // highlight those.
+                d3.selectAll(".ap-dot").filter(function(d, i) {
+                    var index = dotsData.indexOf(d);
+                    return index > -1;
+                })
+                .classed("highlight", true);
+            }
+        return drag;
+    }
 
 	function processData() {
 		aps = db.aps_all();

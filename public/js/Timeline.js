@@ -29,9 +29,9 @@ WFV.Timeline = function(_time_range){
 		time_range  = d3.event.target.extent();
 		if(time_point - time_range[0] != 0){
 			time_point = time_range[0];
-			ObserverManager.post(WFV.Message.TimePointChange, {time: time_point});
+			ObserverManager.post(WFV.Message1.TimePointChange, {time: time_point});
 		}
-		ObserverManager.post(WFV.Message.TimeRangeChange, {range: time_range});
+		ObserverManager.post(WFV.Message1.TimeRangeChange, {range: time_range});
 	}
 	function onBrushEnd(){
 		if(!d3.event.sourceEvent) return;
@@ -41,7 +41,7 @@ WFV.Timeline = function(_time_range){
 			range = all_time_range;
 		}
 		time_range = range;
-		ObserverManager.post(WFV.Message.TimeRangeChanged, {range: time_range});
+		ObserverManager.post(WFV.Message1.TimeRangeChanged, {range: time_range});
 	}
 	//
 	var current_floor, sel_aps, 
@@ -70,7 +70,7 @@ WFV.Timeline = function(_time_range){
 	g.select("#timeline-basic").attr("class", "line").append("path");
 	_timeline_data(TIMELINE_TYPE.all, null, update_basic_timeline);
 	
-	ObserverManager.post(WFV.Message.TimeRangeChanged, {range: all_time_range});
+	ObserverManager.post(WFV.Message1.TimeRangeChanged, {range: all_time_range});
 
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
@@ -92,7 +92,7 @@ WFV.Timeline = function(_time_range){
 	//
 	ObserverManager.addListener(Timeline);
 	Timeline.OMListen = function(message, data){
-		if(message == WFV.Message.FloorChange){
+		if(message == WFV.Message1.FloorChange){
 			change_scale(1);
 			console.log("timeline on floor change", data.floor)
 			current_floor = +data.floor;
@@ -103,14 +103,14 @@ WFV.Timeline = function(_time_range){
 				.classed("cur", true);
 			_show_floor(current_floor, true);
 		}
-		if(message == WFV.Message.FloorSelect){
+		if(message == WFV.Message1.FloorSelect){
 			var floors = data.floor;
 			floors.forEach(function(floor){
 				if(floor == current_floor) return;
 				_show_floor(floor, true);
 			});
 		}
-		if(message == WFV.Message.FloorDeSelect){
+		if(message == WFV.Message1.FloorDeSelect){
 			console.log("timeline onfloor deselect", data.floor);
 			var floors = data.floor;
 			floors.forEach(function(floor){
@@ -118,7 +118,7 @@ WFV.Timeline = function(_time_range){
 				_show_floor(floor, false);
 			});
 		}
-		if(message == WFV.Message.ApSelect){
+		if(message == WFV.Message1.ApSelect){
 			var apids = data.apid;
 			apids.forEach(function(apid){
 				if(ap_max_count.get(apid)){
@@ -128,7 +128,7 @@ WFV.Timeline = function(_time_range){
 				}
 			});
 		}
-		if(message == WFV.Message.ApDeSelect){
+		if(message == WFV.Message1.ApDeSelect){
 			var apids = data.apid;
 			console.log("timeline on ap deselect", apids, ap_max_count.values());
 			apids.forEach(function(apid){
@@ -139,10 +139,10 @@ WFV.Timeline = function(_time_range){
 				}
 			});
 		}
-		if(message == WFV.Message.TimePointChange){
+		if(message == WFV.Message1.TimePointChange){
 			// TODO
 		}
-		if(message == WFV.Message.TimeRangeChange){
+		if(message == WFV.Message1.TimeRangeChange){
 			// TODO	
 		}
 	}
