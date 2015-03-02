@@ -20,11 +20,12 @@
 
 
 .polygon-selection {
-    stroke: red;
-    stroke-width: 5px;
+    stroke: #555;
+    stroke-width: 3px;
+    stroke-opacity: 1;
     stoke-opacity: 1;
-    fill: #A00000;
-    opacity: 0.2;
+    fill: #555;
+    fill-opacity: 0.2;
 }
 
 .ap-dot[class~=highlight], .ap-dot[class~=temp-highlight] {
