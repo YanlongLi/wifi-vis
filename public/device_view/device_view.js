@@ -1,4 +1,4 @@
-var db = new WFV_DB(new Date(2013,08,02), new Date(2013,08,4));
+var db = new WFV_DB(new Date(2013,08,02), new Date(2013,08,03));
 var access_data;
 
 function get_access_data(mac, dates){
@@ -8,18 +8,26 @@ function get_access_data(mac, dates){
     var date = dates[i]
     var next_date = new Date(date).setDate(date.getDate() +1);
     var path = db.path_by_mac(mac, date, next_date);
+    console.log(path)
     path = path.map(function(r,i){
       if(i == 0 || r.apid != path[i-1].apid) return r;
       return null;
     }).filter(function(d){return d!=null})
-    access_data.push(path);
+    var eachpath = path.map(function(r,i){
+      if(i == 0) return null;
+      var o1 = {date_time: r.date_time, apid:path[i-1].apid};
+      var o2 = {date_time: path[i-1].date_time, apid:path[i-1].apid};
+      return [o2, o1];
+    });
+    eachpath.shift();
+    access_data.push({lines:eachpath, line:path});
   }
   return access_data;
 }
 
 
 db.init(function(){
-  var dates = [new Date(2013,08,02), new Date(2013,08,04)];
+  var dates = [new Date(2013,08,02)];
   access_data = get_access_data("ac02bf41ce", dates)
   // console.log(access_data);
   device_view(access_data);
@@ -37,17 +45,17 @@ function device_view(access_data){
 
   var dateStr = [];
 
-  access_data.forEach(function(path){
-      path.forEach(function(d){
-      //d.time = parseDate(d.date_time);
-      d.date = d.date_time.to_date();
-      // console.log(d.date)
-    });
-  });
+  // access_data.forEach(function(path){
+  //     path.forEach(function(d){
+  //     //d.time = parseDate(d.date_time);
+  //     d.date = d.date_time.to_date();
+  //     // console.log(d.date)
+  //   });
+  // });
 
-  access_data.forEach(function(d){
-    dateStr.push(d[0].date)
-  })
+  // access_data.forEach(function(d){
+  //   dateStr.push(d[0].date)
+  // })
 
   var x = d3.scale.linear()
       .range([0, width]);
@@ -68,10 +76,9 @@ function device_view(access_data){
   var yAxis = d3.svg.axis()
       .scale(y)
       .orient("left")
-      .tickFormat(function(d) {
-        // console.log(d.date)
-        return yformatDate(new Date(d))
-      })
+      // .tickFormat(function(d) {
+      //   return yformatDate(new Date(d))
+      // })
       // .tickFormat(function(d) {
         // console.log(d)
         // return d
@@ -86,10 +93,11 @@ function device_view(access_data){
  
 
 
-  x.domain([0, 24*60*60*1000]);
-  y.domain(access_data.map(function(d) {
-    // console.log(d[0].date_time.to_date_str());   
-    return d[0].date
+  x.domain([0, 2*60*60*1000]);
+  y.domain(access_data[0].line.map(function(d) {
+    // console.log(d[0].date_time.to_date_str()); 
+    // console.log(d.apid)  
+    return d.apid;
   }));
   // var yDomain = d3.extent(access_data, function(d) {return d[0].date})
   // var domainMin = new Date(new Date(yDomain[0]).getTime()-86400000)
@@ -115,7 +123,7 @@ function device_view(access_data){
         // r = y(new Date(d.date))
         // console.log(r, d.date, y.domain())
         // return r;
-        return y(d.date)+y.rangeBand()/2.0
+        return y(d.apid)+y.rangeBand()/2.0
       });
 
 
@@ -129,16 +137,17 @@ function device_view(access_data){
     .call(yAxis);
 
   svg.selectAll(".line")
-    .data(access_data)
+    .data(access_data[0].lines)
     .enter().append("path")
     .attr("class", "line")
     .attr("d", line);
 
   svg.selectAll(".dot")
-    .data(Array.prototype.concat.apply([],access_data))
+    .data(Array.prototype.concat.apply([],access_data[0].line))
     .enter().append("circle")
     .attr("class", "dot")
     .attr("r", 2.5)
+    .style("fill", "#8080FF")
     .attr("cx", function(d){
       // console.log(d)
         var h = d.date_time.getHours();
@@ -147,5 +156,7 @@ function device_view(access_data){
         var ml = (h*3600+m*60+s)*1000;
         return x(ml)
       })
-    .attr("cy", function(d) {return y(d.date)+y.rangeBand()/2.0; })
+    .attr("cy", function(d) {return y(d.apid)+y.rangeBand()/2.0; })
 }
+
+
