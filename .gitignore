@@ -6,3 +6,4 @@ test.*
 makefile
 deploy.sh
 tags
+python.py
