@@ -74,7 +74,7 @@ WFV.Timeline = function(_time_range){
 
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
-		size = utils.initG(g, _w, _h, [10, 20, 20, 50]);
+		size = utils.initG(g, _w, _h, [10, 50, 20, 50]);
 		x.range([0, size.width]).nice();
 		ys[0].range([size.height, 0]).nice();
 		ys[1].range([size.height, 0]).nice();

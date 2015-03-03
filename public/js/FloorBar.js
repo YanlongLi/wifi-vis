@@ -142,7 +142,7 @@ WFV.FloorBar = function(){
 
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
-		size = utils.initG(g, _w, _h, [20]);
+		size = utils.initG(g, _w, _h, [10, 20, 30, 10]);
 		per_h = size.height / 17;
 		x_line_scale.range([0, size.width - per_h]);
 		y_line_scale.range([per_h, 0]);

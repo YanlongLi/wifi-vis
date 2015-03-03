@@ -7,6 +7,13 @@
 	padding: 10 0 10 0;
 }
 
+#main-view-wrapper{
+	position: relative;
+	left: 1%;
+	width: 97%;
+	height: 98%;
+}
+
 #main-view-wrapper div{
 	border: 1px solid #CCCCCC;
 	margin: 10px;
