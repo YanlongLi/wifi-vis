@@ -2,6 +2,11 @@
 	fill: #A2CE85;
 }
 
+#floor-bar-circles .floor text{
+	text-anchor: start;
+	stroke:#89A875;
+}
+
 #floor-bar-circles .floor.selected circle{
 	fill: #006633;
 }
@@ -9,10 +14,6 @@
 #floor-bar-circles .floor.hover circle{
 	stroke: #AFA765;
 	stroke-width: 2;
-}
-
-#floor-bar-circles .floor text{
-
 }
 
 #floor-bar-aps .floor .bar rect{
@@ -35,3 +36,12 @@
 #floor-bar-tl-x-axis.axis.x{
 	
 }
+/*******/
+
+#floor-bar-btn-wrapper .btn.btn-tl{
+	fill: #4A3535;
+}
+#floor-bar-btn-wrapper .btn.btn-bar{
+	fill: #B47070;
+}
+
