@@ -172,3 +172,82 @@ utils.pointInPolygon = function(point, vs) {
 	}
 	return inside;
 }
+//
+
+/*
+ * find first index of element that have value greater than V 
+ * in a sorted array
+ */
+utils.firstIndexOfGreater = function(array, V, _valueFunction){
+	var len = array.length;
+	var value = _valueFunction ? _valueFunction : function(d){return d};
+	if(len == 0 || value(array[len-1]) - V <= 0) return len;
+	if(value(array[0]) > V) return 0;
+	var minIndex = 0, minElement;
+	var maxIndex = len - 1, maxElement;
+	var midIndex;
+	var midElement;
+
+	while (minIndex < maxIndex) {
+		minElement = array[minIndex];
+		maxElement = array[maxIndex];
+		if(value(maxElement) - V <= 0){
+			return maxIndex + 1;
+		}
+		midIndex = (minIndex + maxIndex) / 2 | 0;
+		midElement = array[midIndex];
+
+		if (value(midElement) - V > 0) {
+			maxIndex = midIndex;
+		}
+		else {
+			minIndex = midIndex;	
+		}
+		if(maxIndex == midIndex +1){
+			return maxIndex;
+		}
+	}
+	console.warn("some thing wrong");
+	return maxIndex + 1;
+}
+
+utils.lastIndexOfLess = function(array, V, _valueFunction){
+	var len = array.length;
+	var value = _valueFunction ? _valueFunction : function(d){return d};
+	if(len == 0 || value(array[0]) - V >= 0) return -1;
+	if(value(array[len-1]) - V < 0) return len-1;
+	var minIndex = 0, minElement;
+	var maxIndex = len - 1, maxElement;
+	var midIndex;
+	var midElement;
+
+	while (minIndex < maxIndex) {
+		minElement = array[minIndex];
+		maxElement = array[maxIndex];
+		if(value(minElement) - V >= 0){
+			return minIndex - 1;
+		}
+		midIndex = (minIndex + maxIndex) / 2 | 0;
+		midElement = array[midIndex];
+		
+		if (value(midElement) - V < 0) {
+			minIndex = midIndex;
+		}
+		else {
+			maxIndex = midIndex;	
+		}
+		if(maxIndex == midIndex +1){
+			return minIndex;
+		}
+	}
+	console.warn("some thing wrong");
+	return maxIndex + 1;
+}
+
+Array.prototype.firstIndexOfGreater = function(V, value){
+	return utils.firstIndexOfGreater(this, V, value);
+}
+Array.prototype.lastIndexOfLess = function(V, value){
+	return utils.lastIndexOfLess(this, V, value);
+}
+

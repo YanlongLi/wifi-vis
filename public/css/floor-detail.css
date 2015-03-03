@@ -6,7 +6,8 @@
 
 #aps-wrapper{}
 #aps-wrapper .ap circle{
-	fill: #669933;
+	/*fill: #669933;*/
+	fill:#FF9B00; 
 	opacity: 0.5;
 	/*stroke: #333333;
 	stroke-width: 3;*/

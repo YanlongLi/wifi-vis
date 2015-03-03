@@ -3,12 +3,17 @@ WFV.Timeline = function(_time_range){
 	//
 	var svg = $("#timeline-svg"), size;
 	var g = d3.select("#timeline-g").attr("class", "timeline");
+	// TODO to change scale
+	g.select("#timeline-btn-scale")
+		.attr("class", "timeline-btn-scale")
+		.attr("width", 30).attr("height", 15);
 	//
 	var all_time_range = _time_range, time_range, time_point; 
 	console.log(all_time_range);
 	var x = d3.time.scale().domain(all_time_range);
-	var ys = [d3.scale.linear(), d3.scale.linear(), d3.scale.linear()],
-		y = ys[0];
+	var ys = d3.range(0,3).map(function(){
+		return d3.scale.linear().range([0,10]);
+	}),y = ys[0];
 	var floor_max_count = d3.map(), ap_max_count = d3.map();
 	var xAxis = d3.svg.axis().scale(x).orient("bottom")
 		.tickSize(2,0,4).tickSubdivide(0);
@@ -56,6 +61,7 @@ WFV.Timeline = function(_time_range){
 	}
 
 	init_svg();
+	init_interaction();
 
 	(function(){// append 1-17 floor lines, init invisible
 		var fls = g.select("#timeline-floor")
@@ -63,7 +69,7 @@ WFV.Timeline = function(_time_range){
 		fls.enter().append("g").attr("class", "line").append("path");
 		fls.attr("floor", function(d){return d})
 			.attr("id", function(d){return "tl-floor-"+d})
-			.attr("visibility", "hidden");
+			.attr("display", "none");
 		d3.range(1,18).forEach(_show_floor);
 	})();
 
@@ -74,7 +80,7 @@ WFV.Timeline = function(_time_range){
 
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
-		size = utils.initG(g, _w, _h, [10, 20, 20, 50]);
+		size = utils.initG(g, _w, _h, [10, 50, 20, 50]);
 		x.range([0, size.width]).nice();
 		ys[0].range([size.height, 0]).nice();
 		ys[1].range([size.height, 0]).nice();
@@ -88,18 +94,21 @@ WFV.Timeline = function(_time_range){
 		//
 		g.select("#brush").attr("class", "brush")
 			.call(brush).selectAll("rect").attr("height", size.height);
+		//
+		var btn_scale_dx = size.width;
+		g.select("#timeline-btn-scale")
+			.attr("transform", "translate("+btn_scale_dx+")");
 	}
 	//
 	ObserverManager.addListener(Timeline);
 	Timeline.OMListen = function(message, data){
 		if(message == WFV.Message1.FloorChange){
-			change_scale(1);
 			console.log("timeline on floor change", data.floor)
 			current_floor = +data.floor;
 			g.select("#timeline-floor")
-				.selectAll(" g.line").style("visibility", "hidden")
+				.selectAll(" g.line").style("display", "none")
 				.classed("cur", false);
-			g.select("#tl-floor-"+current_floor).style("visibility","visible")
+			g.select("#tl-floor-"+current_floor).style("display","block")
 				.classed("cur", true);
 			_show_floor(current_floor, true);
 		}
@@ -122,7 +131,7 @@ WFV.Timeline = function(_time_range){
 			var apids = data.apid;
 			apids.forEach(function(apid){
 				if(ap_max_count.get(apid)){
-					g.select("#timeline-ap-"+apid).style("visibility","visible");
+					g.select("#timeline-ap-"+apid).style("display","block");
 				}else{
 					_timeline_data(TIMELINE_TYPE.ap, apid, update_ap_timeline);
 				}
@@ -134,7 +143,7 @@ WFV.Timeline = function(_time_range){
 			apids.forEach(function(apid){
 				// console.log(apid, ap_max_count.keys());
 				if(ap_max_count.get(apid)){
-					g.select("#timeline-ap-"+apid).style("visibility","hidden");
+					g.select("#timeline-ap-"+apid).style("display","none");
 					//$("#timeline-ap-"+apid).css("opacity",0);
 				}
 			});
@@ -148,6 +157,10 @@ WFV.Timeline = function(_time_range){
 	}
 	function init_interaction(){
 		// TODO
+		$(document).on("click","#timeline-btn-scale", function(e){
+			console.log("clicked");
+			change_scale();
+		});
 	}
 	$(window).resize(function(e){
 		init_svg();
@@ -155,14 +168,32 @@ WFV.Timeline = function(_time_range){
 		update_floor_timeline();
 		update_ap_timeline();
 	});
-	function change_scale(type){
+	var scale_type = (function(){
+		var type = 0;
+		return function(_type){
+			if(undefined == _type || _type < 0 || _type > 2){
+				return (type++) % 3;
+			}else{
+				return (type = _type);
+			}
+		};
+	})();
+	function change_scale(_type){
 		// type:0,all; 1:floor; 2:ap
+		var type = scale_type(_type);
+		console.log("change scale", type);
 		y = ys[type];
 		d3.select("#timeline-basic")
-			.style("visibility", type == 0 ? "visible":"hidden");
+			.style("display", type <= 0 ? "block":"none");
 		d3.select("#timeline-floor")
-			.style("visibility", type == 2 ? "hidden":"visible");
-		d3.select("#timeline-ap").style("visibility","visible");
+			.style("display", type <= 1 ? "block":"none");
+		d3.select("#timeline-ap").style("display","block");
+		/*
+		d3.select("#timeline-basic")
+			.style("visibility", type <= 0 ? "visible":"hidden");
+		d3.select("#timeline-floor")
+			.style("visibility", type <= 1 ? "visible":"hidden");
+		d3.select("#timeline-ap").style("visibility","visible");*/
 		yAxis.scale(y);
 		init_svg();
 		update_basic_timeline();
@@ -206,7 +237,7 @@ WFV.Timeline = function(_time_range){
 		if(b && !floor_data_status[floor]){
 			_timeline_data(TIMELINE_TYPE.floor, floor, update_floor_timeline);
 		}
-		g.select("#tl-floor-"+floor).style("visibility", b ? "visible" : "hidden");
+		g.select("#tl-floor-"+floor).style("display", b ? "block" : "none");
 	}
 	function update_floor_timeline(_data){
 		// {time:,count;,values:[],floor:}

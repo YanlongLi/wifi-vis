@@ -43,7 +43,8 @@ WifiVis.FloorDetail = function(){
 			IMG_DIR = "data/floors/";
 	var r_scale = d3.scale.log().range([10, 30]).clamp(true);
 			link_scale = d3.scale.log().range([2, 8]);
-	var imgOffset = [20,20];
+	//var imgOffset = [20,20];
+	var imgOffset = [0,0];
 	function _imgPath(iF){return IMG_DIR+iF+"F.jpg"};
 
 	var gBrush = g.select("#brush-select").attr("class", 'brush'),
@@ -241,6 +242,12 @@ WifiVis.FloorDetail = function(){
 			.on("brush", brushed)
 			.on("brushend", brushend);
 		g.select("#brush-select").call(brush);
+		//
+		console.log("svg size", svg.width(), svg.height());
+		console.log("image shown size", imgSize.w, imgSize.h);
+		var dx = (svg.width() - imgSize.w) / 2;
+		var dy = (svg.height() - imgSize.h) / 2;
+		g.attr("transform", "translate("+dx+","+dy+")");
 	}
 	function move_image(){
 		// move by imgOffset

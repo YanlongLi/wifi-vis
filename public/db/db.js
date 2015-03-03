@@ -57,9 +57,10 @@ WFV.file_path = function(date){
  * used to fetch data
  */
 function WFV_DB(dateFrom, dateTo){
-	var format = WFV.time_to_date;
-	this.dateFrom = format(dateFrom);
-	this.dateTo = format(dateTo);
+	//var format = WFV.time_to_date;
+	this.dateFrom = format(new Date(dateFrom));
+	this.dateTo = format(new Date(dateTo));
+	this.dateTo.setDate(this.dateTo.getDate()+1);
 	//
 	this.aps;
 	this.apMap;
@@ -67,6 +68,12 @@ function WFV_DB(dateFrom, dateTo){
 	this.recordsByDate;
 	this.paths;
 	this.pathByMac;
+	//
+	this.recordsByRange;//key:"t1+t1",value:records
+	//
+	function format(date){
+		return new Date(date.toDateString());
+	}
 }
 
 WFV_DB.prototype.init = function(cb){
@@ -76,6 +83,7 @@ WFV_DB.prototype.init = function(cb){
 	this.recordsByDate = d3.map();
 	this.paths = [];
 	this.pathByMac = d3.map();
+	this.recordsByRange = d3.map();
 	var that = this;
 	//
 	console.log("GET aps:");
@@ -89,26 +97,30 @@ WFV_DB.prototype.init = function(cb){
 			that.aps = aps;
 			var _id = 0;
 			aps.forEach(function(ap){
-				ap._id = _id++;
+				ap._id = ++_id;
 				ap.apid = +ap.apid;
 				ap.floor = +ap.floor;
 				ap.pos_x = +ap.x;
 				ap.pos_y = +ap.y;
 				delete ap.x;
 				delete ap.y;
+				that.apMap.set(ap.apid, ap);
 			});
-			that.aps.forEach(function(ap){that.apMap.set(ap.apid, ap)});
+			//that.aps.forEach(function(ap){that.apMap.set(ap.apid, ap)});
 			_init_records(cb);
 		}
 	});
 
 	function _init_records(cb){
 		var dLst = [], d = new Date(that.dateFrom);
-		while(d - that.dateTo <= 0){
+		while(d - that.dateTo < 0){
 			dLst.push(d);
-			d = new Date(d.getTime() + 1000 * 60 * 60 * 24);
+			// d = new Date(d.getTime() + 1000 * 60 * 60 * 24);
+			d = new Date(d);
+			d.setDate(d.getDate()+1);
 		}
 		var len = dLst.length, timeFormat = d3.time.format("%Y-%m-%d %H:%M:%S");
+		dLst.forEach(timeFormat);
 		(function next(i){
 			if(i < len){
 				console.log("GET records on", WFV.date_format(dLst[i]));
@@ -126,7 +138,7 @@ WFV_DB.prototype.init = function(cb){
 							undefined === r.floor || (r.floor = +r.floor);
 							r.ap = that.apMap.get(r.apid);
 						});
-						that.recordsByDate.set(dLst[i].to_date_str(), records);
+						that.recordsByDate.set(dLst[i].toDateString(), records);
 						that.records = that.records.concat(records);
 						next(i+1);
 					}
@@ -161,9 +173,9 @@ WFV_DB.prototype.records_by_date = function(date, cb){
 	if(!date instanceof Date){
 		console.warn(date, "is not a Date instance");
 	}
-	var key = date.to_date_str();
-	var res = this.recordsByDate.get(key).map(utils.identity);
-	console.log("get records on", key, "result:", res.length);
+	//var key = date.to_date_str();
+	var res = this.recordsByDate.get(date.toDateString()).map(utils.identity);
+	console.log("get records on", date.toDateString(), "result:", res.length);
 	if(cb){
 		cb(res);
 	}
@@ -173,17 +185,56 @@ WFV_DB.prototype.records_by_date = function(date, cb){
 }
 
 WFV_DB.prototype.records_by_interval = function(from, to, cb){
-	console.log("get records by interval", from.to_time_str(), to.to_time_str());
-	var records = this.records.filter(function(r){
-		return r.date_time - from >= 0
-			&& to - r.date_time > 0;
-	});	
+	var records, key = from.getTime()+","+to.getTime();
+	if(this.recordsByRange.has(key)){
+		records = this.recordsByRange.get(key);
+		console.log("get records by key",from.toLocaleString(),to.toLocaleString(), records.length);
+	}else{
+		records = this._records_by_interval(from, to);
+		this.recordsByRange.set(key, records);
+	}
 	if(cb){
+		console.log(records.length);
 		cb(records);
 	}else{
 		return records;
 	}
 }
+
+WFV_DB.prototype._records_by_interval = function(_from, _to){
+	console.log("get records by interval", _from.to_time_str(), _to.to_time_str());
+	if(from - this.dateFrom <= 0 && to - this.dateTo >= 0){
+	 return this.records.map(function(d){return d});
+	}
+	var from = new Date(_from), to = new Date(_to - 1);
+	var res = [], dateRecords, curDate = new Date(from.toDateString());
+	while(true){
+		console.log("get records on ", curDate.toDateString());
+		dateRecords = this.recordsByDate.get(curDate.toDateString());
+		if(!dateRecords || !dateRecords.length) continue;
+		if(curDate.toDateString() == from.toDateString()){
+			var f = dateRecords.lastIndexOfLess(from.getTime(), function(r){
+				return r.date_time.getTime();
+			});
+			dateRecords = dateRecords.slice(f+1);
+			// console.log("f", f);
+			console.log(dateRecords.length);
+		}
+		// console.log("cur", curDate.toDateString());
+		// console.log("to", to.toDateString());
+		if(curDate.toDateString() == to.toDateString()){
+			var t = dateRecords.firstIndexOfGreater(to.getTime(), function(r){return r.date_time.getTime()});
+			// console.log("t", t);
+			dateRecords = dateRecords.slice(0,t);
+			res = res.concat(dateRecords);
+			break;
+		}
+		res = res.concat(dateRecords);
+		curDate.setDate(curDate.getDate()+1);
+	}
+	return res;
+}
+
 
 WFV_DB.prototype.ap_by_id = function(apid, cb){
 	var ap = this.apById.get(apid);
