@@ -296,6 +296,7 @@ WFV.FloorBar = function(){
 		init_svg();
 		// update_floor_circle();
 		update_ap_bars();
+		update_floor_tls();
 	});
 	function _sort_by_floor(f1, f2){
 		var a = f1.floor, b = f2.floor;
