@@ -23,7 +23,7 @@ var WFV = WFV || {};
 //
 //
 
-WFV.DATA_PATH = WFV.DATA_PATH || "../data/";
+WFV.DATA_PATH = WFV.DATA_PATH || "data/";
 
 WFV.AP_FILE_PATH = WFV.DATA_PATH + "APS.csv";
 
