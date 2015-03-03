@@ -37,7 +37,15 @@
 #timeline-wrapper{
 	position: absolute;
 	left: 0;
-	width: 100%;
+	width: 70%;
 	top: 75%;
+	height: 25%;
+}
+
+#device-view-wrapper{
+	position: absolute;
+	top: 75%;
+	left: 70%;
+	width: 30%;
 	height: 25%;
 }
