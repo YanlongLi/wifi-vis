@@ -67,6 +67,7 @@ function WFV_DB(dateFrom, dateTo){
 	this.apMap;
 	this.records;
 	this.recordsByDate;
+	this.recordsOfFloor; //[]
 	this.paths;
 	this.pathByMac;
 	//
@@ -82,6 +83,7 @@ WFV_DB.prototype.init = function(cb){
 	this.apMap = d3.map();
 	this.records = [];
 	this.recordsByDate = d3.map();
+	this.recordsOfFloor = [];
 	this.paths = [];
 	this.pathByMac = d3.map();
 	this.recordsByRange = d3.map();
@@ -146,20 +148,34 @@ WFV_DB.prototype.init = function(cb){
 					}
 				});
 			}else{
-				compute_path();
+				_compute_path();
+				// TODO
+				// _compute_records_of_floor();
 				console.log("init records done");
 				cb && cb(that);
 			}
 		})(0);
 	}
 
-	function compute_path(){
+	function _compute_path(){
 		that.paths = d3.nest().key(function(r){return r.mac})
 			.entries(that.records).map(function(o){
 				that.pathByMac.set(o.key, o.values);
 				return o.values;
 			});
 		console.log("compute paths done", that.paths.length);
+	}
+	function _compute_records_of_floor(){
+		that.recordsOfFloor	 = d3.range(0, 18).map(function(){return []});
+		that.records.forEach(function(r){
+			if(undefined === r.floor || r.floor < 1 || r.floor > 17){
+				console.warn("no floor info");
+			}else{
+				that.recordsOfFloor[+r.floor].push(r);
+			}
+		});		
+		console.log("compute records of floor done");
+		console.log(that.recordsOfFloor.map(function(d){return d.length}).join(","));
 	}
 }
 
@@ -386,6 +402,38 @@ WFV_DB.prototype.tl_data_ap = function(from, to, step, apid, cb){
 		tl_data.apid = +apid;
 		cb(tl_data);
 	});		
+}
+ 
+WFV_DB.prototype.tl_data_aps_of_floor = function(from, to, step, floor, cb){
+	/*
+	 * cb: [{apid, tl_data:[{time:,count:}]}].floor	
+	 */
+	this.records_by_interval(from, to, function(records){
+		var rs = records.filter(function(r){return +r.floor == +floor});
+		var records_by_ap =  _nest_records_by_ap(rs);
+		var len = records_by_ap.length, res = [];
+		console.log("aps on floor", floor, len);
+		(function next(i){
+			if(i < len){
+				var r_of_ap = records_by_ap[i];
+				var tl_data = generate_tl_data(r_of_ap.records, from.getTime(), to.getTime(), step);	
+				res.push({apid:r_of_ap.apid, tl_data:tl_data});	
+				next(i+1)
+			}else{
+				res.floor = floor;
+				cb(res);	
+			}
+		})(0);
+	});
+	function _nest_records_by_ap(records)	{
+		var r_by_ap = d3.nest().key(function(r){return +r.apid})
+			.rollup(function(d){return d})
+			.entries(records);
+		console.log(r_by_ap.length);
+		return r_by_ap.map(function(d){
+			return {apid:d.key, records: d.values};
+		});
+	};
 }
 /*
  * records: already sorted by time
