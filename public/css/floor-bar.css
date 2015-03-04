@@ -1,36 +1,37 @@
 #floor-bar-circles .floor circle{
-	fill: #A2CE85;
+	/*fill: #A2CE85;*/
+	fill:#C8CCD5; 
 }
 
 #floor-bar-circles .floor text{
 	text-anchor: start;
-	stroke:#89A875;
+	stroke: #666666; 
 	font-size: 12px;
 }
 
 #floor-bar-circles .floor.selected circle{
-	fill: #006633;
+	fill: #646464;
 }
 
 #floor-bar-circles .floor.hover circle{
-	stroke: #AFA765;
-	stroke-width: 2;
+	fill: #646464;
+	/*opacity: 0.5;*/
 }
 
 #floor-bar-aps .floor .bar rect{
-	fill: #666633;	
+	fill: #838383; 
 }
 
 #floor-bar-aps .floor .bar.selected rect{
-	fill: #A2CE85;
+	fill:#B31A1A; 
 }
 
 #floor-bar-aps .floor .bar.hover rect{
-	fill: #1D3D35;
+	opacity: 0.5;
 }
 
 #floor-bar-tls .floor path{
-	stroke: #455F50;
+	stroke: #898989;
 	fill: none;
 }
 

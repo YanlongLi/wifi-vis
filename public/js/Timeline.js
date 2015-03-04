@@ -178,6 +178,7 @@ WFV.Timeline = function(_time_range){
 			}
 		};
 	})();
+	Timeline.change_scale = change_scale;
 	function change_scale(_type){
 		// type:0,all; 1:floor; 2:ap
 		var type = scale_type(_type);

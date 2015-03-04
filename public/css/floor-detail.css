@@ -1,78 +1,78 @@
 #floor-background{
 	/*plan image*/
 	position: relative;	
-	opacity: 0.4;
+	opacity: 0.1;
 }
 
 #aps-wrapper{}
 #aps-wrapper .ap circle{
-	/*fill: #669933;*/
-	fill:#FF9B00; 
-	opacity: 0.5;
-	/*stroke: #333333;
-	stroke-width: 3;*/
+	fill: #646464;
+	/*opacity: 0.5;*/
 }
-#aps-wrapper .ap.hilight circle{
-	fill: #006633;
+
+#ap-wrapper .ap.fade circle{
+	fill: #E0E0E0;
+	opacity:1;
+}
+#aps-wrapper .ap.hover circle{
+	fill: #4290D2;
 }
 
 #aps-wrapper .device rect{
-	fill: #8C564B;
-	stroke: #FFFFFF;
+	fill: #A0A7B5;
 }
 
 #aps-wrapper .device.selected rect{
-	fill: red;
+	fill: #71B1F0;
 }
 
 #path-wrapper{}
 
 #path-arrow-normal{
-	fill: #669933;
-	opacity: 0.5;
+	fill: #8B8B8B;
 }
 
 #path-arrow-fade{
-	opacity: 0;
+	/*opacity: 0.1;*/
 }
 
 #path-arrow-reverse{
-	fill: #669933;
+	fill: #8B8B8B;
 }
 
 #path-arrow-hilight{
-	fill: #006633;
+	fill: #8B8B8B;
 }
 
 #path-arrow-hover{
-	fill: #1D3D35;
+	fill: #8B8B8B;
 }
 
 #path-wrapper .link path{
 	fill: none;
-	stroke: #669933;
+	stroke: #8B8B8B;
 	opacity: 0.5;
 	marker-end: url("#path-arrow-normal");
 }
 
 #path-wrapper .fade path{
-	opacity: 0;
+	opacity: 0.1;
 	marker-end: url("#path-arrow-fade");
 }
 
 #path-wrapper .hilight path{
 	opacity: 1;
-	stroke: #006633;
+	stroke: #8B8B8B;
 	marker-end: url("#path-arrow-hilight");
 }
 
 #path-wrapper .reverse path{
 	opacity: 1;
-	stroke: #669933;
+	stroke: #8B8B8B;
 	marker-end: url("#path-arrow-reverse");
 }
 
 #path-wrapper .hover path{
-	stroke: #1D3D35;
+	stroke: #8B8B8B;
 	marker-end: url("#path-arrow-hover");
 }
