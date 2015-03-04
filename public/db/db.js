@@ -1,7 +1,8 @@
 (function(){
 	Date.prototype.to_date = function(){
 		var format = d3.time.format("%Y-%m-%d");
-		return format(this);
+		var date_str = format(this);
+		return format.parse(date_str);
 	}
 	Date.prototype.to_date_str = function(){
 		var format = d3.time.format("%Y-%m-%d");
@@ -60,7 +61,7 @@ function WFV_DB(dateFrom, dateTo){
 	//var format = WFV.time_to_date;
 	this.dateFrom = format(new Date(dateFrom));
 	this.dateTo = format(new Date(dateTo));
-	this.dateTo.setDate(this.dateTo.getDate()+1);
+	//this.dateTo.setDate(this.dateTo.getDate()+1);
 	//
 	this.aps;
 	this.apMap;
@@ -135,8 +136,9 @@ WFV_DB.prototype.init = function(cb){
 							r.apid = +r.apid;
 							r.mac = r.mac + "";
 							r.date_time = timeFormat.parse(r.date_time);
-							undefined === r.floor || (r.floor = +r.floor);
 							r.ap = that.apMap.get(r.apid);
+							//r.floor = +r.ap.floor;
+							(undefined === r.floor) && (r.floor = +r.ap.floor);
 						});
 						that.recordsByDate.set(dLst[i].toDateString(), records);
 						that.records = that.records.concat(records);
