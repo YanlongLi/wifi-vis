@@ -7,3 +7,4 @@ makefile
 deploy.sh
 tags
 python.py
+public/test
