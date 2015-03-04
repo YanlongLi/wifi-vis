@@ -28,7 +28,7 @@ utils.initG = function(g, _w, _h, mgs){
 
 utils.initSVG = function(sel, mgs){
 	var size = utils.getSize(sel);
-	var svg = d3.select(sel + " > svg").attr("width", size.width()).attr("height", size.height());
+	
 	var mg = [0, 0, 0, 0];
 	if(mgs){
 		mgs[0] && (mg[0] = mg[1] = mg[2] = mg[3] = mgs[0]);
@@ -38,6 +38,8 @@ utils.initSVG = function(sel, mgs){
 	}
 	var w = size.width() - mg[1] - mg[3];
 			h = size.height() - mg[0] - mg[2];
+	var svg = d3.select(sel + " > svg").attr("width", size.width()).attr("height", size.height());			
+	// var svg = d3.select(sel + " > svg").attr("width", w).attr("height", h);			
 	var g = svg.append("g").attr("transform", "translate("+mg[3]+","+mg[0]+")")
 		.attr("offset-x", mg[3])
 		.attr("offset-y", mg[0]);

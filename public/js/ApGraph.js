@@ -75,6 +75,9 @@ WifiVis.ApGraph = function(){
 				// console.log(link);
 				link.source = apMap.get(link.source);
 				link.target = apMap.get(link.target);
+                // console.log(link.source._id, link.target._id);
+                // console.log(disMatrix[link.source._id]);
+                // console.log(disMatrix[link.target._id], disMatrix[link.target._id][link.source._id])
 				disMatrix[link.source._id][link.target._id] 
 					= disMatrix[link.target._id][link.source._id] 
 					= getDistance(link.weight);
