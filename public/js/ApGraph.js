@@ -72,6 +72,7 @@ WifiVis.ApGraph = function(){
 			var count = 0;
 			graphinfo.forEach(function(link){
 				count++;
+				// console.log(link);
 				link.source = apMap.get(link.source);
 				link.target = apMap.get(link.target);
 				disMatrix[link.source._id][link.target._id] 
@@ -283,6 +284,7 @@ WifiVis.ApGraph = function(){
 	function processData() {
 		aps = db.aps_all();
 		var defaultValue = getDistance(0);
+		console.log("aps.length", aps.length);
 		for (var i = 0; i < aps.length; i++) {
 			disMatrix[i] = [];
 			for (var j = 0; j < aps.length; j++) {
