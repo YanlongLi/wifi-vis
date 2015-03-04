@@ -21,8 +21,9 @@ WFV.FloorBar = function(){
 			.x(function(d){return x_line_scale(d.time)})
 			.y(function(d){return y_line_scale(d.count)});
 	var time_axis = d3.svg.axis().scale(x_line_scale)
-		.orient("bottom").ticks(3)
-		.tickFormat(d3.time.format("%H:%M")).ticks(3);
+		.orient("bottom")
+		.ticks(2)
+		.tickFormat(d3.time.format("%H:%M"));
 	//
 	var selected_aps = [], current_floor;
 	var time_range, time_point;

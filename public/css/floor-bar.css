@@ -5,6 +5,7 @@
 #floor-bar-circles .floor text{
 	text-anchor: start;
 	stroke:#89A875;
+	font-size: 12px;
 }
 
 #floor-bar-circles .floor.selected circle{
