@@ -23,9 +23,9 @@ var WFV = WFV || {};
 //
 //
 
-WFV.DATA_PATH = WFV.DATA_PATH || "data/";
+WFV.DATA_PATH = WFV.DATA_PATH || function(){return "data/"};
 
-WFV.AP_FILE_PATH = WFV.DATA_PATH + "APS.csv";
+WFV.AP_FILE_PATH = function(){return WFV.DATA_PATH() + "APS.csv"};
 
 WFV.date_format = d3.time.format("%Y-%m-%d");
 
@@ -49,7 +49,7 @@ WFV.time_to_date= function(time){
 
 WFV.file_path = function(date){
 	var fname = WFV.date_format(date);
-	return WFV.DATA_PATH + "September/" + fname + ".csv";
+	return WFV.DATA_PATH() + "September/" + fname + ".csv";
 }
 
 /*
@@ -88,7 +88,7 @@ WFV_DB.prototype.init = function(cb){
 	//
 	console.log("GET aps:");
 	loading_tip.add_tip("GET aps ...");
-	d3.csv(WFV.AP_FILE_PATH, function(err, aps){
+	d3.csv(WFV.AP_FILE_PATH(), function(err, aps){
 		if(err){
 			console.error(err);
 		}else{
