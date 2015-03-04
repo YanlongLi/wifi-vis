@@ -46,8 +46,31 @@ utils.initSVG = function(sel, mgs){
 	g.append("rect").attr("class", "placeholder")
 		.attr("width", w).attr("height", h);
 
-	return {svg:svg, g: g, w: w, h: h };
+	return {svg:svg, g: g, w: w, h: h, sel:sel, mgs:mgs };
 };
+
+utils.resizeSVG = function(element) {
+	var sel = element.sel;
+	var mgs = element.mgs;
+	var svg = element.svg;
+	var size = utils.getSize(sel);
+	
+	var mg = [0, 0, 0, 0];
+	if(mgs){
+		mgs[0] && (mg[0] = mg[1] = mg[2] = mg[3] = mgs[0]);
+		mgs[1] && (mg[1] = mg[3] = mgs[1]);
+		mgs[2] && (mg[2] = mgs[2]);
+		mgs[3] && (mg[3] = mgs[3]);
+	}	
+	var w = size.width() - mg[1] - mg[3];
+			h = size.height() - mg[0] - mg[2];
+	element.w = w;
+	element.h = h;
+	svg.attr("width", size.width()).attr("height", size.height());
+	svg.select(".placeholder").attr("width", w).attr("height", h);
+	return element;
+}
+
 utils.identity = function(x){return x};
 
 utils.initArrowMarker = function(svg, markerId){
