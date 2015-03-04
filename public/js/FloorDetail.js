@@ -42,7 +42,7 @@ WifiVis.FloorDetail = function(){
 			img = g.select("#floor-background"),
 			IMG_DIR = "data/floors/";
 	var r_scale = d3.scale.log().range([10, 30]).clamp(true);
-			link_scale = d3.scale.log().range([2, 8]);
+			link_scale = d3.scale.linear().range([2, 10]);
 	//var imgOffset = [20,20];
 	var imgOffset = [0,0];
 	function _imgPath(iF){return IMG_DIR+iF+"F.jpg"};
@@ -96,7 +96,7 @@ WifiVis.FloorDetail = function(){
 			}
 			apids.forEach(function(apid){
 				var _sel = data.click ? true:null;
-				$("#aps-wrapper g.ap[apid="+apid+"]").attr("class","ap hilight")
+				$("#aps-wrapper g.ap[apid!="+apid+"]").attr("class","ap fade")
 					.attr("_selected", _sel);
 				// hilight path
 				$("#path-wrapper g.link").not(".hilight, .reverse")
@@ -162,14 +162,14 @@ WifiVis.FloorDetail = function(){
 		});
 		$(document).on("mouseenter", "#aps-wrapper g.ap", function(e){
 			var apid = $(this).attr("apid");
-			$(this).find("circle").attr("stroke", "#575555").attr("stroke-width", 4);
+			//$(this).find("circle").attr("stroke", "#575555").attr("stroke-width", 4);
 			if(!$(this).attr("_selected")){
 				ObserverManager.post(WFV.Message1.ApSelect, {apid: [+apid]});
 			}
 		});
 		$(document).on("mouseleave", "#aps-wrapper g.ap", function(e){
 			var apid = $(this).attr("apid");
-			$(this).find("circle").attr("stroke", null).attr("stroke-width", null);
+			//$(this).find("circle").attr("stroke", null).attr("stroke-width", null);
 			if(!$(this).attr("_selected")){
 				ObserverManager.post(WFV.Message1.ApDeSelect, {apid: [+apid]});
 			}
