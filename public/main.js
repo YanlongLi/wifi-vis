@@ -69,55 +69,8 @@ function init(){
 			{range:[new Date(2013,08,02,12), new Date(2013,08,02,16)]});
 	ObserverManager.post(WFV.Message1.TimePointChange, {time:new Date(2013,08,02,12)});
 	ObserverManager.post(WFV.Message1.FloorChange, {floor:1});
-	/*
-	// init timeline
-	tlSize = utils.getSize("#timeline-wrapper-inner");
-	var svg = d3.select("#timeline-wrapper-inner > svg")
-		.attr("width", tlSize.width()).attr("height", tlSize.height());
-	var _tlG = utils.initSVG("#timeline-wrapper-inner", [20, 40, 20, 80]);
-	_tlG.g.attr("id","timeline-g");
-	tlSize = {width: _tlG.w, height: _tlG.h};
-	// TODO
-	timeline = WifiVis.Timeline("#timeline-g",{tid:1});
-	timeline.set_size(tlSize);
-	floorDetail.addFloorChangeListener(timeline);
-	floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, timeline);
-	// brush
-	tlBrush = WifiVis.TimelineBrush(timeline)
-		.onBrushMove(onMove)
-		.onBrushEnd(onEnd);
-	*/
 	// apGraph
 	apGraph = WifiVis.ApGraph();
 	apGraph.init();
-	// floorDetail.addFloorChangeListener(apGraph);
-	// floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, apGraph);
-	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_ENTER, apGraph);
-	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_LEAVE, apGraph); 
-	// tlBrush.addEventListener(tlBrush.EventType.EVENT_BRUSH_END, apGraph);
-	// apGraph.addEventListener(apGraph.EventType.AP_CLICK, floorDetail);
-	// //
-	// timeline.update();
 	apGraph.draw(); 
 }
-
-/*
-function onStart(extent){
-}
-function onMove(extent){
-	var tl = this.timeline,
-		shownData = tl.shownData, data = tl.data;
-	var e0 = extent[0], e1 = extent[1];
-	tracer.gotoTime(new Date(e0));
-	floorDetail.update_ap_device(apLst);
-	//floorDetail.update_links([e0, e1]);
-}
-function onEnd(extent){
-	var tl = this.timeline,
-		shownData = tl.shownData, data = tl.data;
-	var e0 = extent[0], e1 = extent[1];
-	console.log("on bursh end:", e0, e1);
-	tracer.gotoTime(new Date(e0));
-	floorDetail.update_ap_device(apLst);
-	floorDetail.update_links([e0, e1]);
-}*/
