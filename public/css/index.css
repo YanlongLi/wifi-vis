@@ -79,8 +79,8 @@
 
 #device-view-wrapper{
 	position: absolute;
-	top: 75%;
+	top: 50%;
 	left: 70%;
 	width: 30%;
-	height: 25%;
+	height: 50%;
 }
