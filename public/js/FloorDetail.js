@@ -257,7 +257,7 @@ WifiVis.FloorDetail = function(){
 			.attr('transform', "translate("+imgOffset[0]+","+imgOffset[1]+")");
 	}
 	function update_aps(_data){
-		// [{apid, name, pos_x, pos_y, count}]	
+		// [{apid, name, pos_x, pos_y, count, cluster}]	
 		// if no _data, resize
 		var gAps = g.select("#aps-wrapper").selectAll("g.ap");
 		if(_data){
@@ -281,6 +281,37 @@ WifiVis.FloorDetail = function(){
 				}
 				return r;
 			});
+		gAps.each(function(ap){
+			var px = ap.pos_x, py = ap.pos_y;
+			var deviceLst = ap.cluster.deviceLst().map(function(pos){
+				var o = {};
+				o.device = pos.device;
+				o.mac = pos.device.mac;
+				o.x = px;
+				o.y = py;
+				o.dx = pos.x;
+				o.dy = pos.y;
+				o.ap = ap;
+				return o;
+			});
+			var devs = d3.select(this).selectAll(".device").data(deviceLst, function(d){return d.mac});
+			var devs_enter = devs.enter().append("g").attr("class","device");
+			devs_enter.append("rect");
+			devs.classed("selected", function(d){
+				if(d.device.selected){
+					console.log("====================selected");
+				}
+				return d.device.selected;
+			})
+			devs.transition().attr("transform", function(d){
+				var dx = x(d.x) + d.dx;
+				var dy = y(d.y) + d.dy;
+				return "translate("+dx+","+dy+")";
+			})
+			devs.select("rect").datum(function(d){return d})
+				.attr("width", 6).attr("height", 6);
+			devs.exit().remove();
+		});
 	}
 	function update_links(_data){
 		// [{sid:, tid:, weight:}]
@@ -323,6 +354,7 @@ WifiVis.FloorDetail = function(){
 			});
 	}
 	function update_device(_data){
+		return;
 		// assume apLst exist[{ap with cluster}]
 		// if no_data, resize
 		var gDevice = g.select("#device-wrapper").selectAll("g.device");
@@ -362,21 +394,29 @@ WifiVis.FloorDetail = function(){
 	}
 	//
 	function brushstart(){
+		console.log("=======================================");
+		deviceLst.forEach(function(d){
+			console.log(d);
+			d.selected = false;
+		});
 	}
 	function brushed(){
 		var extent = brush.extent();
-		deviceLst.forEach(function(d){
-			d.device.selected = null;
-			var px = x(d.x) + d.dx;
-			var py = y(d.y) + d.dy;
-			if(extent[0][0] <= px && px < extent[1][0]
-					&& extent[0][1] <= py && py < extent[1][1]){
-				d.device.selected = true;
-			}
-		});
-		g.select("#device-wrapper")
-			.selectAll("g.device").classed("selected", function(d){
+		deviceLst= [];
+		g.select("#aps-wrapper").selectAll("g.device")
+			.classed("selected", false);
+		g.select("#aps-wrapper").selectAll("g.device")
+			.classed("selected", function(d){
+				var px = x(d.x) + d.dx;
+				var py = y(d.y) + d.dy;
+				if(extent[0][0] <= px && px < extent[1][0]
+						&& extent[0][1] <= py && py < extent[1][1]){
+					d.device.selected = true;
+				}
 				if(d.device.selected){
+					deviceLst.push(d.device);
+					console.log(d.device);
+					console.log(deviceLst);
 					return true;
 				}
 				return false;
