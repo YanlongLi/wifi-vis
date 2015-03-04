@@ -1,19 +1,18 @@
 .dragbox{
+	margin: 3px;
 	padding-bottom: 10px;
-/*	margin:5px 2px  20px;
-	background:#fff;
-	position:relative;
-	border:1px solid #ddd;*/
+	box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+	border: 1px solid #aaaaaa;
 }
 .dragbox .header{
 	margin:0;
-	height: 10px;
-	background:#f0f0f0;
+	height: 8px;
+	background:#aaaaaa;
 	color:#000;
-	border-bottom:1px solid #eee;
+	border-bottom:1px solid #aaa;
+
 	font-family:Verdana;
 	cursor:move;
-	/*float:top;*/
 }
 .dragbox-content{
 	background:#fff;
