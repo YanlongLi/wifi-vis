@@ -3,6 +3,7 @@
 	<meta charset="utf-8">
 	<!---->
 	<script type="text/javascript" src="jslib/jquery-2.1.1.js"></script>
+	<script type="text/javascript" src="jslib/jquery-ui.js"></script>
 	<script type="text/javascript" src="jslib/underscore.js"></script>
 	<script type="text/javascript" src="jslib/spin.min.js"></script>	
 	<script type="text/javascript" src="jslib/d3/d3.js"></script>
@@ -16,6 +17,8 @@
 	<link rel="stylesheet" href="css/timeline.css"/>
 	<link rel="stylesheet" href="css/other.css"/>
 	<link rel="stylesheet" href="css/index.css"/>
+	<link rel="stylesheet" href="css/basic.css"/>
+	<link rel="stylesheet" href="css/drag-panel.css"/>
 </head>
 <body>
 	<div id="mask">
@@ -28,10 +31,19 @@
 		<div class="container">
 		</div>
 		</div>-->
+
+    <div class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <span><strong class="l-font">WifiVis</strong></span>
+            <span class="float-right">Peking University</span>
+        </div>
+    </div>
+
 	<div id="main-view">
 		<div id="main-view-wrapper">
-			<div id="floor-bar-wrapper">
-				<svg>
+			<div class="dragbox" id="floor-bar-wrapper">
+				<h3 class="header"></h3>
+				<svg class="dragbox-content">
 					<g id="floor-bar">
 						<g id="floor-bar-btn-wrapper"></g>
 						<g id="floor-bar-circles"></g>
@@ -41,8 +53,9 @@
 					</g>
 				</svg>
 			</div>
-			<div id="floor-detail-wrapper">
-				<svg width="100%" height="100%" id="floor-detail-svg">
+			<div class="dragbox" id="floor-detail-wrapper">
+				<h3 class="header"></h3>
+				<svg width="100%" height="100%" id="floor-detail-svg" class="dragbox-content">
 					<defs>
 					<marker id="path-arrow" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="4" markerHeight="3" orient="auto">
 					<path d="M0,0L5,2.5L0,5"></path>
@@ -57,19 +70,21 @@
 					</g>
 				</svg>
 			</div>
-			<div id="aps-graph-wrapper">
-				<div style="visibility:hidden; height:0">
+			<div class="dragbox" id="aps-graph-wrapper">
+				<h3 class="header"></h3>
+<!-- 				<div style="visibility:hidden; height:0">
 					<span>Edge Filter:</span>
 					<div id="edge-filter-slider"></div>
-				</div>
-				<svg width="100%" height="100%"></svg>
+				</div> -->
+				<svg class="dragbox-content" width="100%" height="100%"></svg>
 			</div>
-			<div id="timeline-wrapper">
-				<svg id="timeline-svg" width="100%" height="100%">
+			<div class="dragbox" id="timeline-wrapper">
+				<h3 class="header"></h3>
+				<svg class="dragbox-content" id="timeline-svg" width="100%" height="100%">
 					<g id="timeline-g">
-						<rect id="timeline-btn-scale"></rect>
+						<rect id="timeline-btn-scale" style="display:none"></rect>
 						<g id="timeline-basic"></g>
-						<g id="timeline-floor"></g>
+						<g id="timeline-floor" style="visibility:hidden"></g>
 						<g id="timeline-ap"></g>
 						<g id="brush"></g>
 						<g id="x-axis"></g>
@@ -78,14 +93,17 @@
 					</g>
 				</svg>
 			</div>
-			<div id="device-view-wrapper">
-				<svg id="divice-view-svg" width="100%" height="100%"></svg>
-			</div>
+
+			<div class="dragbox" id="ap-view-wrapper">
+				<h3 class="header"></h3>
+				<svg class="dragbox-content" id="device-view-svg" width="100%" height="100%"></svg>
+			</div>			
 		</div>
 	</div>
 	<script type="text/javascript" src="jslib/bootstrap/js/bootstrap.js"></script>
 	<script type="text/javascript" src="js/utils.js"></script>
 	<script type="text/javascript" src="js/ObserverManager.js"></script>
+	<script type="text/javascript" src="js/EventManager.js"></script>
 	<script type="text/javascript" src="WFV.js"></script>
 	<script type="text/javascript" src="db/db.js"></script>
 	<script type="text/javascript" src="js/RecordTracer.js"></script>

@@ -42,6 +42,7 @@
 .axis text{
 	/*fill: #CCCCCC;*/
 	/*fill: #FFFFFF;*/
+	font-size: 10px;
 }
 .x.axis{
 }

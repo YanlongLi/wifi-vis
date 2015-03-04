@@ -16,12 +16,12 @@
 	fill: #006633;
 }
 
-#device-wrapper .device rect{
+#aps-wrapper .device rect{
 	fill: #8C564B;
 	stroke: #FFFFFF;
 }
 
-#device-wrapper .device.selected rect{
+#aps-wrapper .device.selected rect{
 	fill: red;
 }
 

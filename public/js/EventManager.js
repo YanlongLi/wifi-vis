@@ -1,32 +1,32 @@
 (function(){
     var EventManager = {};
 
-    var floorSelectedList = [],
+    var floorSelectdList = [],
         floorHoveredList = [],
-        apSelectedList = [],
+        apSelectdList = [],
         apHoveredList = [],
-        deviceSelectedList = [],
+        deviceSelectdList = [],
         deviceHoveredList = [];       
 
     EventManager.floorChange = function(floor) {
         ObserverManager.post(WFV.Message.FloorChange, {floor:floor});        
     }
 
-    EventManager.floorSelecte = function(list) {
-        floorSelectedList = _.union(floorSelectedList, list);
+    EventManager.floorSelect = function(list) {
+        floorSelectdList = _.union(floorSelectdList, list);
         ObserverManager.post(WFV.Message.FloorSelect, 
-            {floor:floorSelectedList, change:list, isAdd: true}
+            {floor:floorSelectdList, change:list, isAdd: true}
         );
     }
-    EventManager.floorDeselecte = function(list) {
+    EventManager.floorDeSelect = function(list) {
         if (list == null) {
-            list = floorSelectedList;
-            floorSelectedList = []; 
+            list = floorSelectdList;
+            floorSelectdList = []; 
         } else {
-            floorSelectedList = _.difference(floorSelectedList, list);
+            floorSelectdList = _.difference(floorSelectdList, list);
         }
         ObserverManager.post(WFV.Message.FloorSelect, 
-            {floor:floorSelectedList, change:list, isAdd: false}
+            {floor:floorSelectdList, change:list, isAdd: false}
         );
     }
     EventManager.floorHovere = function(list) {
@@ -46,20 +46,20 @@
         );         
     }
 
-    EventManager.apSelecte = function(list) {
-        apSelectedList = _.union(apSelectedList, list);
+    EventManager.apSelect = function(list) {
+        apSelectdList = _.union(apSelectdList, list);
         ObserverManager.post(WFV.Message.APSelect, 
-            {apid:apSelectedList, change:list, isAdd: true}
+            {apid:apSelectdList, change:list, isAdd: true}
         );        
     }
     EventManager.apDeselect = function(list) {
         if (list == null) {
-            list = apSelectedList;
-            apSelectedList = [];
+            list = apSelectdList;
+            apSelectdList = [];
         } else
-            apSelectedList = _.difference(apSelectedList, list);
+            apSelectdList = _.difference(apSelectdList, list);
         ObserverManager.post(WFV.Message.APSelect, 
-            {apid:apSelectedList, change:list, isAdd: false}
+            {apid:apSelectdList, change:list, isAdd: false}
         );        
     }
     EventManager.apHover = function(list) {
@@ -80,19 +80,19 @@
     }
 
     EventManager.deviceSelect = function(list) {
-        deviceSelectedList = _.union(deviceSelectedList, list);
+        deviceSelectdList = _.union(deviceSelectdList, list);
         ObserverManager.post(WFV.Message.DeviceSelect, 
-            {device:deviceSelectedList, change:list, isAdd: true}
+            {device:deviceSelectdList, change:list, isAdd: true}
         );                
     }
     EventManager.deviceDeselect = function(list) {
         if (list == null) {
-            list = deviceSelectedList;
-            deviceSelectedList = [];
+            list = deviceSelectdList;
+            deviceSelectdList = [];
         } else 
-            deviceSelectedList = _.difference(deviceSelectedList, list);
+            deviceSelectdList = _.difference(deviceSelectdList, list);
         ObserverManager.post(WFV.Message.DeviceSelect, 
-            {device:deviceSelectedList, change:list, isAdd: false}
+            {device:deviceSelectdList, change:list, isAdd: false}
         );          
     }
     EventManager.deviceHover = function(list) {

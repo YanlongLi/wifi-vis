@@ -1,0 +1,30 @@
+.dragbox{
+	margin: 3px;
+	padding-bottom: 10px;
+	box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+	border: 1px solid #aaaaaa;
+}
+.dragbox .header{
+	margin:0;
+	height: 8px;
+	background:#aaaaaa;
+	color:#000;
+	border-bottom:1px solid #aaa;
+
+	font-family:Verdana;
+	cursor:move;
+}
+.dragbox-content{
+	background:#fff;
+}
+
+.dragbox.dragbox-collapse{
+	height: 12px !important;
+	padding-bottom: 0px;
+}
+
+.placeholder{
+	background: #f0f0f0;
+	border:1px dashed #ddd;
+}
+

@@ -195,6 +195,10 @@ WFV.Timeline = function(_time_range){
 			.style("visibility", type <= 1 ? "visible":"hidden");
 		d3.select("#timeline-ap").style("visibility","visible");*/
 		yAxis.scale(y);
+		// TODO
+  	line = d3.svg.line().interpolate("monotone")
+			.x(function(d){return x(d.time)})
+			.y(function(d){return y(d.count)});
 		init_svg();
 		update_basic_timeline();
 		update_floor_timeline();
@@ -237,7 +241,7 @@ WFV.Timeline = function(_time_range){
 		if(b && !floor_data_status[floor]){
 			_timeline_data(TIMELINE_TYPE.floor, floor, update_floor_timeline);
 		}
-		g.select("#tl-floor-"+floor).style("display", b ? "block" : "none");
+		//g.select("#tl-floor-"+floor).style("display", b ? "block" : "none");
 	}
 	function update_floor_timeline(_data){
 		// {time:,count;,values:[],floor:}

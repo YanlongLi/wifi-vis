@@ -68,8 +68,8 @@ WFV.AP_COLOR = (function(){
 })();
 
 
+WFV.DATA_PATH = function(){return "data/"};
 WFV.NUM_FLOOR = 17;
-WFV.DATA_PATH = "data/";
 WFV.FLOOR_IMG_SIZE = [
 	[0,0], [1003,519], [680,698], [680,700], [1001,510], [1000,509],
 	[1000,507], [997,828], [894,902], [1002,505], [1000,511],

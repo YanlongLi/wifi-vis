@@ -26,18 +26,14 @@ WifiVis.ApGraph = function(){
 	var spinner	
 	
 	var edgeFilterWeight = 50;
+    var isShowEdge = false;
 
-	// var slider = d3.slider().axis(d3.svg.axis().orient("top")).min(20).max(150)
-	// 	.step(1)
-	// 	.on("slide", function(evt, value){
-	// 		d3.select("#edge-filter-slider > a").text(value);
-	// 	}).on("slideend", function(evt, value) {
-	// 		edgeFilterWeight = value;
-	// 		// TODO
-	// 		update(timeRange);
-	// 	}).value(edgeFilterWeight);
-	// d3.select("#edge-filter-slider").call(slider);
-	//
+    $(window).resize(function(e){
+        o = utils.resizeSVG(o);
+        render();
+        
+    });
+
 	ApGraph.init = function(){
 		var _this = this;
 		spinner = utils.createSpinner(5, 5);
@@ -46,7 +42,11 @@ WifiVis.ApGraph = function(){
 		tsneWorker = worker;
 		// worker.postMessage({"cmd":"init", "distance":disMatrix});
 		worker.onmessage = function(event) {
-			dotPositions = event.data;
+			dotPositions = event.data.positions;
+            if (event.data.state == 0)
+                isShowEdge = false;
+            else 
+                isShowEdge = true;
 			render();
 		}
 		var drag = initDragPolygon();
@@ -62,7 +62,6 @@ WifiVis.ApGraph = function(){
 	}
 	
 	ApGraph.update = function(range){
-		console.log("update", range)
 		spinner.spin($("#" + DIV_ID).get(0));
 		var from = new Date(range[0]), to = new Date(range[1]);
 		var records = db.records_by_interval(from, to)
@@ -72,8 +71,12 @@ WifiVis.ApGraph = function(){
 			var count = 0;
 			graphinfo.forEach(function(link){
 				count++;
+				// console.log(link);
 				link.source = apMap.get(link.source);
 				link.target = apMap.get(link.target);
+                // console.log(link.source._id, link.target._id);
+                // console.log(disMatrix[link.source._id]);
+                // console.log(disMatrix[link.target._id], disMatrix[link.target._id][link.source._id])
 				disMatrix[link.source._id][link.target._id] 
 					= disMatrix[link.target._id][link.source._id] 
 					= getDistance(link.weight);
@@ -133,16 +136,19 @@ WifiVis.ApGraph = function(){
 					// return gColorScale(topicID);
 				})
 				.attr("opacity", 0.7)   
-			// gLink.selectAll(".ap-link")
-			// 	.data(links)
-			// 	.enter()
-			// 	.append("line")
-			// 	.attr("class", "ap-link")
-			// 	.style("stroke-width", function(d) {
-			// 		var scale = d3.scale.log().base(6);
-			// 		return scale(d.weight+1) * 1;	
-			// 	})			
+
+			gLink.selectAll(".ap-link")
+				.data(links)
+				.enter()
+				.append("line")
+				.attr("class", "ap-link")
+				.style("stroke-width", function(d) {
+					var scale = d3.scale.log().base(6);
+					return scale(d.weight+1) * 1.5;	
+				})
+                .style("display", "none");	
 		}
+
 
 		gNode.selectAll(".ap-dot")
 			.data(dotPositions)
@@ -160,12 +166,19 @@ WifiVis.ApGraph = function(){
 				return y;
 			})
 
-		// gLink.selectAll(".ap-link")
-		// 	.data(links)
-		// 	.attr("x1", function(d) { return d.source.x; })
-		// 	.attr("y1", function(d) { return d.source.y; })
-		// 	.attr("x2", function(d) { return d.target.x; })
-		// 	.attr("y2", function(d) { return d.target.y; })
+        console.log("isShowEdge", isShowEdge)
+        if (isShowEdge) {
+            gLink.selectAll(".ap-link")
+                .data(links)
+                .attr("x1", function(d) { return d.source.x; })
+                .attr("y1", function(d) { return d.source.y; })
+                .attr("x2", function(d) { return d.target.x; })
+                .attr("y2", function(d) { return d.target.y; })            
+                .style("display", "block");
+        } else {
+            gLink.selectAll(".ap-link").style("display", "none");
+        }
+
 
 
 			// .on('mouseover', function(d, index) {
@@ -283,6 +296,7 @@ WifiVis.ApGraph = function(){
 	function processData() {
 		aps = db.aps_all();
 		var defaultValue = getDistance(0);
+		console.log("aps.length", aps.length);
 		for (var i = 0; i < aps.length; i++) {
 			disMatrix[i] = [];
 			for (var j = 0; j < aps.length; j++) {

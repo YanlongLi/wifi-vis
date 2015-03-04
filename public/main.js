@@ -1,4 +1,4 @@
-
+var currentZIndex = 100;
 var timeFrom = new Date(2013,8,2),
 		timeTo   = new Date(2013,8,3);
 var db = new WFV_DB(timeFrom, timeTo);
@@ -14,6 +14,27 @@ var floorDetail, floorsNav, timeline;
 var apGraph;
 
 var loading_tip = loading_tip || {};
+
+$(document).ready(function() {
+	//init UI
+	$('.dragbox')
+		.each(function(){
+			var _this = this;
+			$(this).find(".header")
+				.dblclick(function(){
+					$(_this).find('.dragbox-content').toggle("normal");
+					$(_this).toggleClass("dragbox-collapse");
+
+				})
+			.end()
+		});
+	$( ".dragbox" ).draggable({ 
+		handle: ".header",
+		start: function() {
+			$(this).css("z-index", currentZIndex++);
+		}
+	});
+})
 
 db.init(function(){ 
 	apLst = db.aps;

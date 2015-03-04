@@ -1,7 +1,8 @@
 (function(){
 	Date.prototype.to_date = function(){
 		var format = d3.time.format("%Y-%m-%d");
-		return format(this);
+		var date_str = format(this);
+		return format.parse(date_str);
 	}
 	Date.prototype.to_date_str = function(){
 		var format = d3.time.format("%Y-%m-%d");
@@ -23,9 +24,9 @@ var WFV = WFV || {};
 //
 //
 
-WFV.DATA_PATH = WFV.DATA_PATH || "../data/";
+WFV.DATA_PATH = WFV.DATA_PATH || function(){return "data/"};
 
-WFV.AP_FILE_PATH = WFV.DATA_PATH + "APS.csv";
+WFV.AP_FILE_PATH = function(){return WFV.DATA_PATH() + "APS.csv"};
 
 WFV.date_format = d3.time.format("%Y-%m-%d");
 
@@ -49,7 +50,7 @@ WFV.time_to_date= function(time){
 
 WFV.file_path = function(date){
 	var fname = WFV.date_format(date);
-	return WFV.DATA_PATH + "September/" + fname + ".csv";
+	return WFV.DATA_PATH() + "September/" + fname + ".csv";
 }
 
 /*
@@ -60,7 +61,7 @@ function WFV_DB(dateFrom, dateTo){
 	//var format = WFV.time_to_date;
 	this.dateFrom = format(new Date(dateFrom));
 	this.dateTo = format(new Date(dateTo));
-	this.dateTo.setDate(this.dateTo.getDate()+1);
+	//this.dateTo.setDate(this.dateTo.getDate()+1);
 	//
 	this.aps;
 	this.apMap;
@@ -88,7 +89,7 @@ WFV_DB.prototype.init = function(cb){
 	//
 	console.log("GET aps:");
 	loading_tip.add_tip("GET aps ...");
-	d3.csv(WFV.AP_FILE_PATH, function(err, aps){
+	d3.csv(WFV.AP_FILE_PATH(), function(err, aps){
 		if(err){
 			console.error(err);
 		}else{
@@ -97,7 +98,7 @@ WFV_DB.prototype.init = function(cb){
 			that.aps = aps;
 			var _id = 0;
 			aps.forEach(function(ap){
-				ap._id = ++_id;
+				ap._id = _id++;
 				ap.apid = +ap.apid;
 				ap.floor = +ap.floor;
 				ap.pos_x = +ap.x;
@@ -135,8 +136,9 @@ WFV_DB.prototype.init = function(cb){
 							r.apid = +r.apid;
 							r.mac = r.mac + "";
 							r.date_time = timeFormat.parse(r.date_time);
-							undefined === r.floor || (r.floor = +r.floor);
 							r.ap = that.apMap.get(r.apid);
+							//r.floor = +r.ap.floor;
+							(undefined === r.floor) && (r.floor = +r.ap.floor);
 						});
 						that.recordsByDate.set(dLst[i].toDateString(), records);
 						that.records = that.records.concat(records);
