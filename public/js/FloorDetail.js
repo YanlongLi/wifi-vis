@@ -215,8 +215,8 @@ WifiVis.FloorDetail = function(){
 		img.attr('height', imgSize.h);
 		gAps.select("rect.placeholder").attr("width",imgSize.w).attr("height", imgSize.h);
 		gPath.select("rect.placeholder").attr("width",imgSize.w).attr("height", imgSize.h);
-		brush.x(d3.scale.identity().domain([-20, imgSize.w+20]))
-			.y(d3.scale.identity().domain([-20, imgSize.h+20]));
+		brush.x(d3.scale.identity().domain([-60, imgSize.w+60]))
+			.y(d3.scale.identity().domain([-60, imgSize.h+60]));
 		brush.on("brushstart", brushstart)
 			.on("brush", brushed)
 			.on("brushend", brushend);
@@ -382,8 +382,11 @@ WifiVis.FloorDetail = function(){
 	function brushed(){
 		var extent = brush.extent();
 		deviceLst= [];
-		g.selectAll("#device-wrapper, #aps-wrapper").selectAll("g.device")
+		g.selectAll("#device-wrapper").selectAll("g.device")
 			.classed("selected", false);
+		g.selectAll("#aps-wrapper").selectAll("g.device")
+			.classed("selected", false);
+
 		g.selectAll("#device-wrapper, #aps-wrapper").selectAll("g.device")
 			.classed("selected", function(d){
 				var px = x(d.x) + d.dx;
@@ -391,6 +394,8 @@ WifiVis.FloorDetail = function(){
 				if(extent[0][0] <= px && px < extent[1][0]
 						&& extent[0][1] <= py && py < extent[1][1]){
 					d.device.selected = true;
+				}else{
+					d.device.selected = false;
 				}
 				if(d.device.selected){
 					deviceLst.push(d.device);

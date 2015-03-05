@@ -57,7 +57,7 @@ WFV.FloorBar = function(_time_range){
 			$("#floor-bar-circles .floor[floor-id="+current_floor+"]").addClass("selected");
 			// TODO other clean action after floor changed
 		}
-		if(message == WFV.Message1.ApSelect){
+		if(message == WFV.Message.ApSelect || message == WFV.Message.ApHover){
 			var ids = data.apid;
 			ids.forEach(function(apid){
 				var bar = $("#floor-bar-aps .floor .bar[apid="+apid+"]");
@@ -65,6 +65,8 @@ WFV.FloorBar = function(_time_range){
 				if(data.click){
 					bar.attr("_selected", true);	
 				}
+				//
+				$("#floor-bar-tls g.ap[apid="+apid+"]").css("stroke", "red");
 			});
 		}
 		if(message == WFV.Message1.ApDeSelect){
@@ -159,8 +161,24 @@ WFV.FloorBar = function(_time_range){
 			ObserverManager.post(WFV.Message1.ApDeSelect, data);
 		});
 		// ap-tls
+		$("#floor-bar-tls").on("click", "g.ap", function(e){
+			var apid = d3.select(this).attr("apid");
+			if($(this).attr("_selected")){
+				$(this).attr('_selected', null);
+			}else{
+				EventManager.apSelect([apid]);
+			}
+		});
+
 		$("#floor-bar-tls").on("mouseenter", "g.ap", function(e){
-			console.log("ap hover from ap timeline");
+			d3.select(this).style("stroke-width", 2);
+			var apid = d3.select(this).attr("apid");
+			EventManager.apHover([apid]);
+		});
+		$("#floor-bar-tls").on("mouseleave", "g.ap", function(e){
+			d3.select(this).style("stroke-width", 1);
+			var apid = d3.select(this).attr("apid");
+			EventManager.apHover([apid]);
 		});
 		// btns
 		$(document).on("click", "#floor-bar-btn-tl, #floor-bar-btn-bar", function(e){
@@ -398,11 +416,11 @@ WFV.FloorBar = function(_time_range){
 			});
 		}
 		aps.attr("id", function(d){return "floor-bar-ap-tls-"+d.apid})
+			.attr("apid", function(d){return d.apid})
 			.select("path").datum(function(d){
-				console.log(d.tl_data);
+				// console.log(d.tl_data);
 				return d.tl_data;
-			})
-			.attr("d", line_generator[1]);
+			}).attr("d", line_generator[1]);
 		aps.transition().attr("transform", function(d){
 			var dy = vertical_scale[1](d.apid);
 			return "translate(0,"+dy+")";
@@ -419,6 +437,7 @@ WFV.FloorBar = function(_time_range){
 		// update_floor_circle();
 		update_ap_bars();
 		update_floor_tls();
+		update_floor_ap_tls();
 	});
 	function _sort_by_floor(f1, f2){
 		var a = f1.floor, b = f2.floor;
