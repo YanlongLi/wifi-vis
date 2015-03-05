@@ -1,3 +1,6 @@
+/*
+ * floor bar circles
+ */
 #floor-bar-circles .floor circle{
 	/*fill: #A2CE85;*/
 	fill:#C8CCD5; 
@@ -9,15 +12,21 @@
 	font-size: 12px;
 }
 
+#floor-bar-circles .floor.current circle{
+	fill: #646464;
+}
+
 #floor-bar-circles .floor.selected circle{
 	fill: #646464;
 }
 
 #floor-bar-circles .floor.hover circle{
 	fill: #646464;
-	/*opacity: 0.5;*/
 }
 
+/*
+ * aps histogram
+ */
 #floor-bar-aps .floor .bar rect{
 	fill: #838383; 
 }
@@ -30,10 +39,27 @@
 	opacity: 0.5;
 }
 
+/*
+ * floor bar timeline
+ * and aps timeline
+ */
 #floor-bar-tls .floor path,
 #floor-bar-tls .ap path {
 	stroke: #898989;
 	fill: none;
+}
+
+#floor-bar-tls .floor.current path{
+}
+
+#floor-bar-tls .floor.hover path,
+#floor-bar-tls .ap.hover path{
+	stroke-width: 2;
+}
+
+#floor-bar-tls .floor.selected path,
+#floor-bar-tls .ap.selected path{
+	stroke-width: 2;
 }
 
 #floor-bar-tl-x-axis.axis.x{

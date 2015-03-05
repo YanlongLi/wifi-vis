@@ -29,7 +29,7 @@
             {floor:floorSelectdList, change:list, isAdd: false}
         );
     }
-    EventManager.floorHovere = function(list) {
+    EventManager.floorHover = function(list) {
         floorHoveredList = _.union(floorHoveredList, list);
         ObserverManager.post(WFV.Message.FloorHover, 
             {floor:floorHoveredList, change:list, isAdd: true}

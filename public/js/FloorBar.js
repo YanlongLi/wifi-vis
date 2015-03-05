@@ -44,8 +44,10 @@ WFV.FloorBar = function(_time_range){
 	 */
 	ObserverManager.addListener(FloorBar);
 	FloorBar.OMListen = function(message, data){
+		// floor
 		if(message == WFV.Message.FloorChange){
 			console.log("Floor Bar on floor change", data.floor);
+			if(current_floor == data.floor) return;
 			current_floor = data.floor;
 			_hide_floor_tls();
 			var step = 1000 * 60 * 20;
@@ -53,31 +55,89 @@ WFV.FloorBar = function(_time_range){
 					time_range[1],
 					step, current_floor,
 					update_floor_ap_tls);
-			$("#floor-bar-circles .floor").removeClass("selected");
-			$("#floor-bar-circles .floor[floor-id="+current_floor+"]").addClass("selected");
-			// TODO other clean action after floor changed
+			$("#floor-bar-circles .floor").removeClass("current");
+			$("#floor-bar-circles .floor[floor="+current_floor+"]").addClass("current");
+			// TODO other clean action after floor change, espacially for eles always exits
 		}
-		if(message == WFV.Message.ApSelect || message == WFV.Message.ApHover){
-			var ids = data.apid;
-			ids.forEach(function(apid){
-				var bar = $("#floor-bar-aps .floor .bar[apid="+apid+"]");
-				bar.attr("class", "bar selected");
-				if(data.click){
-					bar.attr("_selected", true);	
-				}
-				//
-				$("#floor-bar-tls g.ap[apid="+apid+"]").css("stroke", "red");
-			});
+		if(message == WFV.Message.FloorSelect){// isAdd true or false
+			var floors = data.floor, change = data.change, isAdd = data.isAdd;
+			if(isAdd){
+				change.forEach(function(f){
+					// floor circle
+					$("#floor-bar-circles .floor[floor="+f+"]").addClass("selected")
+						.attr('_selected', true);
+					// floor timeline
+					$("#floor-bar-tls .floor[floor="+f+"]").addClass("selected")
+						.attr('_selected', true);
+				});
+			}else{
+				change.forEach(function(f){
+					// floor circle
+					$("#floor-bar-circles .floor[floor="+f+"]").removeClass("selected")
+						.attr('_selected', null);
+					// floor timeline
+					$("#floor-bar-tls .floor[floor="+f+"]").removeClass("selected")
+						.attr('_selected', null);
+				});
+			}
 		}
-		if(message == WFV.Message1.ApDeSelect){
-			var ids = data.apid;
-			ids.forEach(function(apid){
-				var bar = $("#floor-bar-aps .floor .bar[apid="+apid+"]");
-				bar.attr("class", "bar");
-				if(data.click){
-					bar.attr("_selected", null);
-				}
-			});
+		if(message == WFV.Message.FloorHover){// isAdd true or false
+			var floors = data.floor, change = data.change, isAdd = data.isAdd;
+			if(isAdd){
+				change.forEach(function(f){
+					// floor circle
+					$("#floor-bar-circles .floor[floor="+f+"]").addClass("hover");
+					// floor timeline
+					$("#floor-bar-tls .floor[floor="+f+"]").addClass("hover");
+				});
+			}else{
+				change.forEach(function(f){
+					// floor circle
+					$("#floor-bar-circles .floor[floor="+f+"]").removeClass("hover");
+					// floor timeline
+					$("#floor-bar-tls .floor[floor="+f+"]").removeClass("hover");
+				});
+			}
+		}
+		if(message == WFV.Message.ApSelect){// isAdd true or false
+			var apids = data.apid, change = data.change, isAdd = data.isAdd;
+			if(isAdd){// select ap, TODO: add labels
+				change.forEach(function(apid){
+					// ap time line
+					$("#floor-bar-aps .floor .bar[apid="+apid+"]")
+						.addClass("selected").attr("_selected", true);
+					// ap bar
+					$("#floor-bar-tls g.ap[apid="+apid+"]")
+						.addClass("selected").attr("_selected", true);
+				});
+			}else{// deselect ap
+				change.forEach(function(apid){
+					// ap time line
+					$("#floor-bar-aps .floor .bar[apid="+apid+"]")
+						.removeClass("selected").attr("_selected", null);
+					// ap bar
+					$("#floor-bar-tls g.ap[apid="+apid+"]")
+						.removeClass("selected").attr("_selected", null);
+				});
+			}
+		}
+		if(message == WFV.Message.ApHover){// isAdd true or false
+			var apids = data.apid, change = data.change, isAdd = data.isAdd;
+			if(isAdd){// select ap
+				change.forEach(function(apid){
+					// ap time line
+					$("#floor-bar-aps .floor .bar[apid="+apid+"]").addClass("hover");
+					// ap bar
+					$("#floor-bar-tls g.ap[apid="+apid+"]").addClass("hover");
+				});
+			}else{// deselect ap
+				change.forEach(function(apid){
+					// ap time line
+					$("#floor-bar-aps .floor .bar[apid="+apid+"]").removeClass("hover");
+					// ap bar
+					$("#floor-bar-tls g.ap[apid="+apid+"]").removeClass("hover");
+				});
+			}
 		}
 		if(message == WFV.Message.TimeRangeChanged){
 			console.log("Floor Bar on time range changed", data.range);
@@ -94,13 +154,12 @@ WFV.FloorBar = function(_time_range){
 						next_f(f+1, _data, cb);
 					});
 				}else{
-					console.log("floor bar on time range chagned, tl data");
-					console.log(_data.length);
-					console.log(_data.map(function(d){return d.tl_data.length}));
+					// console.log("floor bar on time range chagned, tl data");
+					// console.log(_data.length);
+					// console.log(_data.map(function(d){return d.tl_data.length}));
 					cb(_data);
 				}
 			})(1, [], update_floor_tls);
-			
 		}
 		if(message == WFV.Message.TimePointChange){
 			// TODO
@@ -109,7 +168,7 @@ WFV.FloorBar = function(_time_range){
 	function init_interaction(){
 		// for floor circle
 		$(document).on("click", "#floor-bar-circles .floor", function(e){
-			var floor = $(this).attr("floor-id");
+			var floor = $(this).attr("floor");
 			if(floor == current_floor){
 				if(is_floor_tl){
 				}else{
@@ -119,46 +178,29 @@ WFV.FloorBar = function(_time_range){
 			}
 		});
 		$(document).on("mouseenter", "#floor-bar-circles .floor", function(e){
-			d3.select(this).classed("hover", true);
-			var sel_f = $(this).attr("floor-id");
-			console.log("floor select", sel_f);
-			EventManager.floorSelect([+sel_f]);
-			// ObserverManager.post(WFV.Message1.FloorSelect, {floor:[sel_f]});
+			var sel_f = $(this).attr("floor");
+			EventManager.floorHover([+sel_f]);
 		});
 		$(document).on("mouseleave", "#floor-bar-circles .floor", function(e){
-			d3.select(this).classed("hover", false);
-			var sel_f = $(this).attr("floor-id");
-			EventManager.floorDeSelect([+sel_f]);
-			//ObserverManager.post(WFV.Message1.FloorDeSelect, {floor:[sel_f]});
+			var sel_f = $(this).attr("floor");
+			EventManager.floorDehover([+sel_f]);
 		});
 		// for bars
 		$(document).on("click", "#floor-bar-aps .floor .bar", function(e){
+			var apid = $(this).attr("apid");
 			if($(this).attr("_selected")){
-				$(this).attr("_selected", null);
-				var data = {apid: [$(this).attr("apid")], click: true}
-				ObserverManager.post(WFV.Message1.ApDeSelect, data);
-				return;
+				EventManager.apDeselect([apid]);
 			}else{
-				$(this).attr("_selected", true);
-				var data = {apid: [$(this).attr("apid")], click: true};
-				ObserverManager.post(WFV.Message1.ApSelect, data);
+				EventManager.apSelect([apid]);
 			}
 		});
 		$(document).on("mouseenter", "#floor-bar-aps .floor .bar", function(e){
-			if($(this).attr("_selected")){
-				d3.select(this).classed("hover", true);
-				return;
-			}
-			var data = {apid: [$(this).attr("apid")]}
-			ObserverManager.post(WFV.Message1.ApSelect, data);
+			var apid = $(this).attr("apid");
+			EventManager.apHover(apid);
 		});
 		$(document).on("mouseleave", "#floor-bar-aps .floor .bar", function(e){
-			if($(this).attr("_selected")){
-				d3.select(this).classed("hover", false);
-				return;
-			}
-			var data = {apid: [$(this).attr("apid")]}
-			ObserverManager.post(WFV.Message1.ApDeSelect, data);
+			var apid = $(this).attr("apid");
+			EventManager.apDehover(apid);
 		});
 		// ap-tls
 		$("#floor-bar-tls").on("click", "g.ap", function(e){
@@ -171,14 +213,12 @@ WFV.FloorBar = function(_time_range){
 		});
 
 		$("#floor-bar-tls").on("mouseenter", "g.ap", function(e){
-			d3.select(this).style("stroke-width", 2);
 			var apid = d3.select(this).attr("apid");
 			EventManager.apHover([apid]);
 		});
 		$("#floor-bar-tls").on("mouseleave", "g.ap", function(e){
-			d3.select(this).style("stroke-width", 1);
 			var apid = d3.select(this).attr("apid");
-			EventManager.apHover([apid]);
+			EventManager.apDehover([apid]);
 		});
 		// btns
 		$(document).on("click", "#floor-bar-btn-tl, #floor-bar-btn-bar", function(e){
@@ -279,7 +319,7 @@ WFV.FloorBar = function(_time_range){
 			var floors_enter = floors.enter().append("g").attr("class","floor");
 			floors_enter.append("circle");
 			floors_enter.append("text"); // floor label
-			floors.attr("floor-id", function(d){return d.floor});
+			floors.attr("floor", function(d){return d.floor});
 		}
 		floors.sort(_sort_by_floor);
 		floors.select("circle").datum(function(d){return d})
@@ -330,7 +370,7 @@ WFV.FloorBar = function(_time_range){
 				.sort(function(d1, d2){
 					//var a = d1.count, b = d2.count;
 					var a = d1.apid, b = d2.apid;
-					return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NbN;
+					return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
 			});
 			bars.transition().attr("transform", function(d,i){
 				var dx = i * w_bar;
@@ -375,8 +415,8 @@ WFV.FloorBar = function(_time_range){
 			floor_enter.append("path");
 		}
 		floors.sort(_sort_by_floor);
-		floors.attr("id", function(d){
-			return "floor-bar-tl-"+d.floor;
+		floors.attr("floor", function(d){
+			return d.floor;
 		}).each(function(d){
 			d3.select(this).select("path").datum(function(d){return d.tl_data})
 				.attr("d", line_generator[0]);
@@ -394,6 +434,18 @@ WFV.FloorBar = function(_time_range){
 		// 2. update #floor-bar-ap-tls > g.ap
 		var aps = g.select("#floor-bar-tls").selectAll("g.ap");
 		if(_data){
+			_data.sort(function(d1, d2){// sort timeline by ap position
+				var a = d1.apid, b = d2.apid;
+				return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+				// var ap1 = apMap.get(d1.apid),
+				// ap2 = apMap.get(d2.apid);
+				// function offset(x,y){
+				// 	return  Math.sqrt(x*x+y*y);
+				// }
+				// var a = offset(ap1.pos_x, ap1.pos_y),
+				// b = offset(ap2.pos_x, ap2.pos_y);
+				// return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+			});
 			var cmax = d3.max(_data, function(ap){
 				return d3.max(ap.tl_data,function(d){return d.count});
 			});

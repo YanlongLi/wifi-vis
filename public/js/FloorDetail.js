@@ -14,7 +14,7 @@ WifiVis.FloorDetail = function(){
 		normal: "path-arrow-normal",
 		hilight: "path-arrow-hilight",
 		reverse: "path-arrow-reverse",
-		fade: "path-arrow-fade",
+		fading: "path-arrow-fading",
 		hover: "path-arrow-hover"
 	};
 	function marker_url(id){
@@ -65,7 +65,8 @@ WifiVis.FloorDetail = function(){
 	}
 	ObserverManager.addListener(FloorDetail);
 	FloorDetail.OMListen = function(message, data){
-		if(message == WFV.Message.FloorChange){ console.log("change_floor", data);
+		if(message == WFV.Message.FloorChange){
+			console.log("change_floor", data);
 			current_floor = +data.floor;
 			change_image();
 			resize_image();
@@ -77,33 +78,37 @@ WifiVis.FloorDetail = function(){
 				update_links(links);
 			});
 		}
-		if(message == WFV.Message.ApHover && data.isAdd){
-
+		if(message == WFV.Message.ApHover){
+			var apdis = data.apids, change = data.change;
+			if(data.isAdd){
+				change.forEach(function(apid){
+					$("#aps-wrapper g.ap[apid="+apid+"]").addClass("hover");
+				});
+			}else{
+				change.forEach(function(apid){
+					$("#aps-wrapper g.ap[apid="+apid+"]").removeClass("hover");
+				});
+			}
 		}
-		if(message == WFV.Message.ApHover && !data.isAdd){
-
-		}
-		if(message == WFV.Message.ApSelect){
-			var apids = data.apid.filter(function(apid){
-				return apMap.get(apid).floor == current_floor;
-			});
-			console.log("aps selected", apids.join(","));
-			if(!apids.length){
-				$("aps-wrapper g.ap").removeClass("fade");
-				$("#path-wrapper g.link").removeClass("fade").removeClass("hilight");
+		if(message == WFV.Message.ApSelect){// isAdd true or false
+			var apids = data.apid;
+			console.log("aps selected", apids);
+			if(!apids.length){// no ap selected , back to normal
+				$("#aps-wrapper g.ap").removeClass("fading").attr("_selected", null);
+				$("#path-wrapper g.link").removeClass("fading").removeClass("hilight");
 				return;
 			}
-			$("#aps-wrapper g.ap").addClass("fade").attr("_selected", null);
-			$("#path-wrapper g.link").addClass("fade").removeClass("hilight");
+			// fading all aps and links
+			$("#aps-wrapper g.ap").addClass("fading").attr("_selected", null);
+			$("#path-wrapper g.link").addClass("fading").removeClass("hilight");
 			apids.forEach(function(apid){
 				var ele = $("#aps-wrapper g.ap[apid="+apid+"]");
-				console.log(ele);
-				ele.removeClass("fade").attr("_selected", true);
+				ele.removeClass("fading").attr("_selected", true);
 				// hilight path
 				$("#path-wrapper g.link[sid="+apid+"]")
-					.removeClass("fade").addClass("hilight");
+					.removeClass("fading").addClass("hilight");
 				$("#path-wrapper g.link[tid="+apid+"]")
-					.removeClass("fade").addClass("hilight");
+					.removeClass("fading").addClass("hilight");
 			});
 		}
 		if(message == WFV.Message.DeviceSelect){
@@ -133,25 +138,20 @@ WifiVis.FloorDetail = function(){
 	function init_interaction(){
 		$(document).on("click","#aps-wrapper g.ap", function(e){
 			var apid = $(this).attr("apid");
+			console.log("apid clicked", apid);
 			if($(this).attr("_selected")){
-				$(this).attr("_selected", null);
 				EventManager.apDeselect([apid]);
 			}else{
-				$(this).attr("_selected", true);
 				EventManager.apSelect([apid]);
 			}
 		});
 		$(document).on("mouseenter", "#aps-wrapper g.ap", function(e){
 			var apid = $(this).attr("apid");
-			if(!$(this).attr("_selected")){
-				EventManager.apHover([apid]);
-			}
+			EventManager.apHover([apid]);
 		});
 		$(document).on("mouseleave", "#aps-wrapper g.ap", function(e){
 			var apid = $(this).attr("apid");
-			if(!$(this).attr("_selected")){
-				EventManager.apDehover([apid]);
-			}
+			EventManager.apDehover([apid]);
 		});
 		$(document).on("mouseenter", "#path-wrapper g.link", function(e){
 			var opa = d3.select(this).style("opacity");
