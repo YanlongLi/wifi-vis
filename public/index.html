@@ -4,6 +4,7 @@
 	<!---->
 	<script type="text/javascript" src="jslib/jquery-2.1.1.js"></script>
 	<script type="text/javascript" src="jslib/jquery-ui.js"></script>
+	<script type="text/javascript" src="jslib/svgclass.js"></script>
 	<script type="text/javascript" src="jslib/underscore.js"></script>
 	<script type="text/javascript" src="jslib/spin.min.js"></script>	
 	<script type="text/javascript" src="jslib/d3/d3.js"></script>
@@ -45,10 +46,11 @@
 				<h3 class="header"></h3>
 				<svg class="dragbox-content">
 					<g id="floor-bar">
-						<g id="floor-bar-btn-wrapper"></g>
+						<g id="floor-bar-btn-wrapper" style="display:none"></g>
 						<g id="floor-bar-circles"></g>
-						<g id="floor-bar-aps" style="visibility:visible"></g>
-						<g id="floor-bar-tls" style="visibility:hidden"></g>
+						<g id="floor-bar-tls" style="visibility:visible"></g>
+						<g id="floor-bar-ap-tls" style="visibility:visible"></g>
+						<g id="floor-bar-aps" style="visibility:hidden"></g>
 						<g id="floor-bar-tl-x-axis"></g>
 					</g>
 				</svg>
