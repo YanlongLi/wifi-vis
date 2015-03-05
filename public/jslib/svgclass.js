@@ -50,6 +50,7 @@ SVGElement.prototype.toggleClass = function (className) {
 			i = 0,
 			len = this.length;
 
+		console.log("len", len, this);
 		for (; i < len; i++ ) {
 			elem = this[ i ];
 			if ( elem instanceof SVGElement ) {
@@ -59,8 +60,6 @@ SVGElement.prototype.toggleClass = function (className) {
 				}else{
 					elem.addClass(value);
 				}
-			} else {
-				$(elem).attr('class', value);
 			}
 		}
 		return orig;

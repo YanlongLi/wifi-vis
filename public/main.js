@@ -24,9 +24,7 @@ $(document).ready(function() {
 				.dblclick(function(){
 					$(_this).find('.dragbox-content').toggle("normal");
 					$(_this).toggleClass("dragbox-collapse");
-
 				})
-			.end()
 		});
 	$( ".dragbox" ).draggable({ 
 		handle: ".header",
