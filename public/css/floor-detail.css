@@ -10,18 +10,23 @@
 	/*opacity: 0.5;*/
 }
 
-#ap-wrapper .ap.fade circle{
+#aps-wrapper .ap.fade{
+	opacity: 1;
+}
+#aps-wrapper .ap.fade circle{
 	fill: #E0E0E0;
 	opacity:1;
 }
-#aps-wrapper .ap.hover circle{
+#aps-wrapper .ap.selected circle{
 	fill: #4290D2;
 }
 
+#device-wrapper .device rect,
 #aps-wrapper .device rect{
 	fill: #A0A7B5;
 }
 
+#device-wrapper .device.selected rect,
 #aps-wrapper .device.selected rect{
 	fill: #71B1F0;
 }
@@ -55,6 +60,9 @@
 	marker-end: url("#path-arrow-normal");
 }
 
+#path-wrapper .fade{
+	opacity: 0.1;
+}
 #path-wrapper .fade path{
 	opacity: 0.1;
 	marker-end: url("#path-arrow-fade");

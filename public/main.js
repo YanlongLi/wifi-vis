@@ -8,7 +8,7 @@ var records = [];
 
 var tracer;
 
-var floor_bar = WFV.FloorBar();
+var floor_bar = WFV.FloorBar([timeFrom, timeTo]);
 
 var floorDetail, floorsNav, timeline;
 var apGraph;
@@ -65,10 +65,9 @@ function init(){
 	tracer = RecordTracer.CreateTracer();
 	floorDetail = WFV.FloorDetail();
 	timeline = WFV.Timeline([timeFrom, timeTo]);
-	ObserverManager.post(WFV.Message1.TimeRangeChange,
-			{range:[new Date(2013,08,02,12), new Date(2013,08,02,16)]});
-	ObserverManager.post(WFV.Message1.TimePointChange, {time:new Date(2013,08,02,12)});
-	ObserverManager.post(WFV.Message1.FloorChange, {floor:1});
+	EventManager.timeRangeChanged([new Date(2013,08,02,12), new Date(2013,08,02,16)]);
+	EventManager.timePointChange(new Date(2013,08,02,12));
+	EventManager.floorChange(1);
 	// apGraph
 	apGraph = WifiVis.ApGraph();
 	apGraph.init();

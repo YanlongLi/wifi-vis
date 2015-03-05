@@ -30,7 +30,8 @@
 	opacity: 0.5;
 }
 
-#floor-bar-tls .floor path{
+#floor-bar-tls .floor path,
+#floor-bar-tls .ap path {
 	stroke: #898989;
 	fill: none;
 }

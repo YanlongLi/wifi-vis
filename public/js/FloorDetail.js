@@ -53,7 +53,7 @@ WifiVis.FloorDetail = function(){
 
 	var current_floor, aps;// aps on current floor
 	var time_point, time_range = [timeFrom, timeTo],
-		deviceLst = [], selected_device = [], selected_aps = [];
+		deviceLst = [], selected_aps = [];
 	var graphinfo, links;
 
 	init_svg();
@@ -65,84 +65,65 @@ WifiVis.FloorDetail = function(){
 	}
 	ObserverManager.addListener(FloorDetail);
 	FloorDetail.OMListen = function(message, data){
-		if(message == WFV.Message1.FloorChange){
-			current_floor = data.floor;
+		if(message == WFV.Message.FloorChange){ console.log("change_floor", data);
+			current_floor = +data.floor;
 			change_image();
 			resize_image();
 			move_image();
 			aps = apLst.filter(function(ap){return ap.floor == current_floor});
 			update_aps(aps);
-			selected_aps = [];
 			update_device(aps);
 			load_new_data(function(){
 				update_links(links);
 			});
 		}
-		if(message == WFV.Message1.ApSelect){
+		if(message == WFV.Message.ApHover && data.isAdd){
+
+		}
+		if(message == WFV.Message.ApHover && !data.isAdd){
+
+		}
+		if(message == WFV.Message.ApSelect){
 			var apids = data.apid.filter(function(apid){
 				return apMap.get(apid).floor == current_floor;
 			});
-			if(!apids.length) return;
-			if(apids.length == 1){
-				if(selected_aps.indexOf(apids[0]) >= 0) return;
-				selected_aps.push(apids[0]);
-			}else{
-				apids = apids.filter(function(apid){
-					return apMap.get(apid).floor == current_floor;
-				});
-				selected_aps = apids;	
-				$("#aps-wrapper g.ap").attr("class", "ap");
-				$("#path-wrapper g.link").attr("class", 'link');
+			console.log("aps selected", apids.join(","));
+			if(!apids.length){
+				$("aps-wrapper g.ap").removeClass("fade");
+				$("#path-wrapper g.link").removeClass("fade").removeClass("hilight");
+				return;
 			}
+			$("#aps-wrapper g.ap").addClass("fade").attr("_selected", null);
+			$("#path-wrapper g.link").addClass("fade").removeClass("hilight");
 			apids.forEach(function(apid){
-				var _sel = data.click ? true:null;
-				$("#aps-wrapper g.ap[apid!="+apid+"]").attr("class","ap fade")
-					.attr("_selected", _sel);
+				var ele = $("#aps-wrapper g.ap[apid="+apid+"]");
+				console.log(ele);
+				ele.removeClass("fade").attr("_selected", true);
 				// hilight path
-				$("#path-wrapper g.link").not(".hilight, .reverse")
-					.attr("class","link fade");
-				$("#path-wrapper g.link[sid="+apid+"]").attr("class","link hilight");
-				$("#path-wrapper g.link[tid="+apid+"]").attr("class","link reverse");
+				$("#path-wrapper g.link[sid="+apid+"]")
+					.removeClass("fade").addClass("hilight");
+				$("#path-wrapper g.link[tid="+apid+"]")
+					.removeClass("fade").addClass("hilight");
 			});
 		}
-		if(message == WFV.Message1.ApDeSelect){
-			var apids = data.apid.filter(function(apid){
-				return apMap.get(apid).floor == current_floor;
-			});
-			apids.length && apids.forEach(function(apid){
-				var ele = $("#aps-wrapper g.ap[apid="+apid+"]");
-				if(ele.attr("_selected")){
-					return;
-				}
-				var index;
-				if((index = selected_aps.indexOf(apid)) < 0) return;
-				selected_aps = selected_aps.slice(0,index)
-					.concat(selected_aps.slice(index+1, selected_aps.length));
-				var _sel = data.click ? true:null;
-				ele.attr("class","ap").attr("_selected", _sel);
-				// hilight path
-				$("#path-wrapper g.link.reverse.hilight[sid="+apid+"]")
-					.attr('class', "link fade reverse");
-				$("#path-wrapper g.link.hilight[sid="+apid+"]")
-					.attr('class', "link fade");
-				$("#path-wrapper g.link.reverse[tid="+apid+"]")
-					.not(".hilight").attr("class", "link fade");
-				$("#path-wrapper g.link.reverse.hilight[tid="+apid+"]")
-					.attr("class","link fade hilight");
-			});
-			if(!selected_aps.length){
-				$("#path-wrapper g.link").attr("class", "link");
+		if(message == WFV.Message.DeviceSelect){
+			// TODO
+			var devs = data.device, change = data.change, isAdd = data.isAdd;
+			if(isAdd){
+		
+			}else{
+				
 			}
 		}
-		if(message == WFV.Message1.DeviceSelect){
-		}
-		if(message == WFV.Message1.TimePointChange){
+		if(message == WFV.Message.TimePointChange){
 			time_point = data.time;
 			tracer.gotoTime(time_point);
 			update_aps(aps);
 			update_device(aps);
 		}
-		if(message == WFV.Message1.TimeRangeChanged){
+		if(message == WFV.Message.TimeRangeChange){
+		}
+		if(message == WFV.Message.TimeRangeChanged){
 			time_range = data.range;
 			load_new_data(function(){
 				update_links(links);
@@ -154,24 +135,22 @@ WifiVis.FloorDetail = function(){
 			var apid = $(this).attr("apid");
 			if($(this).attr("_selected")){
 				$(this).attr("_selected", null);
-				ObserverManager.post(WFV.Message1.ApDeSelect, {apid: [+apid], click:true});
+				EventManager.apDeselect([apid]);
 			}else{
 				$(this).attr("_selected", true);
-				ObserverManager.post(WFV.Message1.ApSelect, {apid: [+apid], click:true});
+				EventManager.apSelect([apid]);
 			}
 		});
 		$(document).on("mouseenter", "#aps-wrapper g.ap", function(e){
 			var apid = $(this).attr("apid");
-			//$(this).find("circle").attr("stroke", "#575555").attr("stroke-width", 4);
 			if(!$(this).attr("_selected")){
-				ObserverManager.post(WFV.Message1.ApSelect, {apid: [+apid]});
+				EventManager.apHover([apid]);
 			}
 		});
 		$(document).on("mouseleave", "#aps-wrapper g.ap", function(e){
 			var apid = $(this).attr("apid");
-			//$(this).find("circle").attr("stroke", null).attr("stroke-width", null);
 			if(!$(this).attr("_selected")){
-				ObserverManager.post(WFV.Message1.ApDeSelect, {apid: [+apid]});
+				EventManager.apDehover([apid]);
 			}
 		});
 		$(document).on("mouseenter", "#path-wrapper g.link", function(e){
@@ -199,7 +178,7 @@ WifiVis.FloorDetail = function(){
 		update_aps();
 		update_device();
 	});
-	function load_new_data(cb){
+	function load_new_data(cb){// load new graph link data
 		var range = time_range;
 		var from = new Date(range[0]), to = new Date(range[1]);
 		db.graph_info(from, to, function(_graphinfo){
@@ -281,6 +260,8 @@ WifiVis.FloorDetail = function(){
 				}
 				return r;
 			});
+		return;
+		// update device
 		gAps.each(function(ap){
 			var px = ap.pos_x, py = ap.pos_y;
 			var deviceLst = ap.cluster.deviceLst().map(function(pos){
@@ -302,7 +283,7 @@ WifiVis.FloorDetail = function(){
 					console.log("====================selected");
 				}
 				return d.device.selected;
-			})
+			});
 			devs.transition().attr("transform", function(d){
 				var dx = x(d.x) + d.dx;
 				var dy = y(d.y) + d.dy;
@@ -353,8 +334,7 @@ WifiVis.FloorDetail = function(){
 				return link_scale(d.weight);
 			});
 	}
-	function update_device(_data){
-		return;
+	function update_device(_data){// update device pos by aps(current floor)
 		// assume apLst exist[{ap with cluster}]
 		// if no_data, resize
 		var gDevice = g.select("#device-wrapper").selectAll("g.device");
@@ -394,18 +374,17 @@ WifiVis.FloorDetail = function(){
 	}
 	//
 	function brushstart(){
-		console.log("=======================================");
+		// unselected device
 		deviceLst.forEach(function(d){
-			console.log(d);
 			d.selected = false;
 		});
 	}
 	function brushed(){
 		var extent = brush.extent();
 		deviceLst= [];
-		g.select("#aps-wrapper").selectAll("g.device")
+		g.selectAll("#device-wrapper, #aps-wrapper").selectAll("g.device")
 			.classed("selected", false);
-		g.select("#aps-wrapper").selectAll("g.device")
+		g.selectAll("#device-wrapper, #aps-wrapper").selectAll("g.device")
 			.classed("selected", function(d){
 				var px = x(d.x) + d.dx;
 				var py = y(d.y) + d.dy;
@@ -415,22 +394,24 @@ WifiVis.FloorDetail = function(){
 				}
 				if(d.device.selected){
 					deviceLst.push(d.device);
-					console.log(d.device);
-					console.log(deviceLst);
 					return true;
 				}
 				return false;
 			});
 	}
 	function brushend(){
+		console.log("on brush end, device selected", deviceLst.length);
+		// console.log(deviceLst.map(function(d){return d.mac}).join(","));
+		// console.log(time_point.to_time_str());
 		d3.event.target.clear();
 		d3.select(this).call(d3.event.target);
 		//
-		selected_device = deviceLst.filter(function(d){
-			return d.device.selected;
+		var selected_device = deviceLst.filter(function(d){
+			return d.selected;
 		}).map(function(d){return d.mac});
-		ObserverManager.post(WFV.Message1.DeviceSelect,
-				{device:selected_device}, FloorDetail);
+		// first unselect
+		EventManager.deviceDeselect(null);
+		EventManager.deviceSelect(selected_device);
 	}
 	//
 	return FloorDetail;

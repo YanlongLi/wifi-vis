@@ -34,9 +34,11 @@ WFV.Timeline = function(_time_range){
 		time_range  = d3.event.target.extent();
 		if(time_point - time_range[0] != 0){
 			time_point = time_range[0];
-			ObserverManager.post(WFV.Message1.TimePointChange, {time: time_point});
+			EventManager.timePointChange(time_point);
+			// ObserverManager.post(WFV.Message1.TimePointChange, {time: time_point});
 		}
-		ObserverManager.post(WFV.Message1.TimeRangeChange, {range: time_range});
+		EventManager.timeRangeChange(time_range);
+		// ObserverManager.post(WFV.Message1.TimeRangeChange, {range: time_range});
 	}
 	function onBrushEnd(){
 		if(!d3.event.sourceEvent) return;
@@ -46,7 +48,8 @@ WFV.Timeline = function(_time_range){
 			range = all_time_range;
 		}
 		time_range = range;
-		ObserverManager.post(WFV.Message1.TimeRangeChanged, {range: time_range});
+		EventManager.timeRangeChanged(time_range);
+		//ObserverManager.post(WFV.Message1.TimeRangeChanged, {range: time_range});
 	}
 	//
 	var current_floor, sel_aps, 
@@ -76,7 +79,8 @@ WFV.Timeline = function(_time_range){
 	g.select("#timeline-basic").attr("class", "line").append("path");
 	_timeline_data(TIMELINE_TYPE.all, null, update_basic_timeline);
 	
-	ObserverManager.post(WFV.Message1.TimeRangeChanged, {range: all_time_range});
+	EventManager.timeRangeChanged(all_time_range);
+	//ObserverManager.post(WFV.Message1.TimeRangeChanged, {range: all_time_range});
 
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
@@ -240,12 +244,14 @@ WFV.Timeline = function(_time_range){
 		// load floor data and draw path, 
 		// not change visibility
 		if(b && !floor_data_status[floor]){
-			_timeline_data(TIMELINE_TYPE.floor, floor, update_floor_timeline);
+			_timeline_data(TIMELINE_TYPE.floor, floor, function(d){
+				update_floor_timeline(d.tl_data);
+			});
 		}
 		//g.select("#tl-floor-"+floor).style("display", b ? "block" : "none");
 	}
 	function update_floor_timeline(_data){
-		// {time:,count;,values:[],floor:}
+		// [{time:,count;,values:[],floor:}]
 		// if _data, add; no _data, update
 		if(_data){
 			var cmax = d3.max(_data, function(d){return d.count});
