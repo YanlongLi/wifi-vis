@@ -48,7 +48,7 @@
 
     EventManager.apSelect = function(list) {
         apSelectdList = _.union(apSelectdList, list);
-        ObserverManager.post(WFV.Message.APSelect, 
+        ObserverManager.post(WFV.Message.ApSelect, 
             {apid:apSelectdList, change:list, isAdd: true}
         );        
     }
@@ -58,13 +58,13 @@
             apSelectdList = [];
         } else
             apSelectdList = _.difference(apSelectdList, list);
-        ObserverManager.post(WFV.Message.APSelect, 
+        ObserverManager.post(WFV.Message.ApSelect, 
             {apid:apSelectdList, change:list, isAdd: false}
         );        
     }
     EventManager.apHover = function(list) {
         apHoveredList = _.union(apHoveredList, list);
-        ObserverManager.post(WFV.Message.APHover, 
+        ObserverManager.post(WFV.Message.ApHover, 
             {apid:apHoveredList, change:list, isAdd: true}
         );        
     }
@@ -74,7 +74,7 @@
             apHoveredList = [];
         } else
             apHoveredList = _.difference(apHoveredList, list);
-        ObserverManager.post(WFV.Message.APHover, 
+        ObserverManager.post(WFV.Message.ApHover, 
             {apid:apHoveredList, change:list, isAdd: false}
         );         
     }
