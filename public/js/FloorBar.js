@@ -49,7 +49,7 @@ WFV.FloorBar = function(_time_range){
 			console.log("Floor Bar on floor change", data.floor);
 			if(current_floor == data.floor) return;
 			current_floor = data.floor;
-			_hide_floor_tls();
+			//_hide_floor_tls();
 			var step = 1000 * 60 * 20;
 			db.tl_data_aps_of_floor(time_range[0],
 					time_range[1],
@@ -170,9 +170,8 @@ WFV.FloorBar = function(_time_range){
 		$(document).on("click", "#floor-bar-circles .floor", function(e){
 			var floor = $(this).attr("floor");
 			if(floor == current_floor){
-				if(is_floor_tl){
-				}else{
-				}
+				is_floor_tl = !is_floor_tl;
+				change_tl();
 			}else{
 				EventManager.floorChange(floor);
 			}
@@ -261,27 +260,28 @@ WFV.FloorBar = function(_time_range){
 		g.select(".btn-bar").attr("transform", "translate(21)");
 	}
 	function change_tl(){// used to update postion of tls
-		var floor_tls = g.select("#floor-t").selectAll("g.floor");
+		var floor_tls = g.select("#floor-bar-tls").selectAll("g.floor");
 		var ap_tls = g.select("#floor-bar-tls").selectAll("g.ap");
 		if(is_floor_tl){
-			floor_tls.attr("display", "block").transition().attr("transform", function(d){
-				return "transition(0,"+vertical_scale[0](d.floor)+")";
+			floor_tls.attr("display", "block").transition().delay(250).attr("transform", function(d){
+				return "translate(0,"+vertical_scale[0](d.floor)+")";
 			});
-			ap_tls.transition().attr("transform", function(d){
-				return "transition(0,"+vertical_scale[0](d.current_floor)+")";
-			}).transtion().attr("display", "none");;
-		}else{
-			ap_tls.attr("display","block").transition().attr("transform", function(d){
-				return "transition(0,"+vertical_scale[1](d.apid)+")";
-			});
-			floor_tls.transition("transform", function(d){
-				if(d.floor > current_floor){
-					return "translate(0,0)";
-				}else if(d.floor < current_floor){
-					return "translate(0,"+size.height+")";
-				}else{
-				}
+			ap_tls.transition().attr("transform", function(){
+				return "translate(0,"+vertical_scale[0](current_floor)+")";
 			}).transition().attr("display", "none");
+		}else{
+			floor_tls.transition().attr("display", "none")
+				.transition("transform", function(d){
+					if(d.floor > current_floor){
+						return "translate(0,0)";
+					}else if(d.floor < current_floor){
+						return "translate(0,"+size.height+")";
+					}else{
+					}
+				});
+			ap_tls.transition().delay(250).attr("transform", function(d){
+				return "translate(0,"+vertical_scale[1](d.apid)+")";
+			}).attr("display","block");
 		}
 	}
 	// change view between tls and ap bars
@@ -467,8 +467,7 @@ WFV.FloorBar = function(_time_range){
 				return "translate(0,"+dy+")";
 			});
 		}
-		aps.attr("id", function(d){return "floor-bar-ap-tls-"+d.apid})
-			.attr("apid", function(d){return d.apid})
+		aps.attr("apid", function(d){return d.apid})
 			.select("path").datum(function(d){
 				// console.log(d.tl_data);
 				return d.tl_data;
