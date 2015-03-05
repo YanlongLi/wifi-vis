@@ -133,7 +133,7 @@
     }    
 
     EventManager.timeRangeChanged = function(range) {
-        ObserverManager.post(WFV.Message.TimeRangeChange, {range: range});
+        ObserverManager.post(WFV.Message.TimeRangeChanged, {range: range});
     }    
 
     window["EventManager"] = EventManager;
