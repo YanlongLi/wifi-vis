@@ -21,7 +21,21 @@ body {
 .line {
   fill: none;
   stroke: #808080;
-  stroke-width: 1px;
+  stroke-width: 0.1em;
+}
+
+.deviceAPRect {
+  fill-opacity: 0.3;
+}
+.deviceVerticalLine {
+  fill: none;
+  stroke: #8B8B8B;
+  stroke-opacity: 0.1;
+  stroke-width: 0.1em; 
+}
+.deviceAPDot {
+  fill: #8B8B8B;
+  fill-opacity: 0.3;
 }
 
 .brush .extent {
