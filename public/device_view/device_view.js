@@ -1,5 +1,4 @@
-var db = new WFV_DB(new Date(2013,08,02), new Date(2013,08,03));
-var access_data;
+var dvdb = new WFV_DB(new Date(2013,08,02), new Date(2013,08,03));
 var apNameMappings = {};
 var apFloorMappings = {};
 var apConnCnt = {};
@@ -11,7 +10,7 @@ function get_access_data(mac, dates){
   for(var i = 0; i < len; i++){
     var date = dates[i]
     var next_date = new Date(date).setDate(date.getDate() +1);
-    var path = db.path_by_mac(mac, date, next_date);
+    var path = dvdb.path_by_mac(mac, date, next_date);
     console.log(path)
     path.forEach(function(d) {
       if (!(d.apid in apFloorMappings)) {
@@ -34,8 +33,7 @@ function get_access_data(mac, dates){
   return access_data;
 }
 
-
-db.init(function(){
+dvdb.init(function(){
   var dates = [new Date(2013,08,02)];
   //access_data = get_access_data("ac02bf41ce", dates)
   access_data = [];
@@ -50,14 +48,13 @@ db.init(function(){
   access_data.push(get_access_data("8bb1e41237", dates));
   access_data.push(get_access_data("5f44f70682", dates));
   access_data.push(get_access_data("964291cee6", dates));
-
   console.log(access_data);
-  device_view(access_data);
+  deviceView(access_data);
 });
 
 
 
-function device_view(access_data){
+function deviceView(access_data){
   var margin = {top: 50, right: 20, bottom: 30, left: 100},
     width = 1100 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;

@@ -15,6 +15,7 @@
 	<link rel="stylesheet" href="css/floor-bar.css"/>
 	<link rel="stylesheet" href="css/floor-detail.css"/>
 	<link rel="stylesheet" href="css/aps-graph.css"/>
+	<link rel="stylesheet" href="css/device-view.css"/>
 	<link rel="stylesheet" href="css/timeline.css"/>
 	<link rel="stylesheet" href="css/other.css"/>
 	<link rel="stylesheet" href="css/index.css"/>
@@ -98,7 +99,19 @@
 
 			<div class="dragbox" id="device-view-wrapper">
 				<h3 class="header"></h3>
-				<svg class="dragbox-content" id="device-view-svg" width="100%" height="100%"></svg>
+				
+				<button type="button" id="reset-btn" class="btn btn-default btn-xs dragbox-content">Reset</button>
+				<button type="button" id="zoom-in-btn" class="btn btn-default btn-xs dragbox-content">+</button>
+				<button type="button" id="zoom-out-btn" class="btn btn-default btn-xs dragbox-content">-</button>
+				<svg class="dragbox-content" id="device-view-svg" width="100%" height="100%">
+					<g id="device-view-g">
+						<g id="device-view-y-axis-g"></g>
+						<g id="device-view-x-axis-g"></g>
+						<!-- <g id="device-view-bar"></g>
+						<g id="device-view-dot"></g>
+						<g id="deivce-view-tag"></g> --></g>
+					
+				</svg>
 			</div>			
 		</div>
 	</div>
@@ -114,7 +127,9 @@
 	<script type="text/javascript" src="js/Timeline.js"></script>
 	<script type="text/javascript" src="js/FloorDetail.js"></script>
 	<script type="text/javascript" src="js/ApGraph.js"></script>
+	<script type="text/javascript" src="js/DeviceView.js"></script>
 	<script type="text/javascript" src="main.js"></script>
+
 
 </body>
 </html>
