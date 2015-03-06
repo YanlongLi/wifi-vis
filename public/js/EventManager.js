@@ -118,7 +118,7 @@
         );  
     }    
 
-    EventManager.pathDeelect = function(sid, tid, weight) {
+    EventManager.pathDeselect = function(sid, tid, weight) {
         ObserverManager.post(WFV.Message.PathDeSelect, 
             {sid:sid, tid:tid, weight:weight}
         );  

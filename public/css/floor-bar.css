@@ -24,6 +24,10 @@
 	fill: #646464;
 }
 
+#floor-bar-circles .floor.fading{
+	opacity: 0.5;
+}
+
 /*
  * aps histogram
  */
