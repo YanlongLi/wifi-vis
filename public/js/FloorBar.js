@@ -13,6 +13,7 @@ WFV.FloorBar = function(_time_range){
 		.attr("id", "floor-bar-btn-bar").attr("class", "btn btn-bar");
 	//
 	var time_range = _time_range, time_point = _time_range[0];
+	var is_floor_tl = true;
 	//
 	var per_h = {h0:1, h1:0}, w_bar, bar_gap = 2, max_ap_number = 24;
 	var circle_scale = d3.scale.log().clamp(true),
@@ -55,6 +56,7 @@ WFV.FloorBar = function(_time_range){
 					time_range[1],
 					step, current_floor,
 					update_floor_ap_tls);
+			change_tl();
 			$("#floor-bar-circles .floor").removeClass("current");
 			$("#floor-bar-circles .floor[floor="+current_floor+"]").addClass("current");
 			// TODO other clean action after floor change, espacially for eles always exits
@@ -177,6 +179,7 @@ WFV.FloorBar = function(_time_range){
 			}
 		});
 		$(document).on("mouseenter", "#floor-bar-circles .floor", function(e){
+			console.log("fire floor over event");
 			var sel_f = $(this).attr("floor");
 			EventManager.floorHover([+sel_f]);
 		});
@@ -195,14 +198,14 @@ WFV.FloorBar = function(_time_range){
 		});
 		$(document).on("mouseenter", "#floor-bar-aps .floor .bar", function(e){
 			var apid = $(this).attr("apid");
-			EventManager.apHover(apid);
+			EventManager.apHover([apid]);
 		});
 		$(document).on("mouseleave", "#floor-bar-aps .floor .bar", function(e){
 			var apid = $(this).attr("apid");
-			EventManager.apDehover(apid);
+			EventManager.apDehover([apid]);
 		});
 		// ap-tls
-		$("#floor-bar-tls").on("click", "g.ap", function(e){
+		$(document).on("click", "#floor-bar-tls g.ap", function(e){
 			var apid = d3.select(this).attr("apid");
 			if($(this).attr("_selected")){
 				$(this).attr('_selected', null);
@@ -211,11 +214,11 @@ WFV.FloorBar = function(_time_range){
 			}
 		});
 
-		$("#floor-bar-tls").on("mouseenter", "g.ap", function(e){
+		$(document).on("mouseenter", "#floor-bar-tls g.ap", function(e){
 			var apid = d3.select(this).attr("apid");
 			EventManager.apHover([apid]);
 		});
-		$("#floor-bar-tls").on("mouseleave", "g.ap", function(e){
+		$(document).on("mouseleave", "#floor-bar-tls g.ap", function(e){
 			var apid = d3.select(this).attr("apid");
 			EventManager.apDehover([apid]);
 		});
@@ -232,7 +235,6 @@ WFV.FloorBar = function(_time_range){
 	}
 
 
-	var is_floor_tl = true;
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
 		size = utils.initG(g, _w, _h, [10, 20, 30, 45]);
@@ -262,6 +264,8 @@ WFV.FloorBar = function(_time_range){
 	function change_tl(){// used to update postion of tls
 		var floor_tls = g.select("#floor-bar-tls").selectAll("g.floor");
 		var ap_tls = g.select("#floor-bar-tls").selectAll("g.ap");
+		var floor_circle = g.select("#floor-bar-circles").selectAll("g.floor");
+		console.log("is_floor_tl", is_floor_tl);
 		if(is_floor_tl){
 			floor_tls.attr("display", "block").transition().delay(250).attr("transform", function(d){
 				return "translate(0,"+vertical_scale[0](d.floor)+")";
@@ -269,9 +273,11 @@ WFV.FloorBar = function(_time_range){
 			ap_tls.transition().attr("transform", function(){
 				return "translate(0,"+vertical_scale[0](current_floor)+")";
 			}).transition().attr("display", "none");
+			//
+			floor_circle.classed("fading", false);
 		}else{
 			floor_tls.transition().attr("display", "none")
-				.transition("transform", function(d){
+				.attr("transform", function(d){
 					if(d.floor > current_floor){
 						return "translate(0,0)";
 					}else if(d.floor < current_floor){
@@ -279,9 +285,11 @@ WFV.FloorBar = function(_time_range){
 					}else{
 					}
 				});
-			ap_tls.transition().delay(250).attr("transform", function(d){
+			ap_tls.transition().delay(500).attr("transform", function(d){
 				return "translate(0,"+vertical_scale[1](d.apid)+")";
 			}).attr("display","block");
+			//
+			floor_circle.classed("fading", function(d){return d.floor != current_floor});
 		}
 	}
 	// change view between tls and ap bars
@@ -489,6 +497,7 @@ WFV.FloorBar = function(_time_range){
 		update_ap_bars();
 		update_floor_tls();
 		update_floor_ap_tls();
+		change_tl();
 	});
 	function _sort_by_floor(f1, f2){
 		var a = f1.floor, b = f2.floor;

@@ -398,8 +398,8 @@ WFV_DB.prototype.tl_data_ap = function(from, to, step, apid, cb){
 	this.records_by_interval(from, to, function(records){
 		records = records.filter(function(r){return +r.apid == +apid});
 		var tl_data = generate_tl_data(records, from.getTime(), to.getTime(), step);
-		tl_data.apid = +apid;
-		cb(tl_data);
+		// tl_data.apid = +apid;
+		cb({apid:+apid, tl_data:tl_data});
 	});		
 }
  
