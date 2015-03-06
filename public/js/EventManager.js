@@ -43,7 +43,7 @@
             floorHoveredList = _.difference(floorHoveredList, list);
         ObserverManager.post(WFV.Message.FloorHover, 
             {floor:floorHoveredList, change:list, isAdd: false}
-        );         
+        );
     }
 
     EventManager.apSelect = function(list) {

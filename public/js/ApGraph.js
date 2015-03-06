@@ -29,6 +29,7 @@ WifiVis.ApGraph = function(){
 
 	ApGraph.init = function(){
 		var _this = this;
+		ObserverManager.addListener(this);
 		spinner = utils.createSpinner(5, 5);
 		processData();
 		worker = new Worker("js/workers/tsneWorker.js");
@@ -89,11 +90,25 @@ WifiVis.ApGraph = function(){
 		});
 	}
 
-	APGraph.OMListen = function(message, data){
+	ApGraph.OMListen = function(message, data){
 		if(message == WFV.Message.FloorChange){
-			console.log("changeFloor", data);
 			var currentFloor = data.floor;
-
+			unhighlight();
+			d3.selectAll(".ap-dot").filter(function(d) {
+				if (d3.select(this).attr("floor") == currentFloor)
+					return true;
+				return false;
+			}).classed("highlight", true);
+		}
+		if (message == WFV.Message.FloorHover) {
+			var floorList = data.floor;
+			console.log(floorList);
+			d3.selectAll(".ap-dot.temp-highlight").classed("temp-highlight", false);
+			d3.selectAll(".ap-dot").filter(function(d) {
+				if (floorList.indexOf(+d3.select(this).attr("floor")) >= 0)
+					return true;
+				return false;
+			}).classed("temp-highlight", true);
 		}
 	}	
 
@@ -108,8 +123,7 @@ WifiVis.ApGraph = function(){
 				return aps[index]._id;
 			})
 			.attr("floor", function(d, index) {
-				
-				return aps[index];
+				return aps[index].floor;
 			})
 			// .attr("topic-id", function(d, index){
 			// 	var topicID = _this.documents[index].topicID;
@@ -168,6 +182,7 @@ WifiVis.ApGraph = function(){
 				ap.y = y;
 				return y;
 			})
+		isShowEdge = false;
 		if (isShowEdge) {
 			gLink.selectAll(".ap-link")
 				.data(links)
@@ -208,7 +223,6 @@ WifiVis.ApGraph = function(){
 				// Empty the coords array.
 				coords = [];
 				svg = d3.select(this);
-
 				// If a selection line already exists,
 				// remove it.
 				svg.select(".polygon-selection").remove();
@@ -223,14 +237,12 @@ WifiVis.ApGraph = function(){
 				// to represent the area where the mouse
 				// has been dragged.
 				svg.select(".polygon-selection").attr({
-				  d: line(coords)
+					d: line(coords)
 				});
 
 				// Figure out which dots are inside the
 				// drawn path and highlight them.
 
-				// _this.selected = [];
-				// _this.selectedDocuments = [];
 				//由于svgGroup做了居中处理，与svg的坐标系不一致，所以要纠正偏移
 				var offsetX = Number(gOffset[0]),
 					offsetY = Number(gOffset[1]);
@@ -242,7 +254,6 @@ WifiVis.ApGraph = function(){
 							Number(d3.select(this).attr("cy")) +  offsetY];
 					if (utils.pointInPolygon(point, coords)) {
 						selected.push(d);
-						// _this.selectedDocuments.push(doc);
 					}
 				});
 				highlight(selected);
@@ -256,6 +267,7 @@ WifiVis.ApGraph = function(){
 					svg.select(".polygon-selection").remove();
 					// svg.selectAll("path").remove();
 					unhighlight();
+					postSelectMessage([]);
 					return;
 				}             
 				// Draw a path between the first point
@@ -265,45 +277,51 @@ WifiVis.ApGraph = function(){
 					d: line([coords[0], coords[coords.length-1]])
 				});
 				svg.select(".polygon-selection").remove();
-
 				// Post message to update other views
 				// ObserverManager.post("SelectDocuments", 
 				//     {documents: _this.selectedDocuments})   
- 
+
+				//由于svgGroup做了居中处理，与svg的坐标系不一致，所以要纠正偏移
+				var offsetX = Number(gOffset[0]), offsetY = Number(gOffset[1]);
+				var selectedAp = [];
+				svg.selectAll(".ap-dot").each(function(d, i) {
+					point = [ Number(d3.select(this).attr("cx")) +  offsetX, 
+							Number(d3.select(this).attr("cy")) +  offsetY];
+					if (utils.pointInPolygon(point, coords)) {
+						selectedAp.push(aps[i]);
+					}
+				});
+
+ 				postSelectMessage(selectedAp);
 			});
 
-			function unhighlight() {
-				d3.selectAll(".ap-dot").classed("highlight", false);
-			}
-
-			function highlight(dotsData) {
-				unhighlight();
-
-				// Find the circles that have an id
-				// in the array of ids given, and 
-				// highlight those.
-				d3.selectAll(".ap-dot").filter(function(d, i) {
-					var index = dotsData.indexOf(d);
-					return index > -1;
-				})
-				.classed("highlight", true);
-			}
-
-			function highlight(dotsData) {
-				unhighlight();
-
-				// Find the circles that have an id
-				// in the array of ids given, and 
-				// highlight those.
-				d3.selectAll(".ap-dot").filter(function(d, i) {
-					var index = dotsData.indexOf(d);
-					return index > -1;
-				})
-				.classed("highlight", true);
-			}
-
+		function postSelectMessage(ApList) {
+			console.log(ApList);
+			ttt = ApList
+			var list = _.pluck(ApList, "apid");
+			console.log(list);
+			EventManager.apDeselect();
+			EventManager.apSelect(list);
+		}
 
 		return drag;
+	}
+
+	function unhighlight() {
+		d3.selectAll(".ap-dot").classed("highlight", false);
+	}
+
+	function highlight(dotsData) {
+		unhighlight();
+
+		// Find the circles that have an id
+		// in the array of ids given, and 
+		// highlight those.
+		d3.selectAll(".ap-dot").filter(function(d, i) {
+			var index = dotsData.indexOf(d);
+			return index > -1;
+		})
+		.classed("highlight", true);
 	}
 
 	function processData() {
