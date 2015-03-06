@@ -12,6 +12,7 @@
 
 #aps-wrapper .ap.fading circle{
 	fill: #E0E0E0;
+	opacity: 0.4;
 }
 
 #aps-wrapper .ap.hover circle{

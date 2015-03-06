@@ -7,6 +7,7 @@ var floor_image_size = WFV.FLOOR_IMG_SIZE;
 
 WifiVis.FloorDetail = function(){
 	function FloorDetail(){}
+	var floor_color = ColorScheme.floor;
 	var svg = $("#floor-detail-svg");
 	// defs
 	// var markerEndId = "path-arrow";
@@ -259,7 +260,8 @@ WifiVis.FloorDetail = function(){
 					console.warn("illegal r", r);
 				}
 				return r;
-			});
+			}).style("fill", floor_color(current_floor));
+		console.log(floor_color(current_floor));
 		return;
 		// update device
 		gAps.each(function(ap){

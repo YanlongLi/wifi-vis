@@ -104,6 +104,7 @@ WFV.FloorBar = function(_time_range){
 		if(message == WFV.Message.ApSelect){// isAdd true or false
 			var apids = data.apid, change = data.change, isAdd = data.isAdd;
 			if(isAdd){// select ap, TODO: add labels
+				if(!change) return;
 				change.forEach(function(apid){
 					// ap time line
 					$("#floor-bar-aps .floor .bar[apid="+apid+"]")
@@ -113,6 +114,7 @@ WFV.FloorBar = function(_time_range){
 						.addClass("selected").attr("_selected", true);
 				});
 			}else{// deselect ap
+				if(!change) return;
 				change.forEach(function(apid){
 					// ap time line
 					$("#floor-bar-aps .floor .bar[apid="+apid+"]")
@@ -175,6 +177,7 @@ WFV.FloorBar = function(_time_range){
 				is_floor_tl = !is_floor_tl;
 				change_tl();
 			}else{
+				EventManager.apDeselect(null);
 				EventManager.floorChange(floor);
 			}
 		});

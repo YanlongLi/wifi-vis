@@ -125,11 +125,13 @@ WFV.Timeline = function(_time_range){
 				// when floor select, show floor timeline
 				// hide ap timeline, this is done by manually
 				// change_scale(2);
+				if(!change) return;
 				change.forEach(function(f){
 					$("#timeline-floor g.line[floor="+f+"]").addClass("selected")
 						.attr('_selected', true);
 				});
 			}else{
+				if(!change) return;
 				change.forEach(function(f){
 					$("#timeline-floor g.line[floor="+f+"]").removeClass("selected")
 						.attr('_selected', null);
@@ -154,6 +156,7 @@ WFV.Timeline = function(_time_range){
 			var apids = data.apid, change = data.change, isAdd = data.isAdd;
 			if(isAdd){// select ap, TODO: add labels
 				// change_scale(1);
+				if(!change) return;
 				change.forEach(function(apid){
 					// ap time line
 					//$("#timeline-ap g.line[apid="+apid+"]")
@@ -161,10 +164,12 @@ WFV.Timeline = function(_time_range){
 					_timeline_data(TIMELINE_TYPE.ap, apid, update_ap_timeline);
 				});
 			}else{// deselect ap
+				if(!change) return;
 				change.forEach(function(apid){
 					// ap time line
 					$("#timeline-ap g.line[apid="+apid+"]")
 						.removeClass("selected").attr("_selected", null);
+					$("#timeline-ap g.line[apid="+apid+"]").remove();
 				});
 			}
 		}
