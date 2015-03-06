@@ -163,7 +163,8 @@ WifiVis.ApGraph = function(){
 		var maxY = _.max(dotPositions, function(d) {return d[1]})[1];
 		var width = o.w;
 			height = o.h;
-		width = height = Math.min(width, height) - 20;
+		// width = height = Math.min(width, height) - 20;
+		width = width - 20; height = height - 20;
 		if (gNode.selectAll(".ap-dot").size() == 0) {
 			createElements();
 		}
