@@ -73,8 +73,12 @@ WifiVis.DeviceView = function(selectedDevices){
 
   function zoomed() {
     gDot.attr("transform", "translate(" + zoom.translate()+ ")scale(" + zoom.scale() + ")");
+    gDot.selectAll(".deviceAPDot")
+        .attr("r", 2 / Math.sqrt(zoom.scale()));
     gRect.attr("transform", "translate(" + zoom.translate()+ ")scale(" + zoom.scale() + ")");
     gLine.attr("transform", "translate(" + zoom.translate()+ ")scale(" + zoom.scale() + ")");
+    gLine.selectAll("deviceVerticalLine")
+        .style("stroke-width", (0.1 / zoom.scale() / zoom.scale()) + "em");
     gTag.attr("transform", "translate(0," + zoom.translate()[1]+ ")scale(" + zoom.scale() + ")");
     gTag.selectAll(".apTag.text")
       .style("font-size", (0.6/zoom.scale()) + "em");
@@ -327,6 +331,7 @@ WifiVis.DeviceView = function(selectedDevices){
   //DeviceView.update = function(deviceList){
   DeviceView.update = function(deviceList){
     var access_data = [];
+    apNameMappings = {}, apFloorMappings = {};
     for (var k = 0; k < deviceList.length; k++) {
       access_data.push(get_access_data(deviceList[k], [timeFrom]));
     }
@@ -496,6 +501,9 @@ WifiVis.DeviceView = function(selectedDevices){
         .attr("fill", function(d) {
           return "black";
         })
+        .on("mouseover", function(d, i) {
+          var mouse = [d3.event.clientX, d3.event.clientY];
+        })
         .style("opacity", 0.1)
         .style("stroke", "white")
         .style("stroke-width", "2px")
@@ -544,7 +552,8 @@ WifiVis.DeviceView = function(selectedDevices){
           .attr("y2", function(d) {
             return y(d[1].apid) - yFloor.rangeBand()/2.0;
           })
-          .attr("stroke", "steelblue");
+          .attr("stroke", "steelblue")
+          .style("stroke-width", "0.1em");
     }
     else {
 
