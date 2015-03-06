@@ -90,6 +90,8 @@ function init(){
 	// apGraph
 	apGraph = WifiVis.ApGraph();
 	apGraph.init();
+	deviceView = WFV.DeviceView();
+	deviceView.draw();
 	// floorDetail.addFloorChangeListener(apGraph);
 	// floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, apGraph);
 	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_ENTER, apGraph);

@@ -26,7 +26,7 @@ var tracer;
 var floorDetail, floorsNav;
 var tlSize, timeline, tlBrush;
 var apGraph;
-
+var deviceView;
 
 // after get apLst and records
 
@@ -61,6 +61,8 @@ function init(){
 	floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_LEAVE, apGraph); 
 	tlBrush.addEventListener(tlBrush.EventType.EVENT_BRUSH_END, apGraph);
 	apGraph.addEventListener(apGraph.EventType.AP_CLICK, floorDetail);
+	// deviceView
+	//deviceView = WifiVis.DeviceView();
 	//
 	//tracer.gotoTime((timeFrom.getTime()+timeTo.getTime())/2);
 	//floorDetail.update_links([timeFrom.getTime(),timeTo.getTime()]);
@@ -69,6 +71,7 @@ function init(){
 	timeline.update();
 	apGraph.draw();
 	floorDetail.set_init_floor();
+	//deviceView.draw();
 }
 
 function init_aplst_records(){
