@@ -307,6 +307,7 @@ WFV.FloorBar = function(_time_range){
 	function update_floor_circle(_data){
 		// [{floor:, count:}]	
 		// if no _data, update size
+		var floor_color = ColorScheme.floor;
 		var scale = circle_scale.range([2, per_h.h0/2]);
 		var floors = g.select("#floor-bar-circles").selectAll("g.floor");
 		if(_data){
@@ -337,7 +338,7 @@ WFV.FloorBar = function(_time_range){
 				console.log("count at floor",d.floor, d.count);
 				var r = scale(d.count);
 				return  isNaN(r) || r < 1 ? 1 : r;
-			});
+			}).style("fill", function(d){return floor_color(d.floor)});
 		floors.select("text").datum(function(d){return d.floor})
 			.attr("x", -30).attr("y", per_h.h0/2)
 			.text(function(d){return "F"+d})

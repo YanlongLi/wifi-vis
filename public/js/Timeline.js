@@ -1,6 +1,7 @@
 WFV.Timeline = function(_time_range){
 	function Timeline(){}
 	//
+	var floor_color = ColorScheme.floor;
 	var svg = $("#timeline-svg"), size;
 	var g = d3.select("#timeline-g").attr("class", "timeline");
 	// TODO to change scale
@@ -319,13 +320,14 @@ WFV.Timeline = function(_time_range){
 			//
 			var tl = d3.select(".floor-"+_data.floor).datum(_data);
 			tl.select("path").datum(function(d){return d.tl_data})
-				.attr("d", line);
+				.attr("d", line).style("stroke", function(d){return floor_color(d.floor)});
 			//
 			floor_data_status[_data.floor] = true;
 			g.select("#y-axis").call(yAxis.scale(y));
 		}else{
 			var tl = d3.select("#timeline-floor").selectAll("g.line");
-			var lines = tl.selectAll("path").attr("d", line);
+			var lines = tl.selectAll("path").attr("d", line)
+				.style("stroke",function(d){return floor_color(d.floor)});
 		}
 //		g.select("#y-axis").call(yAxis.scale(y));
 	}

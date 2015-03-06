@@ -18,10 +18,14 @@
 
 #floor-bar-circles .floor.selected circle{
 	fill: #646464;
+	stroke: #646464;
+	stroke-width: 2;
 }
 
 #floor-bar-circles .floor.hover circle{
 	fill: #646464;
+	stroke: #646464;
+	stroke-width: 2;
 }
 
 #floor-bar-circles .floor.fading{
