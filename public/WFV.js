@@ -24,7 +24,7 @@ WFV.Message1 = {
 WFV.Message = {
 	FloorChange      : "FloorChange"      , //{floor  : }
 	FloorSelect      : "FloorSelect"      , //{floor: [], change:[], isAdd: bool}
-	FloorHover       : "FloorDeselect"    , //{floor: [], change:[], isAdd: bool}
+	FloorHover       : "FloorHover"    , //{floor: [], change:[], isAdd: bool}
 
 	ApSelect         : "ApSelect"         , //{apid: [], change:[], isAdd: bool}
 	ApHover          : "ApHover"          , //{apid: [], change:[], isAdd: bool}
@@ -60,11 +60,12 @@ WFV.TIME_STEP = {
 	day    : 60*60*24*1000
 };
 
-WFV.AP_COLOR = (function(){
+WFV.FLOOR_COLOR = (function(){
 	var colors = [
 		"#B28A00", "#B2AE00", "#42B200",
 		"#00B22B", "#00B28C", "#0077B2"];
-	return d3.scale.ordinal().range(colors);
+	return d3.scale.ordinal()
+		.domain(d3.range(1,18)).range(colors);
 })();
 
 

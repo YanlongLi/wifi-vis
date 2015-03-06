@@ -13,7 +13,7 @@ WFV.Timeline = function(_time_range){
 	var x = d3.time.scale().domain(all_time_range);
 	var ys = d3.range(0,3).map(function(){
 		return d3.scale.linear().range([0,10]);
-	}),y = ys[0];
+	}),y = ys[1];
 	var floor_max_count = d3.map(), ap_max_count = d3.map();
 	var xAxis = d3.svg.axis().scale(x).orient("bottom")
 		.tickSize(2,0,4).tickSubdivide(0);
@@ -34,9 +34,11 @@ WFV.Timeline = function(_time_range){
 		time_range  = d3.event.target.extent();
 		if(time_point - time_range[0] != 0){
 			time_point = time_range[0];
-			ObserverManager.post(WFV.Message1.TimePointChange, {time: time_point});
+			EventManager.timePointChange(time_point);
+			// ObserverManager.post(WFV.Message1.TimePointChange, {time: time_point});
 		}
-		ObserverManager.post(WFV.Message1.TimeRangeChange, {range: time_range});
+		EventManager.timeRangeChange(time_range);
+		// ObserverManager.post(WFV.Message1.TimeRangeChange, {range: time_range});
 	}
 	function onBrushEnd(){
 		if(!d3.event.sourceEvent) return;
@@ -46,7 +48,8 @@ WFV.Timeline = function(_time_range){
 			range = all_time_range;
 		}
 		time_range = range;
-		ObserverManager.post(WFV.Message1.TimeRangeChanged, {range: time_range});
+		EventManager.timeRangeChanged(time_range);
+		//ObserverManager.post(WFV.Message1.TimeRangeChanged, {range: time_range});
 	}
 	//
 	var current_floor, sel_aps, 
@@ -62,21 +65,24 @@ WFV.Timeline = function(_time_range){
 
 	init_svg();
 	init_interaction();
+	//change_scale(1);
 
 	(function(){// append 1-17 floor lines, init invisible
 		var fls = g.select("#timeline-floor")
-			.selectAll("g.line").data(d3.range(1,18));
+			.selectAll("g.line").data(d3.range(1,18).map(function(d){return {floor:d}}));
 		fls.enter().append("g").attr("class", "line").append("path");
-		fls.attr("floor", function(d){return d})
-			.attr("id", function(d){return "tl-floor-"+d})
-			.attr("display", "none");
-		d3.range(1,18).forEach(_show_floor);
+		fls.attr("floor", function(d){return d.floor})
+			.each(function(d){
+				d3.select(this).classed("floor-" + d.floor, true);
+			});
+		d3.range(1,18).forEach(function(f){_load_floor(f,true)});
 	})();
 
 	g.select("#timeline-basic").attr("class", "line").append("path");
 	_timeline_data(TIMELINE_TYPE.all, null, update_basic_timeline);
 	
-	ObserverManager.post(WFV.Message1.TimeRangeChanged, {range: all_time_range});
+	EventManager.timeRangeChanged(all_time_range);
+	//ObserverManager.post(WFV.Message1.TimeRangeChanged, {range: all_time_range});
 
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
@@ -102,64 +108,110 @@ WFV.Timeline = function(_time_range){
 	//
 	ObserverManager.addListener(Timeline);
 	Timeline.OMListen = function(message, data){
-		if(message == WFV.Message1.FloorChange){
+		// floor
+		if(message == WFV.Message.FloorChange){
 			console.log("timeline on floor change", data.floor)
 			current_floor = +data.floor;
-			g.select("#timeline-floor")
-				.selectAll(" g.line").style("display", "none")
-				.classed("cur", false);
-			g.select("#tl-floor-"+current_floor).style("display","block")
-				.classed("cur", true);
-			_show_floor(current_floor, true);
+			$("#timeline-floor g.line").removeClass("current");
+			$("#timeline-floor g.line[floor="+current_floor+"]").addClass("current");
+			// when change floor, only show floor timeline, ap timeline remove by ApSelect
+			// change_scale(3);
+			_load_floor(current_floor, true);
 		}
-		if(message == WFV.Message1.FloorSelect){
-			var floors = data.floor;
-			floors.forEach(function(floor){
-				if(floor == current_floor) return;
-				_show_floor(floor, true);
-			});
+		if(message == WFV.Message.FloorSelect){// isAdd true or false
+			var floors = data.floor, change = data.change, isAdd = data.isAdd;
+			if(isAdd){
+				// when floor select, show floor timeline
+				// hide ap timeline, this is done by manually
+				// change_scale(2);
+				change.forEach(function(f){
+					$("#timeline-floor g.line[floor="+f+"]").addClass("selected")
+						.attr('_selected', true);
+				});
+			}else{
+				change.forEach(function(f){
+					$("#timeline-floor g.line[floor="+f+"]").removeClass("selected")
+						.attr('_selected', null);
+				});
+			}
 		}
-		if(message == WFV.Message1.FloorDeSelect){
-			console.log("timeline onfloor deselect", data.floor);
-			var floors = data.floor;
-			floors.forEach(function(floor){
-				if(floor == current_floor) return;
-				_show_floor(floor, false);
-			});
+		if(message == WFV.Message.FloorHover){
+			var floors = data.floor, change = data.change, isAdd = data.isAdd;
+			console.log("timeline on floor hover", floors);
+			if(isAdd){
+				change.forEach(function(f){
+					$("#timeline-floor g.line[floor="+f+"]").addClass("hover");
+				});
+			}else{
+				change.forEach(function(f){
+					$("#timeline-floor g.line[floor="+f+"]").removeClass("hover");
+				});
+			}
 		}
-		if(message == WFV.Message1.ApSelect){
-			var apids = data.apid;
-			apids.forEach(function(apid){
-				if(ap_max_count.get(apid)){
-					g.select("#timeline-ap-"+apid).style("display","block");
-				}else{
+		// ap
+		if(message == WFV.Message.ApSelect){// isAdd true or false
+			var apids = data.apid, change = data.change, isAdd = data.isAdd;
+			if(isAdd){// select ap, TODO: add labels
+				// change_scale(1);
+				change.forEach(function(apid){
+					// ap time line
+					//$("#timeline-ap g.line[apid="+apid+"]")
+					//	.addClass("selected").attr("_selected", true);
 					_timeline_data(TIMELINE_TYPE.ap, apid, update_ap_timeline);
-				}
-			});
+				});
+			}else{// deselect ap
+				change.forEach(function(apid){
+					// ap time line
+					$("#timeline-ap g.line[apid="+apid+"]")
+						.removeClass("selected").attr("_selected", null);
+				});
+			}
 		}
-		if(message == WFV.Message1.ApDeSelect){
-			var apids = data.apid;
-			console.log("timeline on ap deselect", apids, ap_max_count.values());
-			apids.forEach(function(apid){
-				// console.log(apid, ap_max_count.keys());
-				if(ap_max_count.get(apid)){
-					g.select("#timeline-ap-"+apid).style("display","none");
-					//$("#timeline-ap-"+apid).css("opacity",0);
-				}
-			});
+		if(message == WFV.Message.ApHover){// isAdd true or false
+			var apids = data.apid, change = data.change, isAdd = data.isAdd;
+			if(isAdd){// select ap, TODO: add labels
+				change.forEach(function(apid){
+					// ap time line
+					$("#timeline-ap g.line[apid="+apid+"]").addClass("selected");
+				});
+			}else{// deselect ap
+				change.forEach(function(apid){
+					// ap time line
+					$("#timeline-ap g.line[apid="+apid+"]").removeClass("selected");
+				});
+			}
 		}
-		if(message == WFV.Message1.TimePointChange){
+		//
+		if(message == WFV.Message.TimePointChange){
 			// TODO
 		}
-		if(message == WFV.Message1.TimeRangeChange){
+		if(message == WFV.Message.TimeRangeChange){
 			// TODO	
 		}
 	}
 	function init_interaction(){
-		// TODO
+		// floor timeline
+		$(document).on("mouseenter", "#timeline-floor g.line",function(e){
+			var sel_f = $(this).attr("floor");
+			EventManager.floorHover([+sel_f]);
+		});
+		$(document).on("mouseleave", "#timeline-floor g.line",function(e){
+			var sel_f = $(this).attr("floor");
+			EventManager.floorDehover([+sel_f]);
+		});
+		// ap timeline
+		$(document).on("mouseenter", "#timeline-ap .ap", function(e){
+			var apid = $(this).attr("apid");
+			EventManager.apHover([+apid]);
+		});
+		$(document).on("mouseleave", "#timeline-ap .ap", function(e){
+			var apid = $(this).attr("apid");
+			EventManager.apDehover([+apid]);
+		});
+		// btn
 		$(document).on("click","#timeline-btn-scale", function(e){
 			console.log("clicked");
-			change_scale();
+			change_scale(1);
 		});
 	}
 	$(window).resize(function(e){
@@ -168,38 +220,38 @@ WFV.Timeline = function(_time_range){
 		update_floor_timeline();
 		update_ap_timeline();
 	});
-	var scale_type = (function(){
-		var type = 0;
-		return function(_type){
-			if(undefined == _type || _type < 0 || _type > 2){
-				return (type++) % 3;
-			}else{
-				return (type = _type);
-			}
-		};
-	})();
-	function change_scale(_type){
-		// type:0,all; 1:floor; 2:ap
-		var type = scale_type(_type);
+	Timeline.change_scale = change_scale;
+	function change_scale(type){
 		console.log("change scale", type);
-		y = ys[type];
-		d3.select("#timeline-basic")
-			.style("display", type <= 0 ? "block":"none");
-		d3.select("#timeline-floor")
-			.style("display", type <= 1 ? "block":"none");
-		d3.select("#timeline-ap").style("display","block");
+		var y = (function(){
+			if(type & 4){
+				return ys[0];
+			}else if(type & 2){
+				return ys[1];
+			}else if(type & 1){
+				return ys[2];
+			}else{
+				console.error("illegal change_scale type");
+			}
+		});
+  	line = d3.svg.line().interpolate("monotone")
+			.x(function(d){return x(d.time)})
+			.y(function(d){return y(d.count)});
+
+		g.select("#y-axis").call(yAxis.scale(y));
 		/*
 		d3.select("#timeline-basic")
 			.style("visibility", type <= 0 ? "visible":"hidden");
 		d3.select("#timeline-floor")
 			.style("visibility", type <= 1 ? "visible":"hidden");
 		d3.select("#timeline-ap").style("visibility","visible");*/
-		yAxis.scale(y);
-		// TODO
-  	line = d3.svg.line().interpolate("monotone")
-			.x(function(d){return x(d.time)})
-			.y(function(d){return y(d.count)});
-		init_svg();
+		// g.select("#y-axis").call(yAxis.scale(y));
+		// init_svg();
+		_show_tl_g(0, (type && 4) ? true : false);
+		_show_tl_g(1, (type && 2) ? true : false);
+		_show_tl_g(2, (type && 1) ? true : false);
+		//
+		// TODO BUGS
 		update_basic_timeline();
 		update_floor_timeline();
 		update_ap_timeline();
@@ -211,60 +263,71 @@ WFV.Timeline = function(_time_range){
 		var tl = g.select("#timeline-basic").select("path");
 		if(_data){
 			ys[0].domain([0, d3.max(_data,function(d){return d.count})]).nice();
-			g.select("#y-axis").call(yAxis);
 			tl.datum(_data);
+			g.select("#y-axis").call(yAxis.scale(y));
 		}
+	//	g.select("#y-axis").call(yAxis);
 		tl.attr("d", line)
 	}
 	function update_ap_timeline(_data){
 		// [{time:,count;,values:[]}].apid:
 		// if _data, add; no _data, update
 		if(_data){
-			var cmax = d3.max(_data, function(d){return d.count});
+			console.log(_data);
+			var cmax = d3.max(_data.tl_data, function(d){return d.count});
 			ap_max_count.set(_data.apid, cmax);
 			ys[2].domain([0, d3.max(ap_max_count.values())]).nice();
-			g.select("#y-axis").call(yAxis.scale(y));
-			var tl = d3.select("#timeline-ap")
-				.append("g").attr("class","line").datum(_data)
-				.attr("apid", function(d){return d.apid})
-				.attr("id", function(d){return "timeline-ap-"+d.apid});
-			tl.append("path").datum(function(d){return d})
-				.attr("d", line);
-		}else{
-			var tl = d3.select("#timeline-ap").selectAll("g.line");
-			var lines = tl.select("path").attr("d", line);
+			var tls = d3.select("#timeline-ap")
+				.selectAll("g.line").data([_data], function(d){return d.apid});
+			var tls_enter = tls.enter().append("g").attr("class","line");
+			tls_enter.append('path');
+			tls.attr("apid", function(d){return d.apid}).each(function(d){
+					d3.select(this).classed("ap-"+d.apid);
+			});
+			tls.selectAll("path").datum(function(d){return d.tl_data});
+				//.attr("d", line);
 		}
+		d3.select("#timeline-ap").selectAll("g.line path")
+			.attr("d", line);
+//		g.select("#y-axis").call(yAxis.scale(y));
 	}
-	function _show_floor(floor, b){
-		// load floor data and draw path, 
+	function _show_tl_g(type, flag){
+		// type:0, show timeline-basic
+		// type:1, show timeline-floor
+		// type:2  show timeline-ap
+		var selector = ["#timeline-basic", "#timeline-floor", "#timeline-ap"];
+		g.select(selector[type]).style('display', flag ? "block":"none");
+	}
+	function _load_floor(floor, b){// load floor data and draw path, 
 		// not change visibility
 		if(b && !floor_data_status[floor]){
+			console.log("load floor timeline data", floor);
 			_timeline_data(TIMELINE_TYPE.floor, floor, update_floor_timeline);
 		}
 		//g.select("#tl-floor-"+floor).style("display", b ? "block" : "none");
 	}
 	function update_floor_timeline(_data){
-		// {time:,count;,values:[],floor:}
+		// [{time:,count;,values:[],floor:}]
 		// if _data, add; no _data, update
 		if(_data){
-			var cmax = d3.max(_data, function(d){return d.count});
+			var cmax = d3.max(_data.tl_data, function(d){return d.count});
 			console.log("update_floor_timeline", _data.floor);
 			floor_max_count.set(_data.floor, cmax);
 			console.log("update_floor_timeline, floor_max_count",
 					floor_max_count.values());
 			ys[1].domain([0, d3.max(floor_max_count.values())]).nice();
-			g.select("#y-axis").call(yAxis.scale(y));
 			//
-			var tl = d3.select("#timeline-floor")
-				.select("#tl-floor-"+_data.floor).datum(_data);
-			tl.select("path").datum(function(d){return d})
+			var tl = d3.select(".floor-"+_data.floor).datum(_data);
+			tl.select("path").datum(function(d){return d.tl_data})
 				.attr("d", line);
 			//
 			floor_data_status[_data.floor] = true;
+			g.select("#y-axis").call(yAxis.scale(y));
 		}else{
 			var tl = d3.select("#timeline-floor").selectAll("g.line");
-			var lines = tl.select("path").attr("d", line);
+			var lines = tl.selectAll("path").attr("d", line);
 		}
+//		g.select("#y-axis").call(yAxis.scale(y));
 	}
 	/*
 	 * help function

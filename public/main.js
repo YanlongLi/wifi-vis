@@ -8,7 +8,7 @@ var records = [];
 
 var tracer;
 
-var floor_bar = WFV.FloorBar();
+var floor_bar = WFV.FloorBar([timeFrom, timeTo]);
 
 var floorDetail, floorsNav, timeline;
 var apGraph;
@@ -24,9 +24,7 @@ $(document).ready(function() {
 				.dblclick(function(){
 					$(_this).find('.dragbox-content').toggle("normal");
 					$(_this).toggleClass("dragbox-collapse");
-
 				})
-			.end()
 		});
 	$( ".dragbox" ).draggable({ 
 		handle: ".header",
@@ -62,31 +60,12 @@ db.init(function(){
 });
 
 function init(){
-	//tracer = RecordTracer.CreateTracer();
-	//floorDetail = WFV.FloorDetail();
+	tracer = RecordTracer.CreateTracer();
+	floorDetail = WFV.FloorDetail();
 	timeline = WFV.Timeline([timeFrom, timeTo]);
-	ObserverManager.post(WFV.Message1.TimeRangeChange,
-			{range:[new Date(2013,08,02,12), new Date(2013,08,02,16)]});
-	ObserverManager.post(WFV.Message1.TimePointChange, {time:new Date(2013,08,02,12)});
-	ObserverManager.post(WFV.Message1.FloorChange, {floor:1});
-	/*
-	// init timeline
-	tlSize = utils.getSize("#timeline-wrapper-inner");
-	var svg = d3.select("#timeline-wrapper-inner > svg")
-		.attr("width", tlSize.width()).attr("height", tlSize.height());
-	var _tlG = utils.initSVG("#timeline-wrapper-inner", [20, 40, 20, 80]);
-	_tlG.g.attr("id","timeline-g");
-	tlSize = {width: _tlG.w, height: _tlG.h};
-	// TODO
-	timeline = WifiVis.Timeline("#timeline-g",{tid:1});
-	timeline.set_size(tlSize);
-	floorDetail.addFloorChangeListener(timeline);
-	floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, timeline);
-	// brush
-	tlBrush = WifiVis.TimelineBrush(timeline)
-		.onBrushMove(onMove)
-		.onBrushEnd(onEnd);
-	*/
+	EventManager.timeRangeChanged([new Date(2013,08,02,12), new Date(2013,08,02,16)]);
+	EventManager.timePointChange(new Date(2013,08,02,12));
+	EventManager.floorChange(1);
 	// apGraph
 	apGraph = WifiVis.ApGraph();
 	apGraph.init();
@@ -102,24 +81,3 @@ function init(){
 	// timeline.update();
 	apGraph.draw(); 
 }
-
-/*
-function onStart(extent){
-}
-function onMove(extent){
-	var tl = this.timeline,
-		shownData = tl.shownData, data = tl.data;
-	var e0 = extent[0], e1 = extent[1];
-	tracer.gotoTime(new Date(e0));
-	floorDetail.update_ap_device(apLst);
-	//floorDetail.update_links([e0, e1]);
-}
-function onEnd(extent){
-	var tl = this.timeline,
-		shownData = tl.shownData, data = tl.data;
-	var e0 = extent[0], e1 = extent[1];
-	console.log("on bursh end:", e0, e1);
-	tracer.gotoTime(new Date(e0));
-	floorDetail.update_ap_device(apLst);
-	floorDetail.update_links([e0, e1]);
-}*/

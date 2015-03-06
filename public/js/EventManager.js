@@ -29,7 +29,7 @@
             {floor:floorSelectdList, change:list, isAdd: false}
         );
     }
-    EventManager.floorHovere = function(list) {
+    EventManager.floorHover = function(list) {
         floorHoveredList = _.union(floorHoveredList, list);
         ObserverManager.post(WFV.Message.FloorHover, 
             {floor:floorHoveredList, change:list, isAdd: true}
@@ -43,12 +43,12 @@
             floorHoveredList = _.difference(floorHoveredList, list);
         ObserverManager.post(WFV.Message.FloorHover, 
             {floor:floorHoveredList, change:list, isAdd: false}
-        );         
+        );
     }
 
     EventManager.apSelect = function(list) {
         apSelectdList = _.union(apSelectdList, list);
-        ObserverManager.post(WFV.Message.APSelect, 
+        ObserverManager.post(WFV.Message.ApSelect, 
             {apid:apSelectdList, change:list, isAdd: true}
         );        
     }
@@ -58,13 +58,13 @@
             apSelectdList = [];
         } else
             apSelectdList = _.difference(apSelectdList, list);
-        ObserverManager.post(WFV.Message.APSelect, 
+        ObserverManager.post(WFV.Message.ApSelect, 
             {apid:apSelectdList, change:list, isAdd: false}
         );        
     }
     EventManager.apHover = function(list) {
         apHoveredList = _.union(apHoveredList, list);
-        ObserverManager.post(WFV.Message.APHover, 
+        ObserverManager.post(WFV.Message.ApHover, 
             {apid:apHoveredList, change:list, isAdd: true}
         );        
     }
@@ -74,7 +74,7 @@
             apHoveredList = [];
         } else
             apHoveredList = _.difference(apHoveredList, list);
-        ObserverManager.post(WFV.Message.APHover, 
+        ObserverManager.post(WFV.Message.ApHover, 
             {apid:apHoveredList, change:list, isAdd: false}
         );         
     }
@@ -118,7 +118,7 @@
         );  
     }    
 
-    EventManager.pathDeelect = function(sid, tid, weight) {
+    EventManager.pathDeselect = function(sid, tid, weight) {
         ObserverManager.post(WFV.Message.PathDeSelect, 
             {sid:sid, tid:tid, weight:weight}
         );  
@@ -133,7 +133,7 @@
     }    
 
     EventManager.timeRangeChanged = function(range) {
-        ObserverManager.post(WFV.Message.TimeRangeChange, {range: range});
+        ObserverManager.post(WFV.Message.TimeRangeChanged, {range: range});
     }    
 
     window["EventManager"] = EventManager;
