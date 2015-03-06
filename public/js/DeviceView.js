@@ -72,16 +72,22 @@ WifiVis.DeviceView = function(selectedDevices){
   initInteraction();
 
   function zoomed() {
-    gDot.attr("transform", "translate(" + zoom.translate()+ ")scale(" + zoom.scale() + ")");
+    var zoomX = zoom.translate()[0], zoomY = zoom.translate()[1];
+    // gDot.attr("transform", "translate(" + zoom.translate()) + ")scale(" + zoom.scale() + ")");
+    // gDot.selectAll(".deviceAPDot")
+    //     .attr("r", 2 / Math.sqrt(zoom.scale()));
+    // gRect.attr("transform", "translate(" + zoom.translate() + ")scale(" + zoom.scale() + ")");
+    // gLine.attr("transform", "translate(" + zoom.translate() + ")scale(" + zoom.scale() + ")");
+    gDot.attr("transform", "translate(" + (40 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
     gDot.selectAll(".deviceAPDot")
         .attr("r", 2 / Math.sqrt(zoom.scale()));
-    gRect.attr("transform", "translate(" + zoom.translate()+ ")scale(" + zoom.scale() + ")");
-    gLine.attr("transform", "translate(" + zoom.translate()+ ")scale(" + zoom.scale() + ")");
+    gRect.attr("transform", "translate(" + (40 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
+    gLine.attr("transform", "translate(" + (40 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
     gLine.selectAll("deviceVerticalLine")
         .style("stroke-width", (0.1 / zoom.scale() / zoom.scale()) + "em");
     gTag.attr("transform", "translate(0," + zoom.translate()[1]+ ")scale(" + zoom.scale() + ")");
     gTag.selectAll(".apTag.text")
-      .style("font-size", (0.6/zoom.scale()) + "em");
+      .style("font-size", (0.6 / zoom.scale()) + "em");
     //gYAxis.call(yAxis);
     gXAxis.call(xAxis);
     //gYAxis.call(yAxis.scale(yScale.range([zoom.translate()[1] + (size.height * zoom.scale()), zoom.translate()[1]])));
@@ -131,14 +137,14 @@ WifiVis.DeviceView = function(selectedDevices){
     //var _w = svg.width(), _h = svg.height()-5;
     var _w = svg.w, _h = svg.h - 5;
 
-    size = utils.initG(g, _w, _h, [0,40,20,0]);
-    timelineSize = utils.initG(gXAxis, _w, 20, [0,40,20,0]);
+    size = utils.initG(g, _w, _h, [0,5,20,0]);
+    timelineSize = utils.initG(gXAxis, _w, 20, [0,5,20,0]);
     x.domain([timeFrom, timeTo]).range([0, size.width]);
     yScale.range([size.height, 0]);
     yFloor.rangeBands([size.height, 0], .1);
     gXAxis
       .attr("class", "x axis")
-      .attr("transform", "translate(0," + (size.height+5) + ")")
+      .attr("transform", "translate(40," + (size.height+5) + ")")
       //.attr("transform", "translate(40," + 0 + ")")
       .call(xAxis);
 
@@ -150,12 +156,18 @@ WifiVis.DeviceView = function(selectedDevices){
 
    
     //g.call(d3.behavior.zoom().scaleExtent([1, 10]).on("zoom", zoomed));
-    zoom = d3.behavior.zoom().scaleExtent([1, 10]).x(x).y(yScale).on("zoom", zoomed);
+    zoom = d3.behavior.zoom()
+            .center([0, 0])
+            .scaleExtent([1, 10])
+            .x(x)
+            //.y(yScale)
+            .on("zoom", zoomed);
     g.call(zoom).call(zoom.event);
 
-    gDot.attr("transform", "translate(0,0)scale(1,1)");
-    gRect.attr("transform", "translate(0,0)scale(1,1)");
-    gLine.attr("transform", "translate(0,0)scale(1,1)");
+    gDot.attr("transform", "translate(40,0)scale(1,1)");
+    gRect.attr("transform", "translate(40,0)scale(1,1)");
+    gLine.attr("transform", "translate(40,0)scale(1,1)");
+    gTag.attr("transform", "translate(0,0)scale(1,1)");
     //gXAxis.attr("transform",  "translate(0,0)scale(1,1)");
 
     d3.select("#reset-btn").on("click", reset);
@@ -184,7 +196,8 @@ WifiVis.DeviceView = function(selectedDevices){
         translate = zoom.translate(),
         tempX = translate[0], tempY = translate[1],
         target_scale = scale * factor
-        center = [svg.w / 2, svg.h / 2];
+        //center = [svg.w / 2, svg.h / 2];
+        center = [0, 0];
 
     // If we're already at an extent, done
     if (target_scale === extent[0] || target_scale === extent[1]) { return false; }
@@ -367,6 +380,8 @@ WifiVis.DeviceView = function(selectedDevices){
     for (var device = 0; device < access_data.length; device ++) {
     //for (var device = 2; device < 4; device ++) {
       tempDataset = access_data[device][0].lines;
+      for (var i = 0; i< tempDataset.length; i++)
+          tempDataset[i]["device"] = deviceList[device];
       dataset.push(tempDataset[0]);
       dataDeviceMappings[cnt++] = device;
       for (var i = 1; i < tempDataset.length; i++) {
@@ -460,21 +475,21 @@ WifiVis.DeviceView = function(selectedDevices){
         }))
         .enter()
         .append("g");
-      gTags
-        .append("rect")
-        .attr("class", "apTag rect")
-        .attr("x", 0)
-        .attr("y", function(d){
-          return y(floorDomain[d]) - yFloor.rangeBand()/2.0 - 2.5;
-        })
-        .attr("width", size.width)
-        .attr("height", 5)
-        .style("fill", "grey")
-        .style("opacity", 0.0);
+      // gTags
+      //   .append("rect")
+      //   .attr("class", "apTag rect")
+      //   .attr("x", 0)
+      //   .attr("y", function(d){
+      //     return y(floorDomain[d]) - yFloor.rangeBand()/2.0 - 2.5;
+      //   })
+      //   .attr("width", size.width)
+      //   .attr("height", 5)
+      //   .style("fill", "grey")
+      //   .style("opacity", 0.0);
       gTags
         .append("text")
         .attr("class", "apTag text")
-        .attr("x", -40)
+        .attr("x", 0)
         .attr("y", function(d){
           return y(floorDomain[d]) - yFloor.rangeBand()/2.0 + 2.5;
         })
@@ -488,6 +503,10 @@ WifiVis.DeviceView = function(selectedDevices){
         .enter().append("rect")
         //.attr("class", "rect")
         .attr("class", "deviceAPRect")
+        .attr("fill", function(d) {
+          var floor = +apFloorMappings[d[0].apid].substring(1);
+          return ColorScheme.floor(floor);
+        })
         .attr("x", function(d){
             return x(d[0].date_time);
           })
@@ -498,16 +517,23 @@ WifiVis.DeviceView = function(selectedDevices){
           return x(d[1].date_time) - x(d[0].date_time);
         })
         .attr("height", 5)
-        .attr("fill", function(d) {
-          return "black";
-        })
         .on("mouseover", function(d, i) {
           var mouse = [d3.event.clientX, d3.event.clientY];
-        })
-        .style("opacity", 0.1)
-        .style("stroke", "white")
-        .style("stroke-width", "2px")
-        ;
+          var timePoint = x.invert(d3.mouse(this)[0]);
+          console.log(timePoint);
+          var list = "";
+          var deviceList = [];
+          dataset.forEach(function(p, j){
+            if (timePoint >= p[0].date_time && timePoint <= p[1].date_time) {
+              console.log(p);
+              list += p["device"] + " ";
+              deviceList.push(p["device"]);
+            }
+          });
+          console.log(list);
+          // focus.attr("transform", "translate(" + x(d.date) + "," + y(d.close) + ")");
+          // focus.select("text").text(formatCurrency(d.close));
+        });
 
       //svg.selectAll(".dot")
       gDot.selectAll(".deviceAPDot")
@@ -516,9 +542,9 @@ WifiVis.DeviceView = function(selectedDevices){
         //.attr("class", "dot")
         .attr("class", "deviceAPDot")
         .attr("r", 2)
-        .style("fill", function(d) {
-          return "#8080FF";
-        })
+        // .style("fill", function(d) {
+        //   return "#8080FF";
+        // })
         .attr("cx", function(d){
           return x(d.date_time);
         })
@@ -551,23 +577,23 @@ WifiVis.DeviceView = function(selectedDevices){
           })
           .attr("y2", function(d) {
             return y(d[1].apid) - yFloor.rangeBand()/2.0;
-          })
-          .attr("stroke", "steelblue")
-          .style("stroke-width", "0.1em");
+          });
+          //.attr("stroke", "steelblue")
+          //.style("stroke-width", "0.1em");
     }
     else {
 
-      gTag.selectAll(".apTag.rect")
-        .attr("x", 0)
-        .attr("y", function(d){
-          return y(floorDomain[d]) - yFloor.rangeBand()/2.0 - 2.5;
-        })
-        .attr("width", size.width)
-        .attr("height", 5)
-        .style("fill", "grey")
-        .style("opacity", 0.0);
+      // gTag.selectAll(".apTag.rect")
+      //   .attr("x", 0)
+      //   .attr("y", function(d){
+      //     return y(floorDomain[d]) - yFloor.rangeBand()/2.0 - 2.5;
+      //   })
+      //   .attr("width", size.width)
+      //   .attr("height", 5)
+      //   .style("fill", "grey")
+      //   .style("opacity", 0.0);
       gTag.selectAll(".apTag.text")
-        .attr("x", -40)
+        .attr("x", 0)
         .attr("y", function(d){
           return y(floorDomain[d]) - yFloor.rangeBand()/2.0 + 2.5;
         });
@@ -587,9 +613,6 @@ WifiVis.DeviceView = function(selectedDevices){
     //svg.selectAll(".dot")
       gDot.selectAll(".deviceAPDot")
         .attr("r", 2)
-        .style("fill", function(d) {
-          return "#8080FF";
-        })
         .attr("cx", function(d){
           return x(d.date_time);
         })
@@ -618,9 +641,7 @@ WifiVis.DeviceView = function(selectedDevices){
           })
           .attr("y2", function(d) {
             return y(d[1].apid) - yFloor.rangeBand()/2.0;
-          })
-          .attr("stroke", "steelblue");
-
+          });
     }
 
   }
