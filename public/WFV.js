@@ -2,25 +2,6 @@ var WFV = {};
 
 var WifiVis = WFV;
 
-WFV.Message1 = {
-	FloorChange      : "_FloorChange"      , //{floor  : }
-	FloorSelect      : "_FloorSelect"      , //{floor  : []} not include the current floor
-	FloorDeSelect    : "_FloorDeselect"    , //{floor  : []} not include the current floor
-
-	ApSelect         : "_ApSelect"         , //{apid   : [], click:}
-	ApDeSelect       : "_ApDeSelect"       , //{apid   : [], click:}
-
-	DeviceSelect     : "_DeviceSelect"     , //{device : []}
-	DeviceDeSelect   : "_DeviceDeSelect"   , //{device : []}
-
-	PathSelect       : "_PathSelect"       , // {sid   , tid                               , weight}
-	PathDeSelect     : "_PathDeSelect"     , // {sid   , tid                               , weight}
-
-	TimePointChange  : "_TimePointChange"  , //{time   : }
-	TimeRangeChange  : "_TimeRangeChange"  , //{range  : []}
-	TimeRangeChanged : "_TimeRangeChanged" , //{range  : []}
-};
-
 WFV.Message = {
 	FloorChange      : "FloorChange"      , //{floor  : }
 	FloorSelect      : "FloorSelect"      , //{floor: [], change:[], isAdd: bool}
@@ -59,14 +40,6 @@ WFV.TIME_STEP = {
 	hour   : 60*60*1000,
 	day    : 60*60*24*1000
 };
-
-WFV.FLOOR_COLOR = (function(){
-	var colors = [
-		"#B28A00", "#B2AE00", "#42B200",
-		"#00B22B", "#00B28C", "#0077B2"];
-	return d3.scale.ordinal()
-		.domain(d3.range(1,18)).range(colors);
-})();
 
 
 WFV.DATA_PATH = function(){return "data/"};

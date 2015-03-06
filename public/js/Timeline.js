@@ -36,10 +36,8 @@ WFV.Timeline = function(_time_range){
 		if(time_point - time_range[0] != 0){
 			time_point = time_range[0];
 			EventManager.timePointChange(time_point);
-			// ObserverManager.post(WFV.Message1.TimePointChange, {time: time_point});
 		}
 		EventManager.timeRangeChange(time_range);
-		// ObserverManager.post(WFV.Message1.TimeRangeChange, {range: time_range});
 	}
 	function onBrushEnd(){
 		if(!d3.event.sourceEvent) return;
@@ -50,7 +48,6 @@ WFV.Timeline = function(_time_range){
 		}
 		time_range = range;
 		EventManager.timeRangeChanged(time_range);
-		//ObserverManager.post(WFV.Message1.TimeRangeChanged, {range: time_range});
 	}
 	//
 	var current_floor, sel_aps, 
@@ -83,7 +80,6 @@ WFV.Timeline = function(_time_range){
 	_timeline_data(TIMELINE_TYPE.all, null, update_basic_timeline);
 	
 	EventManager.timeRangeChanged(all_time_range);
-	//ObserverManager.post(WFV.Message1.TimeRangeChanged, {range: all_time_range});
 
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
