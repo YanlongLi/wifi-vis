@@ -24,7 +24,7 @@ WFV.Message1 = {
 WFV.Message = {
 	FloorChange      : "FloorChange"      , //{floor  : }
 	FloorSelect      : "FloorSelect"      , //{floor: [], change:[], isAdd: bool}
-	FloorHover       : "FloorDeselect"    , //{floor: [], change:[], isAdd: bool}
+	FloorHover       : "FloorHover"    , //{floor: [], change:[], isAdd: bool}
 
 	ApSelect         : "ApSelect"         , //{apid: [], change:[], isAdd: bool}
 	ApHover          : "ApHover"          , //{apid: [], change:[], isAdd: bool}
