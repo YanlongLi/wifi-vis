@@ -49,8 +49,7 @@ SVGElement.prototype.toggleClass = function (className) {
 		var elem,
 			i = 0,
 			len = this.length;
-
-		console.log("len", len, this);
+			
 		for (; i < len; i++ ) {
 			elem = this[ i ];
 			if ( elem instanceof SVGElement ) {
