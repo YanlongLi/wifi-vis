@@ -5,6 +5,7 @@ var ColorScheme = {};
 
 ColorScheme.floor = function(floor) {
     var floorColor = [
+        "#000000",
         "#1f77b4",
         "#ff7f0e",
         "#2ca02c",
