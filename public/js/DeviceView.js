@@ -241,10 +241,10 @@ WifiVis.DeviceView = function(selectedDevices){
     initSvg();
     initYScale();
 
-    var deviceList = ["3990015a90", "603ccf71d3", "8379e95b56", "b3366559ca", "b0f34cb2ff",
-                      "ed1bd9acf3", "8e8e9157ca", "d56cd93ff1", "cab06cd66c", "2f3d995c92"];
-    DeviceView.update(deviceList)
-    //render(0);
+    // var deviceList = ["3990015a90", "603ccf71d3", "8379e95b56", "b3366559ca", "b0f34cb2ff",
+    //                   "ed1bd9acf3", "8e8e9157ca", "d56cd93ff1", "cab06cd66c", "2f3d995c92"];
+    // DeviceView.update(deviceList)
+    render(0);
   });
 
   DeviceView.draw = function(){
@@ -287,9 +287,11 @@ WifiVis.DeviceView = function(selectedDevices){
 
   ObserverManager.addListener(DeviceView);
   DeviceView.OMListen = function(message, data){
-    if(message == WFV.Message1.DeviceSelect){
+
+    if(message == WFV.Message.DeviceSelect){
+      console.log(data.device);
       var deviceList = data.device;
-      update(deviceList);
+      DeviceView.update(deviceList);
     }
   }
 
