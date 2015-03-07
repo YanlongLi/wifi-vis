@@ -312,7 +312,7 @@ WFV_DB.prototype.path_by_mac = function(mac, from, to, cb){
 }
 
 WFV_DB.prototype.macs_by_ap = function(from, to, apid, cb){
-	// params for callback function: [{mac:, count:,}]
+	// params for callback function: [{mac:, count:, records:}]
 	if(!cb){
 		console.warn("no callback function");
 		return;
@@ -320,9 +320,9 @@ WFV_DB.prototype.macs_by_ap = function(from, to, apid, cb){
 	this.records_by_interval(from, to, function(records){
 		records = records.filter(function(r){return r.apid == apid});
 		var res = d3.nest().key(function(r){return r.mac})
-			.rollup(function(leaves){return leaves.length})
+			.rollup(function(leaves){return leaves})
 			.entries(records).map(function(d){
-				return {mac:d.key, count:d.values};
+				return {mac:d.key, count:d.values.length, records:d.values};
 			});	
 		if(!res.length){
 			console.warn("no macs on ap in time interval");
