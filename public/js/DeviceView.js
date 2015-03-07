@@ -4,6 +4,7 @@ WifiVis.DeviceView = function(selectedDevices){
   var apNameMappings = {};
   var apFloorMappings = {};
   var apNumMappings = {};
+  var nameAPMappings = {};
   var apConnCnt = {};
   var floorAP = {};
   var floorDomain = {};
@@ -139,7 +140,7 @@ WifiVis.DeviceView = function(selectedDevices){
 
     size = utils.initG(g, _w, _h, [0,5,20,0]);
     timelineSize = utils.initG(gXAxis, _w, 20, [0,5,20,0]);
-    x.domain([timeFrom, timeTo]).range([0, size.width]);
+    x.domain([timeFrom, timeTo]).range([0, size.width-5]);
     yScale.range([size.height, 0]);
     yFloor.rangeBands([size.height, 0], .1);
     gXAxis
@@ -352,8 +353,9 @@ WifiVis.DeviceView = function(selectedDevices){
       return d[0].lines.length > 0;
     })
 
-    yFloorAP = [];
+    yFloorAP = [], nameAPMappings = {};
     for (var ap in apNameMappings) {
+      nameAPMappings[apNameMappings[ap]] = ap;
       if (ap in apFloorMappings) continue;
       var tempArray = apNameMappings[ap].split("ap");
       apFloorMappings[ap] = tempArray[0];
@@ -494,6 +496,10 @@ WifiVis.DeviceView = function(selectedDevices){
           return y(floorDomain[d]) - yFloor.rangeBand()/2.0 + 2.5;
         })
         .style("font-size", "0.6em")
+        .style("fill", function(d) {
+          var floor = +apFloorMappings[nameAPMappings[d]].substring(1);
+          return ColorScheme.floor(floor);
+        })
         .text(function(d) {
           return d;
         });
