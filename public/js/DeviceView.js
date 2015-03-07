@@ -85,8 +85,10 @@ WifiVis.DeviceView = function(selectedDevices){
     gRect.attr("transform", "translate(" + (40 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
     gLine.attr("transform", "translate(" + (40 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
     gLine.selectAll("deviceVerticalLine")
-        .style("stroke-width", (0.1 / zoom.scale() / zoom.scale()) + "em");
+        .style("stroke-width", (1 / zoom.scale()) + "px");
     gTag.attr("transform", "translate(0," + zoom.translate()[1]+ ")scale(" + zoom.scale() + ")");
+    gTag.selectAll(".apTag.line")
+      .style("stroke-width", (1 / zoom.scale()) + "px");
     gTag.selectAll(".apTag.text")
       .style("font-size", (0.6 / zoom.scale()) + "em");
     //gYAxis.call(yAxis);
@@ -489,11 +491,30 @@ WifiVis.DeviceView = function(selectedDevices){
       //   .style("fill", "grey")
       //   .style("opacity", 0.0);
       gTags
+        .append("line")
+        .attr("class", "apTag line")
+        .attr("x1", function(d) {
+            return 0;
+        })
+        .attr("x2", function(d) {
+          return size.width+40;
+        })
+        .attr("y1", function(d) {
+          return y(floorDomain[d]) - yFloor.rangeBand()/2.0;
+        })
+        .attr("y2", function(d) {
+          return y(floorDomain[d]) - yFloor.rangeBand()/2.0;
+        })
+        .style("stroke", function(d) {
+          var floor = +apFloorMappings[nameAPMappings[d]].substring(1);
+          return ColorScheme.floor(floor);
+        });
+      gTags
         .append("text")
         .attr("class", "apTag text")
         .attr("x", 0)
         .attr("y", function(d){
-          return y(floorDomain[d]) - yFloor.rangeBand()/2.0 + 2.5;
+          return y(floorDomain[d]) - yFloor.rangeBand()/2.0;
         })
         .style("font-size", "0.6em")
         .style("fill", function(d) {
@@ -509,10 +530,10 @@ WifiVis.DeviceView = function(selectedDevices){
         .enter().append("rect")
         //.attr("class", "rect")
         .attr("class", "deviceAPRect")
-        .attr("fill", function(d) {
-          var floor = +apFloorMappings[d[0].apid].substring(1);
-          return ColorScheme.floor(floor);
-        })
+        // .attr("fill", function(d) {
+        //   var floor = +apFloorMappings[d[0].apid].substring(1);
+        //   return ColorScheme.floor(floor);
+        // })
         .attr("x", function(d){
             return x(d[0].date_time);
           })
@@ -598,10 +619,23 @@ WifiVis.DeviceView = function(selectedDevices){
       //   .attr("height", 5)
       //   .style("fill", "grey")
       //   .style("opacity", 0.0);
+      gTag.selectAll(".apTag.line")
+        .attr("x1", function(d) {
+            return 0;
+        })
+        .attr("x2", function(d) {
+          return size.width+40;
+        })
+        .attr("y1", function(d) {
+          return y(floorDomain[d]) - yFloor.rangeBand()/2.0;
+        })
+        .attr("y2", function(d) {
+          return y(floorDomain[d]) - yFloor.rangeBand()/2.0;
+        });
       gTag.selectAll(".apTag.text")
         .attr("x", 0)
         .attr("y", function(d){
-          return y(floorDomain[d]) - yFloor.rangeBand()/2.0 + 2.5;
+          return y(floorDomain[d]) - yFloor.rangeBand()/2.0;
         });
 
       yScale.domain([0, Object.keys(floorDomain).length]);
