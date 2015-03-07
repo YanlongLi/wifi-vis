@@ -14,6 +14,7 @@ WFV.FloorBar = function(_time_range){
 		.attr("id", "floor-bar-btn-bar").attr("class", "btn btn-bar");
 	//
 	var time_range = _time_range, time_point = _time_range[0];
+	var step = 1000 * 60 * 20;
 	var is_floor_tl = true;
 	//
 	var per_h = {h0:1, h1:0}, w_bar, bar_gap = 2, max_ap_number = 24;
@@ -52,7 +53,6 @@ WFV.FloorBar = function(_time_range){
 			if(current_floor == data.floor) return;
 			current_floor = data.floor;
 			//
-			var step = 1000 * 60 * 20;
 			db.tl_data_aps_of_floor(time_range[0],
 					time_range[1],
 					step, current_floor,
@@ -149,9 +149,9 @@ WFV.FloorBar = function(_time_range){
 			time_range = data.range;
 			x_line_scale.domain(time_range);
 			g.select("#floor-bar-tl-x-axis").call(time_axis.scale(x_line_scale));
+			// ap bars
 			db.ap_bar_data(time_range[0], time_range[1], update_ap_bars);
 			// floor tl data
-			var step = 1000 * 60 * 20;
 			(function next_f(f, _data, cb){
 				if(f < 18){
 					db.tl_data_floor(time_range[0], time_range[1], step, f, function(d){
@@ -165,6 +165,11 @@ WFV.FloorBar = function(_time_range){
 					cb(_data);
 				}
 			})(1, [], update_floor_tls);
+			// ap timeline of floor
+			db.tl_data_aps_of_floor(time_range[0],
+					time_range[1],
+					step, current_floor,
+					update_floor_ap_tls);
 		}
 		if(message == WFV.Message.TimePointChange){
 			// TODO
