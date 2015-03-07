@@ -170,6 +170,8 @@ WFV.Timeline = function(_time_range){
 					$("#timeline-ap g.line[apid="+apid+"]")
 						.removeClass("selected").attr("_selected", null);
 					$("#timeline-ap g.line[apid="+apid+"]").remove();
+					// update ap_max_count
+					ap_max_count.remove(apid);
 				});
 				if(!apids.length){
 					change_scale(2);
