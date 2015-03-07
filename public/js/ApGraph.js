@@ -12,7 +12,7 @@ WifiVis.ApGraph = function(){
 	var aps, links;
 	var gLink = g.append("g").attr("class", "links")
 		gNode = g.append("g").attr("class", "nodes");
-	var edgeFilterWeight = 50;
+	var edgeFilterWeight = 30;
 	var isShowEdge = false;     
 
 	var timeRange = [timeFrom, timeTo];
@@ -125,27 +125,48 @@ WifiVis.ApGraph = function(){
 			.attr("floor", function(d, index) {
 				return aps[index].floor;
 			})
-			// .attr("topic-id", function(d, index){
-			// 	var topicID = _this.documents[index].topicID;
-			// 	return topicID;
-			// })              
-			// .attr("r", function(d, index) {
-			// 	var doc = _this.documents[index];
-			// 	var topicID = _this.documents[index].topicID;
-			// 	return doc.probs[topicID] * 4 + 2;
-			// })  
 			.attr("fill", function(d, index) {
 				var floor = aps[index].floor;
 				return color(floor)
 				// return gColorScale(topicID);
 			})
-			.attr("opacity", 0.7)   
+			.on('mouseover', function(d, index) {
+				//设置tip
+				// var x = mapping(d[0], minX, maxX, 0, width),
+				// 	y = mapping(d[1], minY, maxY, 0, height);
+				// var tip = _this.tip;
+				// var text = _this.documents[index].text;
+				// var dir = getTipDirection(x, y, 300, 200, width, height);
+				// tip.html("Doc " + _this.documents[index].id + ": " + cutOffString(text, 200))
+				// 	.direction(dir)
+				// 	.offset( function() {
+				// 		if (dir == 'n')
+				// 			return [-10, 0]
+				// 		else
+				// 			return [10, 0];
+				// 	})
+				// tip.show();
+				d3.select(this).classed("temp-highlight", true);
+				var ap = aps[index];
+				d3.selectAll(".ap-link[source-id='" + ap._id + "']").classed("temp-highlight", true);
+				d3.selectAll(".ap-link[target-id='" + ap._id + "']").classed("temp-highlight", true);
+			})
+			.on('mouseout', function(d, index) {
+				d3.select(this).classed("temp-highlight", false);
+				d3.selectAll(".ap-link").classed("temp-highlight", false);
+			})
 
 		gLink.selectAll(".ap-link")
 			.data(links)
 			.enter()
 			.append("line")
 			.attr("class", "ap-link")
+			.attr("source-id", function(d) {
+				return d.source._id; 
+			})
+			.attr("target-id", function(d) {
+				return d.target._id;
+			})
 			.style("stroke-width", function(d) {
 				var scale = d3.scale.log().base(6);
 				return scale(d.weight+1) * 1.5;	
@@ -183,7 +204,7 @@ WifiVis.ApGraph = function(){
 				ap.y = y;
 				return y;
 			})
-		isShowEdge = false;
+		// isShowEdge = false;
 		if (isShowEdge) {
 			gLink.selectAll(".ap-link")
 				.data(links)
@@ -196,24 +217,7 @@ WifiVis.ApGraph = function(){
 			gLink.selectAll(".ap-link").style("display", "none");
 		}
 
-			// .on('mouseover', function(d, index) {
-			// 	//设置tip
-			// 	var x = mapping(d[0], minX, maxX, 0, width),
-			// 		y = mapping(d[1], minY, maxY, 0, height);
-			// 	var tip = _this.tip;
-			// 	var text = _this.documents[index].text;
-			// 	var dir = getTipDirection(x, y, 300, 200, width, height);
-			// 	tip.html("Doc " + _this.documents[index].id + ": " + cutOffString(text, 200))
-			// 		.direction(dir)
-			// 		.offset( function() {
-			// 			if (dir == 'n')
-			// 				return [-10, 0]
-			// 			else
-			// 				return [10, 0];
-			// 		})
-			// 	tip.show();
-			// })
-			// .on('mouseout', this.tip.hide)         
+     
 	}
 
 	function initDragPolygon(){
