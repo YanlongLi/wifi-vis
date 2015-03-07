@@ -529,7 +529,9 @@ WifiVis.DeviceView = function(selectedDevices){
         .data(dataset)
         .enter().append("rect")
         //.attr("class", "rect")
-        .attr("class", "deviceAPRect")
+        .attr("class", function(d) {
+          return "deviceAPRect mac" + d["device"];
+        })
         // .attr("fill", function(d) {
         //   var floor = +apFloorMappings[d[0].apid].substring(1);
         //   return ColorScheme.floor(floor);
@@ -557,17 +559,45 @@ WifiVis.DeviceView = function(selectedDevices){
               deviceList.push(p["device"]);
             }
           });
+          console.log(gRect.selectAll(".mac" + d["device"]));
+          gRect.selectAll(".mac" + d["device"])
+            .style("fill-opacity", 1);
+          gDot.selectAll(".mac" + d["device"])
+            .style("fill-opacity", 1);
+          gLine.selectAll(".mac" + d["device"])
+            .style("stroke-opacity", 1);
           console.log(list);
           // focus.attr("transform", "translate(" + x(d.date) + "," + y(d.close) + ")");
           // focus.select("text").text(formatCurrency(d.close));
+        })
+        .on("mouseout", function(d, i){
+
+          gRect.selectAll(".mac" + d["device"])
+            .style("fill-opacity", 0.3);
+          gDot.selectAll(".mac" + d["device"])
+            .style("fill-opacity", 0.3);
+          gLine.selectAll(".mac" + d["device"])
+            .style("stroke-opacity", 0.1);
+          
         });
+
+      var dotList = [];
+      for (var k = 0; k < dataset.length; k++) {
+        var dot1 = {date_time:dataset[k][0].date_time, apid:dataset[k][0].apid, device:dataset[k].device},
+            dot2 = {date_time:dataset[k][1].date_time, apid:dataset[k][1].apid, device:dataset[k].device};
+        dotList.push(dot1);
+        dotList.push(dot2);
+      }
 
       //svg.selectAll(".dot")
       gDot.selectAll(".deviceAPDot")
-        .data(Array.prototype.concat.apply([], dataset))
+        //.data(Array.prototype.concat.apply([], dataset))
+        .data(dotList)
         .enter().append("circle")
         //.attr("class", "dot")
-        .attr("class", "deviceAPDot")
+        .attr("class", function(d) {
+          return "deviceAPDot mac" + d["device"];
+        })
         .attr("r", 2)
         // .style("fill", function(d) {
         //   return "#8080FF";
@@ -577,13 +607,48 @@ WifiVis.DeviceView = function(selectedDevices){
         })
         .attr("cy", function(d) {
           return y(d.apid) - yFloor.rangeBand()/2.0;
+        })
+        .on("mouseover", function(d, i) {
+          console.log(d);
+          var mouse = [d3.event.clientX, d3.event.clientY];
+          var timePoint = x.invert(d3.mouse(this)[0]);
+          console.log(timePoint);
+          var list = "";
+          var deviceList = [];
+          dataset.forEach(function(p, j){
+            if (timePoint >= p[0].date_time && timePoint <= p[1].date_time) {
+              console.log(p);
+              list += p["device"] + " ";
+              deviceList.push(p["device"]);
+            }
+          });
+          console.log(gRect.selectAll(".mac" + d["device"]));
+          gRect.selectAll(".mac" + d["device"])
+            .style("fill-opacity", 1);
+          gDot.selectAll(".mac" + d["device"])
+            .style("fill-opacity", 1);
+          gLine.selectAll(".mac" + d["device"])
+            .style("stroke-opacity", 1);
+          console.log(list);
+          // focus.attr("transform", "translate(" + x(d.date) + "," + y(d.close) + ")");
+          // focus.select("text").text(formatCurrency(d.close));
+        })
+        .on("mouseout", function(d, i){
+
+          gRect.selectAll(".mac" + d["device"])
+            .style("fill-opacity", 0.3);
+          gDot.selectAll(".mac" + d["device"])
+            .style("fill-opacity", 0.3);
+          gLine.selectAll(".mac" + d["device"])
+            .style("stroke-opacity", 0.1);
+          
         });
 
         var lineSet = [];
         for (var i = 1; i < dataset.length; i++) {
           if //(apFloorMappings[dataset[i-1][1].apid] === apFloorMappings[dataset[i][0].apid] ||
               (x(dataset[i-1][1].date_time) > x(dataset[i][0].date_time)) continue;
-          lineSet.push([dataset[i-1][1], dataset[i][0]]);
+          lineSet.push({start:dataset[i-1][1], end:dataset[i][0], device:dataset[i-1]["device"]});
         }
         console.log(lineSet);
         //svg.selectAll(".verticalLine")
@@ -591,19 +656,55 @@ WifiVis.DeviceView = function(selectedDevices){
           .data(lineSet)
           .enter().append("line")
           //.attr("class", "verticalLine")
-          .attr("class", "deviceVerticalLine")
+          .attr("class", function(d) {
+            return "deviceVerticalLine mac" + d["device"];
+          })
           //.style("stroke-dasharray", "1,1")
           .attr("x1", function(d) {
-            return x(d[0].date_time);
+            return x(d["start"].date_time);
           })
           .attr("x2", function(d) {
-            return x(d[1].date_time);
+            return x(d["end"].date_time);
           })
           .attr("y1", function(d) {
-            return y(d[0].apid) - yFloor.rangeBand()/2.0;
+            return y(d["start"].apid) - yFloor.rangeBand()/2.0;
           })
           .attr("y2", function(d) {
-            return y(d[1].apid) - yFloor.rangeBand()/2.0;
+            return y(d["end"].apid) - yFloor.rangeBand()/2.0;
+          })
+          .on("mouseover", function(d, i) {
+            var mouse = [d3.event.clientX, d3.event.clientY];
+            var timePoint = x.invert(d3.mouse(this)[0]);
+            console.log(timePoint);
+            var list = "";
+            var deviceList = [];
+            dataset.forEach(function(p, j){
+              if (timePoint >= p[0].date_time && timePoint <= p[1].date_time) {
+                console.log(p);
+                list += p["device"] + " ";
+                deviceList.push(p["device"]);
+              }
+            });
+            console.log(gRect.selectAll(".mac" + d["device"]));
+            gRect.selectAll(".mac" + d["device"])
+              .style("fill-opacity", 1);
+            gDot.selectAll(".mac" + d["device"])
+              .style("fill-opacity", 1);
+            gLine.selectAll(".mac" + d["device"])
+              .style("stroke-opacity", 1);
+            console.log(list);
+            // focus.attr("transform", "translate(" + x(d.date) + "," + y(d.close) + ")");
+            // focus.select("text").text(formatCurrency(d.close));
+          })
+          .on("mouseout", function(d, i){
+
+            gRect.selectAll(".mac" + d["device"])
+              .style("fill-opacity", 0.3);
+            gDot.selectAll(".mac" + d["device"])
+              .style("fill-opacity", 0.3);
+            gLine.selectAll(".mac" + d["device"])
+              .style("stroke-opacity", 0.1);
+            
           });
           //.attr("stroke", "steelblue")
           //.style("stroke-width", "0.1em");
@@ -671,17 +772,17 @@ WifiVis.DeviceView = function(selectedDevices){
         gLine.selectAll(".deviceVerticalLine")
           //.style("stroke-dasharray", "1,1")
           .attr("x1", function(d) {
-            return x(d[0].date_time);
+            return x(d["start"].date_time);
           })
           .attr("x2", function(d) {
-            return x(d[1].date_time);
+            return x(d["end"].date_time);
           })
           .attr("y1", function(d) {
-            return y(d[0].apid) - yFloor.rangeBand()/2.0;
+            return y(d["start"].apid) - yFloor.rangeBand()/2.0;
           })
           .attr("y2", function(d) {
-            return y(d[1].apid) - yFloor.rangeBand()/2.0;
-          });
+            return y(d["end"].apid) - yFloor.rangeBand()/2.0;
+          })
     }
 
   }
