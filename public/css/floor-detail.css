@@ -4,6 +4,9 @@
 	opacity: 0.3;
 }
 
+/*
+ * AP
+ */
 #aps-wrapper{}
 #aps-wrapper .ap circle{
 	fill: #646464;
@@ -22,6 +25,9 @@
 	fill: #4290D2;
 }
 
+/*
+ * device
+ */
 #device-wrapper .device rect,
 #aps-wrapper .device rect{
 	fill: #A0A7B5;
@@ -32,8 +38,17 @@
 	fill: #71B1F0;
 }
 
+#device-wrapper .device.hover rect,
+#aps-wrapper .device.hover rect{
+	stroke: red;
+}
+
+/*
+ * path
+ */
 #path-wrapper{}
 
+/* arrow */
 #path-arrow-normal{
 	fill: #8B8B8B;
 }
@@ -54,6 +69,7 @@
 	fill: #8B8B8B;
 }
 
+/* link */
 #path-wrapper .link path{
 	fill: none;
 	stroke: #8B8B8B;

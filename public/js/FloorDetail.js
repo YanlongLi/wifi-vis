@@ -8,6 +8,7 @@ var floor_image_size = WFV.FLOOR_IMG_SIZE;
 WifiVis.FloorDetail = function(){
 	function FloorDetail(){}
 	var floor_color = ColorScheme.floor;
+	var opacity_by_stay_time = d3.scale.linear().range([1,0.1]).domain([60,120]).clamp(true);
 	var svg = $("#floor-detail-svg");
 	// defs
 	// var markerEndId = "path-arrow";
@@ -55,6 +56,7 @@ WifiVis.FloorDetail = function(){
 	var current_floor, aps;// aps on current floor
 	var time_point, time_range = [timeFrom, timeTo],
 		deviceLst = [], selected_aps = [];
+	var interval, animation_status = 0;
 	var graphinfo, links;
 
 	init_svg();
@@ -67,6 +69,7 @@ WifiVis.FloorDetail = function(){
 	ObserverManager.addListener(FloorDetail);
 	FloorDetail.OMListen = function(message, data){
 		if(message == WFV.Message.FloorChange){
+			stopAnimation();
 			console.log("change_floor", data);
 			current_floor = +data.floor;
 			change_image();
@@ -128,6 +131,7 @@ WifiVis.FloorDetail = function(){
 			update_device(aps);
 		}
 		if(message == WFV.Message.TimeRangeChange){
+			stopAnimation();
 		}
 		if(message == WFV.Message.TimeRangeChanged){
 			time_range = data.range;
@@ -135,6 +139,46 @@ WifiVis.FloorDetail = function(){
 				update_links(links);
 			});
 		}
+	}
+	FloorDetail.startAnimation = startAnimation;
+	FloorDetail.stopAnimation = stopAnimation;
+	AnimationStatus = {stopped:0, running:1, paused: 2};
+	function startAnimation(){
+		if(animation_status == AnimationStatus.running){
+			return;
+		}
+		var from = time_point || time_range[0], to = time_range[1];
+		animation_status = AnimationStatus.running;
+		interval = setInterval(function(){
+			console.log("goto time", from.to_time_str());
+			tracer.gotoTime(from);
+			update_aps(aps);
+			update_device(aps);
+			time_point = from;
+			// TODO whether fire time point change
+			from.setMinutes(from.getMinutes() + 1);
+			if(from - to >= 0){
+				clearInterval(interval);
+				animation_status = AnimationStatus.stopped;
+				tracer.gotoTime(time_range[0]);
+				time_point = time_range[0];
+			}
+		}, 1000);
+	}
+	function pauseAnimation(){
+		if(animation_status == AnimationStatus.running){
+			animation_status = AnimationStatus.paused;
+			clearInterval(interval);
+		}
+	}
+	function stopAnimation(){
+		if(animation_status == AnimationStatus.stopped){
+			return;
+		}
+		animation_status = AnimationStatus.stopped;
+		clearInterval(interval);
+		tracer.gotoTime(time_range[0]);
+		time_point = time_range[0];
 	}
 	function init_interaction(){
 		$(document).on("click","#aps-wrapper g.ap", function(e){
@@ -154,6 +198,8 @@ WifiVis.FloorDetail = function(){
 			var apid = $(this).attr("apid");
 			EventManager.apDehover([apid]);
 		});
+		// device, event add when add element
+		// path
 		$(document).on("mouseenter", "#path-wrapper g.link", function(e){
 			var opa = d3.select(this).style("opacity");
 			if(opa && opa > 0){
@@ -165,12 +211,6 @@ WifiVis.FloorDetail = function(){
 			d3.select(this).classed("hover", false);
 			//TODO
 		});
-		$(document).on("mouseenter", "#device-wrapper g.device", function(e){
-			//TODO
-		})
-		$(document).on("mouseleave", "#device-wrapper g.device", function(e){
-			//TODO
-		})
 	}
 	$(window).resize(function(e){
 		init_svg();
@@ -359,19 +399,59 @@ WifiVis.FloorDetail = function(){
 			gDevice = gDevice.data(deviceLst, function(d){return d.mac});
 			var device_enter = gDevice.enter().append("g")
 				.attr("class","device");
-			device_enter.append("rect");
-			gDevice.exit().remove();
+			device_enter.append("rect").attr("width", 6)
+				.attr("height", 6).style("fill", "red");
+			device_enter.selectAll("rect").transition().style("fill", null);
+			var device_exit = gDevice.exit();
+			device_exit.transition()
+				.duration(500).attr("transform", function(d){
+					var p = WFV.VIR_AP_POS[current_floor][1];
+					var dx = x(p[0]);
+					var dy = y(p[1]);
+					return "translate("+dx+","+dy+")";
+				}).transition().remove()
 		}
 		gDevice.classed("hilight", function(d){
 			return d.device.selected;
-		})
-		gDevice.transition().attr("transform", function(d){
+		}).attr("mac",function(d){return d.mac});
+		gDevice.transition().duration(500).attr("transform", function(d){
 			var dx = x(d.x) + d.dx;
 			var dy = y(d.y) + d.dy;
 			return "translate("+dx+","+dy+")";
-		})
+		});
 		gDevice.select("rect").datum(function(d){return d})
-			.attr("width", 6).attr("height", 6);
+			.attr("width", 6).attr("height", 6)
+			.style("opacity", function(d){
+				var stay_time_minute = Math.round(d.device.stayTime(tracer.cur)/(1000*60));
+				return opacity_by_stay_time(stay_time_minute);
+			});
+		// event listener
+		//
+		gDevice.on("click", deviceClick)
+			.on("mouseover", deviceHover)
+			.on("mouseout", deviceDehover);
+		function deviceClick(d){
+			var ele = d3.select(this);
+			if(ele.attr("_selected")){
+				ele.attr("_selected", null).classed("selected", false);
+				d.device.selected = false;
+				EventManager.deviceSelect([d.mac]);
+			}else{
+				ele.attr("_selected", true).classed("selected", true);
+				d.device.selected = true;
+				EventManager.deviceDeselect([d.mac]);
+			}
+		}
+		function deviceHover(d){
+			EventManager.apHover([d.ap.apid]);
+			d3.select(this).classed("hover", true);
+			d3.select(this).classed('hover', true);
+		}
+		function deviceDehover(d){
+			EventManager.apDehover([d.ap.apid]);
+			d3.select(this).classed("hover", false);
+			d3.select(this).classed('hover', false);
+		}
 		return;
 	}
 	//

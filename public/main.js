@@ -35,29 +35,30 @@ $(document).ready(function() {
 })
 
 db.init(function(){ 
-	apLst = db.aps;
-	apMap = db.apMap;
-	records = db.records;
-	init_aplst_records();
-	loading_tip.add_tip("done");
-	setTimeout(function(){
-		$("#mask").css("visibility", "hidden");
-		$("#timeline-option-bar").css("visibility", "hidden");
-		init();
-	}, 500);
+  apLst = db.aps;
+  apMap = db.apMap;
+  records = db.records;
+  init_aplst_records();
+  loading_tip.add_tip("done");
+  setTimeout(function(){
+    $("#mask").css("visibility", "hidden");
+    $("#timeline-option-bar").css("visibility", "hidden");
+    init();
+  }, 500);
 
-	// add cluster to aps and add floor to records
-	function init_aplst_records(){
-		apLst.forEach(function(ap){
-			ap.cluster = new DeviceCluster(ap.apid);
-			apMap.set(ap.apid, ap);
-		});
-		records.forEach(function(r,i){r.index = i});
-		records.forEach(function(r){
-			r.floor = apMap.get(r.apid).floor;
-		})
-	}
+  // add cluster to aps and add floor to records
+  function init_aplst_records(){
+    apLst.forEach(function(ap){
+      ap.cluster = new DeviceCluster(ap.apid);
+      apMap.set(ap.apid, ap);
+    });
+    records.forEach(function(r,i){r.index = i});
+    records.forEach(function(r){
+      r.floor = apMap.get(r.apid).floor;
+    })
+  }
 });
+ 
 
 function init(){
 	tracer = RecordTracer.CreateTracer();
