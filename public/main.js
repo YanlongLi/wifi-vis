@@ -12,7 +12,6 @@ var floor_bar = WFV.FloorBar([timeFrom, timeTo]);
 
 var floorDetail, floorsNav, timeline;
 var apGraph;
-
 var loading_tip = loading_tip || {};
 
 $(document).ready(function() {
@@ -72,6 +71,7 @@ function init(){
 	apGraph.init();
 	deviceView = WFV.DeviceView();
 	//deviceView.draw();
+	apView = WFV.ApView();
 	// floorDetail.addFloorChangeListener(apGraph);
 	// floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, apGraph);
 	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_ENTER, apGraph);

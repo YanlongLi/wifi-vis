@@ -24,7 +24,8 @@
 .ap-dot[class~=highlight], .ap-dot[class~=temp-highlight] {
     opacity: 1;
     stroke: black;
-    stroke-width: 1px;
+    stroke-width: 2px;
+    stroke-opacity: 0.8;
 }
 
 .ap-dot[class~=dark], .ap-dot[class~=temp-dark] {

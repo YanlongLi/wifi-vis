@@ -24,12 +24,19 @@ body {
   stroke-width: 0.1em;
 }
 .apTag.line {
+  pointer-events: none;
   fill: none;
   stroke-width: 1px;
   stroke-opacity: 0.3;
   stroke-dasharray: 1,1;
 }
-
+.deviceTag.line {
+  pointer-events: none;
+  fill: none;
+  stroke-width: 1px;
+  stroke-opacity: 0.3;
+  stroke-dasharray: 1,1;
+}
 .deviceAPRect {
   fill: #8B8B8B;
   fill-opacity: 0.3;

@@ -24,7 +24,6 @@ WifiVis.ApGraph = function(){
 	$(window).resize(function(e){
 		o = utils.resizeSVG(o);
 		render();
-		
 	});
 
 	ApGraph.init = function(){
@@ -44,7 +43,11 @@ WifiVis.ApGraph = function(){
 			render();
 		}
 		var drag = initDragPolygon();
-		o.svg.call(drag);
+		o.svg.call(drag)
+			.on("click", function(){
+				console.log("svg click");
+				EventManager.apDeselect(null, this);
+			});
 
 	}
 	ApGraph.draw = function(){
@@ -76,17 +79,6 @@ WifiVis.ApGraph = function(){
 			links = graphinfo.filter(function(l){
 				return l.weight > edgeFilterWeight;
 			});
-			GLINKS = links
-			
-			// var s = d3.set();
-			// graphinfo.forEach(function(link){
-			// 	s.add(link.source.apid);
-			// 	s.add(link.target.apid);
-			// });
-			// var nodes = s.values().map(function(apid){
-			// 	return apMap.get(apid);
-			// });
-			// console.log("nodes:", nodes.length);
 		});
 	}
 
@@ -110,6 +102,27 @@ WifiVis.ApGraph = function(){
 				return false;
 			}).classed("temp-highlight", true);
 		}
+		if (message == WFV.Message.ApHover) {
+			if (data.isAdd == false) {
+				d3.selectAll(".ap-dot").classed("temp-highlight", false);
+				return;
+			}
+			var apids = data.apid;
+			for (var i = 0; i < apids.length; i++) {
+				var id = apids[i];
+				d3.selectAll(".ap-dot[apid='" + id + "']").classed("temp-highlight", true);
+			}
+		}				
+		if (message == WFV.Message.ApSelect) {
+			d3.selectAll(".ap-dot").classed("highlight", false);
+			var apids = data.apid;
+			console.log("apselect", apids);
+			for (var i = 0; i < apids.length; i++) {
+				var id = apids[i];
+				console.log(".ap-dot[apid='" + id + "']")
+				d3.selectAll(".ap-dot[apid='" + id + "']").classed("highlight", true);
+			}
+		}		
 	}	
 
 	function createElements() {
@@ -122,6 +135,9 @@ WifiVis.ApGraph = function(){
 			.attr("ap-id", function(d, index) {
 				return aps[index]._id;
 			})
+			.attr("apid", function(d, index) {
+				return aps[index].apid;
+			})
 			.attr("floor", function(d, index) {
 				return aps[index].floor;
 			})
@@ -131,21 +147,6 @@ WifiVis.ApGraph = function(){
 				// return gColorScale(topicID);
 			})
 			.on('mouseover', function(d, index) {
-				//设置tip
-				// var x = mapping(d[0], minX, maxX, 0, width),
-				// 	y = mapping(d[1], minY, maxY, 0, height);
-				// var tip = _this.tip;
-				// var text = _this.documents[index].text;
-				// var dir = getTipDirection(x, y, 300, 200, width, height);
-				// tip.html("Doc " + _this.documents[index].id + ": " + cutOffString(text, 200))
-				// 	.direction(dir)
-				// 	.offset( function() {
-				// 		if (dir == 'n')
-				// 			return [-10, 0]
-				// 		else
-				// 			return [10, 0];
-				// 	})
-				// tip.show();
 				d3.select(this).classed("temp-highlight", true);
 				var ap = aps[index];
 				d3.selectAll(".ap-link[source-id='" + ap._id + "']").classed("temp-highlight", true);
@@ -154,6 +155,14 @@ WifiVis.ApGraph = function(){
 			.on('mouseout', function(d, index) {
 				d3.select(this).classed("temp-highlight", false);
 				d3.selectAll(".ap-link").classed("temp-highlight", false);
+			})
+			.on("click", function(d,index) {
+				console.log("click")
+				d3.event.stopPropagation()
+				d3.select(this).classed("highlight", true);
+				var ap = aps[index];
+				var list = [ap.apid];
+				EventManager.apSelect(list);
 			})
 
 		gLink.selectAll(".ap-link")
@@ -264,15 +273,15 @@ WifiVis.ApGraph = function(){
 				highlight(selected);
 			})
 			.on("dragend", function() {
+				console.log("dragend")
 				svg = d3.select(this);
 				// If the user clicks without having
 				// drawn a path, remove any paths
 				// that were drawn previously.
 				if (coords.length === 0) {
 					svg.select(".polygon-selection").remove();
-					// svg.selectAll("path").remove();
-					unhighlight();
-					postSelectMessage([]);
+					// unhighlight();
+					// postSelectMessage([]);
 					return;
 				}             
 				// Draw a path between the first point
@@ -282,9 +291,6 @@ WifiVis.ApGraph = function(){
 					d: line([coords[0], coords[coords.length-1]])
 				});
 				svg.select(".polygon-selection").remove();
-				// Post message to update other views
-				// ObserverManager.post("SelectDocuments", 
-				//     {documents: _this.selectedDocuments})   
 
 				//由于svgGroup做了居中处理，与svg的坐标系不一致，所以要纠正偏移
 				var offsetX = Number(gOffset[0]), offsetY = Number(gOffset[1]);
@@ -301,12 +307,9 @@ WifiVis.ApGraph = function(){
 			});
 
 		function postSelectMessage(ApList) {
-			console.log(ApList);
-			ttt = ApList
 			var list = _.pluck(ApList, "apid");
-			console.log(list);
-			EventManager.apDeselect();
-			EventManager.apSelect(list);
+			EventManager.apDeselect(null, this);
+			EventManager.apSelect(list, this);
 		}
 
 		return drag;
