@@ -7,10 +7,10 @@ WifiVis.ApGraph = function(){
 	var DIV_ID = "aps-graph-wrapper"
 	var gOffset = [10, 10];
 	var o = utils.initSVG("#"+DIV_ID,[10]);
-	var g = o.g, w = o.w, h = o.h, r = 6;
+	var svg = o.svg, g = o.g, w = o.w, h = o.h, r = 6;
 
 	var aps, links;
-	var gLink = g.append("g").attr("class", "links")
+	var gLink = g.append("g").attr("class", "links"),
 		gNode = g.append("g").attr("class", "nodes");
 	var edgeFilterWeight = 30;
 	var isShowEdge = false;     
@@ -31,10 +31,11 @@ WifiVis.ApGraph = function(){
 		ObserverManager.addListener(this);
 		spinner = utils.createSpinner(5, 5);
 		processData();
-		worker = new Worker("js/workers/tsneWorker.js");
+		var worker = new Worker("js/workers/tsneWorker.js");
 		tsneWorker = worker;
 		// worker.postMessage({"cmd":"init", "distance":disMatrix});
 		worker.onmessage = function(event) {
+			console.log("ap graph on message");
 			dotPositions = event.data.positions;
 			if (event.data.state == 0)
 				isShowEdge = false;
@@ -74,7 +75,6 @@ WifiVis.ApGraph = function(){
 					= disMatrix[link.target._id][link.source._id] 
 					= getDistance(link.weight);
 			});
-			console.log("link count", count);
 			tsneWorker.postMessage({"cmd":"init", "distance":disMatrix});
 			links = graphinfo.filter(function(l){
 				return l.weight > edgeFilterWeight;
@@ -86,7 +86,7 @@ WifiVis.ApGraph = function(){
 		if(message == WFV.Message.FloorChange){
 			var currentFloor = data.floor;
 			unhighlight();
-			d3.selectAll(".ap-dot").filter(function(d) {
+			svg.selectAll(".dot").filter(function(d) {
 				if (d3.select(this).attr("floor") == currentFloor)
 					return true;
 				return false;
@@ -95,8 +95,8 @@ WifiVis.ApGraph = function(){
 		if (message == WFV.Message.FloorHover) {
 			var floorList = data.floor;
 			console.log(floorList);
-			d3.selectAll(".ap-dot.temp-highlight").classed("temp-highlight", false);
-			d3.selectAll(".ap-dot").filter(function(d) {
+			svg.selectAll(".dot.temp-highlight").classed("temp-highlight", false);
+			svg.selectAll(".dot").filter(function(d) {
 				if (floorList.indexOf(+d3.select(this).attr("floor")) >= 0)
 					return true;
 				return false;
@@ -104,33 +104,33 @@ WifiVis.ApGraph = function(){
 		}
 		if (message == WFV.Message.ApHover) {
 			if (data.isAdd == false) {
-				d3.selectAll(".ap-dot").classed("temp-highlight", false);
+				svg.selectAll(".dot").classed("temp-highlight", false);
 				return;
 			}
 			var apids = data.apid;
 			for (var i = 0; i < apids.length; i++) {
 				var id = apids[i];
-				d3.selectAll(".ap-dot[apid='" + id + "']").classed("temp-highlight", true);
+				svg.selectAll(".dot[apid='" + id + "']").classed("temp-highlight", true);
 			}
 		}				
 		if (message == WFV.Message.ApSelect) {
-			d3.selectAll(".ap-dot").classed("highlight", false);
+			svg.selectAll(".dot").classed("highlight", false);
 			var apids = data.apid;
 			console.log("apselect", apids);
 			for (var i = 0; i < apids.length; i++) {
 				var id = apids[i];
-				console.log(".ap-dot[apid='" + id + "']")
-				d3.selectAll(".ap-dot[apid='" + id + "']").classed("highlight", true);
+				console.log(".dot[apid='" + id + "']")
+				svg.selectAll(".dot[apid='" + id + "']").classed("highlight", true);
 			}
 		}		
 	}	
 
 	function createElements() {
-		gNode.selectAll(".ap-dot")
+		gNode.selectAll(".dot")
 			.data(dotPositions)
 			.enter()
 			.append("circle")
-			.attr("class", "ap-dot")  
+			.attr("class", "dot")  
 			.attr("r", 5)
 			.attr("ap-id", function(d, index) {
 				return aps[index]._id;
@@ -149,12 +149,12 @@ WifiVis.ApGraph = function(){
 			.on('mouseover', function(d, index) {
 				d3.select(this).classed("temp-highlight", true);
 				var ap = aps[index];
-				d3.selectAll(".ap-link[source-id='" + ap._id + "']").classed("temp-highlight", true);
-				d3.selectAll(".ap-link[target-id='" + ap._id + "']").classed("temp-highlight", true);
+				svg.selectAll(".link[source-id='" + ap._id + "']").classed("temp-highlight", true);
+				svg.selectAll(".link[target-id='" + ap._id + "']").classed("temp-highlight", true);
 			})
 			.on('mouseout', function(d, index) {
 				d3.select(this).classed("temp-highlight", false);
-				d3.selectAll(".ap-link").classed("temp-highlight", false);
+				svg.selectAll(".link").classed("temp-highlight", false);
 			})
 			.on("click", function(d,index) {
 				console.log("click")
@@ -165,11 +165,11 @@ WifiVis.ApGraph = function(){
 				EventManager.apSelect(list);
 			})
 
-		gLink.selectAll(".ap-link")
+		gLink.selectAll(".link")
 			.data(links)
 			.enter()
 			.append("line")
-			.attr("class", "ap-link")
+			.attr("class", "link")
 			.attr("source-id", function(d) {
 				return d.source._id; 
 			})
@@ -195,11 +195,11 @@ WifiVis.ApGraph = function(){
 			height = o.h;
 		// width = height = Math.min(width, height) - 20;
 		width = width - 20; height = height - 20;
-		if (gNode.selectAll(".ap-dot").size() == 0) {
+		if (gNode.selectAll(".dot").size() == 0) {
 			createElements();
 		}
 
-		gNode.selectAll(".ap-dot")
+		gNode.selectAll(".dot")
 			.data(dotPositions)
 			.attr("cx", function(d, index) {
 				var ap = aps[index];
@@ -215,7 +215,7 @@ WifiVis.ApGraph = function(){
 			})
 		// isShowEdge = false;
 		if (isShowEdge) {
-			gLink.selectAll(".ap-link")
+			gLink.selectAll(".link")
 				.data(links)
 				.attr("x1", function(d) { return d.source.x; })
 				.attr("y1", function(d) { return d.source.y; })
@@ -223,7 +223,7 @@ WifiVis.ApGraph = function(){
 				.attr("y2", function(d) { return d.target.y; })            
 				.style("display", "block");
 		} else {
-			gLink.selectAll(".ap-link").style("display", "none");
+			gLink.selectAll(".link").style("display", "none");
 		}
 
      
@@ -263,7 +263,7 @@ WifiVis.ApGraph = function(){
 				console.log("offset:", offsetX, offsetY);
 				// var offsetX = 0, offsetY = 0;
 				var selected = [];
-				svg.selectAll(".ap-dot").each(function(d, i) {
+				svg.selectAll(".dot").each(function(d, i) {
 					point = [ Number(d3.select(this).attr("cx")) +  offsetX, 
 							Number(d3.select(this).attr("cy")) +  offsetY];
 					if (utils.pointInPolygon(point, coords)) {
@@ -295,7 +295,7 @@ WifiVis.ApGraph = function(){
 				//由于svgGroup做了居中处理，与svg的坐标系不一致，所以要纠正偏移
 				var offsetX = Number(gOffset[0]), offsetY = Number(gOffset[1]);
 				var selectedAp = [];
-				svg.selectAll(".ap-dot").each(function(d, i) {
+				svg.selectAll(".dot").each(function(d, i) {
 					point = [ Number(d3.select(this).attr("cx")) +  offsetX, 
 							Number(d3.select(this).attr("cy")) +  offsetY];
 					if (utils.pointInPolygon(point, coords)) {
@@ -316,7 +316,7 @@ WifiVis.ApGraph = function(){
 	}
 
 	function unhighlight() {
-		d3.selectAll(".ap-dot").classed("highlight", false);
+		svg.selectAll(".dot").classed("highlight", false);
 	}
 
 	function highlight(dotsData) {
@@ -325,7 +325,7 @@ WifiVis.ApGraph = function(){
 		// Find the circles that have an id
 		// in the array of ids given, and 
 		// highlight those.
-		d3.selectAll(".ap-dot").filter(function(d, i) {
+		svg.selectAll(".dot").filter(function(d, i) {
 			var index = dotsData.indexOf(d);
 			return index > -1;
 		})
