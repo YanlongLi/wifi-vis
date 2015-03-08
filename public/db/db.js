@@ -311,6 +311,27 @@ WFV_DB.prototype.path_by_mac = function(mac, from, to, cb){
 	}
 }
 
+WFV_DB.prototype.macs_by_ap = function(from, to, apid, cb){
+	// params for callback function: [{mac:, count:, records:}]
+	if(!cb){
+		console.warn("no callback function");
+		return;
+	}
+	this.records_by_interval(from, to, function(records){
+		records = records.filter(function(r){return r.apid == apid});
+		var res = d3.nest().key(function(r){return r.mac})
+			.rollup(function(leaves){return leaves})
+			.entries(records).map(function(d){
+				return {mac:d.key, count:d.values.length, records:d.values};
+			});	
+		if(!res.length){
+			console.warn("no macs on ap in time interval");
+		}
+		console.log("get mac list on ap", res.length);
+		cb(res);
+	});
+}
+
 WFV_DB.prototype.ap_bar_data = function(from, to, cb){
 	// generage ap_bar_data, [floor:, aps:[{apid, count}], count:]
 	this.records_by_interval(from, to, _structure_records);
@@ -399,7 +420,7 @@ WFV_DB.prototype.tl_data_ap = function(from, to, step, apid, cb){
 	this.records_by_interval(from, to, function(records){
 		records = records.filter(function(r){return +r.apid == +apid});
 		var tl_data = generate_tl_data(records, from.getTime(), to.getTime(), step);
-		// tl_data.apid = +apid;
+		tl_data.apid = +apid;
 		cb({apid:+apid, tl_data:tl_data});
 	});		
 }

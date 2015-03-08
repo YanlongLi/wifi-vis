@@ -1,5 +1,6 @@
 WFV.FloorBar = function(_time_range){
 	function FloorBar(){}
+	var floor_color = ColorScheme.floor;
 	// variables
 	var wrapper = $("#floor-bar-wrapper"),
 		svg = $("#floor-bar-wrapper > svg");
@@ -13,6 +14,7 @@ WFV.FloorBar = function(_time_range){
 		.attr("id", "floor-bar-btn-bar").attr("class", "btn btn-bar");
 	//
 	var time_range = _time_range, time_point = _time_range[0];
+	var step = 1000 * 60 * 20;
 	var is_floor_tl = true;
 	//
 	var per_h = {h0:1, h1:0}, w_bar, bar_gap = 2, max_ap_number = 24;
@@ -50,8 +52,7 @@ WFV.FloorBar = function(_time_range){
 			console.log("Floor Bar on floor change", data.floor);
 			if(current_floor == data.floor) return;
 			current_floor = data.floor;
-			//_hide_floor_tls();
-			var step = 1000 * 60 * 20;
+			//
 			db.tl_data_aps_of_floor(time_range[0],
 					time_range[1],
 					step, current_floor,
@@ -148,9 +149,9 @@ WFV.FloorBar = function(_time_range){
 			time_range = data.range;
 			x_line_scale.domain(time_range);
 			g.select("#floor-bar-tl-x-axis").call(time_axis.scale(x_line_scale));
+			// ap bars
 			db.ap_bar_data(time_range[0], time_range[1], update_ap_bars);
 			// floor tl data
-			var step = 1000 * 60 * 20;
 			(function next_f(f, _data, cb){
 				if(f < 18){
 					db.tl_data_floor(time_range[0], time_range[1], step, f, function(d){
@@ -164,6 +165,11 @@ WFV.FloorBar = function(_time_range){
 					cb(_data);
 				}
 			})(1, [], update_floor_tls);
+			// ap timeline of floor
+			db.tl_data_aps_of_floor(time_range[0],
+					time_range[1],
+					step, current_floor,
+					update_floor_ap_tls);
 		}
 		if(message == WFV.Message.TimePointChange){
 			// TODO
@@ -310,7 +316,6 @@ WFV.FloorBar = function(_time_range){
 	function update_floor_circle(_data){
 		// [{floor:, count:}]	
 		// if no _data, update size
-		var floor_color = ColorScheme.floor;
 		var scale = circle_scale.range([2, per_h.h0/2]);
 		var floors = g.select("#floor-bar-circles").selectAll("g.floor");
 		if(_data){
@@ -430,8 +435,9 @@ WFV.FloorBar = function(_time_range){
 		floors.attr("floor", function(d){
 			return d.floor;
 		}).each(function(d){
-			d3.select(this).select("path").datum(function(d){return d.tl_data})
-				.attr("d", line_generator[0]);
+			d3.select(this).select("path").datum(function(d){return d})
+				.attr("d", function(d){return line_generator[0](d.tl_data)})
+				.style("stroke",function(d){return floor_color(d.floor)});
 		});
 		floors.transition().attr("transform", function(d,i){
 			var dy = vertical_scale[0](d.floor);
@@ -441,9 +447,6 @@ WFV.FloorBar = function(_time_range){
 	function update_floor_ap_tls(_data){
 		// [{apid, tl_data:[{time:,count:}]}]	
 		// if no _data, resize timeline
-		// 1. hide #floor-bar-ap-tls > g.floor
-		// _hide_floor_tls();
-		// 2. update #floor-bar-ap-tls > g.ap
 		var aps = g.select("#floor-bar-tls").selectAll("g.ap");
 		if(_data){
 			_data.sort(function(d1, d2){// sort timeline by ap position
@@ -482,18 +485,20 @@ WFV.FloorBar = function(_time_range){
 		aps.attr("apid", function(d){return d.apid})
 			.select("path").datum(function(d){
 				// console.log(d.tl_data);
-				return d.tl_data;
-			}).attr("d", line_generator[1]);
+				// return d.tl_data;
+				return d;
+			}).attr("d", function(d){return line_generator[1](d.tl_data)})
+		.style("stroke",function(d){
+			var floor = apMap.get(d.apid).floor;
+			if(undefined === floor){
+				console.warn("no floor info");
+			}
+			return floor_color(floor);
+		});
 		aps.transition().attr("transform", function(d){
 			var dy = vertical_scale[1](d.apid);
 			return "translate(0,"+dy+")";
 		});
-	}
-	FloorBar._hide_floor_tls = _hide_floor_tls;
-	function _hide_floor_tls(){
-		g.select("#floor-bar-tls").selectAll("g.floor")
-			.transition().attr("transform", function(d){
-			}).transition().attr("display","none");
 	}
 	$(window).resize(function(e){
 		init_svg();
