@@ -10,6 +10,8 @@
 	<script type="text/javascript" src="jslib/d3/d3.js"></script>
 	<script type="text/javascript" src="jslib/d3.slider.js"></script>
 	<link rel="stylesheet" href="jslib/bootstrap/css/bootstrap.css"/>
+	<link rel="stylesheet" href="jslib/font-awesome/css/font-awesome.min.css">
+
 	<!-- <link rel="stylesheet" href="jslib/bootstrap/css/bootstrap-theme.css"/> -->
 	<link rel="stylesheet" href="jslib/d3.slider.css"/>
 	<link rel="stylesheet" href="css/floor-bar.css"/>
@@ -93,6 +95,14 @@
 
 			<div class="dragbox" id="timeline-wrapper">
 				<h3 class="header"></h3>
+				<div class="dragbox-content" style="position:absolute;right:10;top:10;margin:6 10 0 0">
+					<button class="btn" id="timeline-btn-play">
+						<i class="fa fa-play"></i>
+					</button>
+					<button class="btn" id="timeline-btn-stop">
+						<i class="fa fa-stop"></i>
+					</button>
+				</div>
 				<svg class="dragbox-content" id="timeline-svg" width="100%" height="100%">
 					<g id="timeline-g">
 						<rect id="timeline-btn-scale" style="display:none"></rect>
