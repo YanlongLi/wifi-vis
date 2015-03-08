@@ -10,6 +10,7 @@ WifiVis.DeviceView = function(selectedDevices){
   var floorDomain = {};
   var dataset = [];
   var apNum = 0;
+  var clicked = {};
 
 
   // var margin = {top: 50, right: 20, bottom: 30, left: 100},
@@ -85,7 +86,7 @@ WifiVis.DeviceView = function(selectedDevices){
     gRect.attr("transform", "translate(" + (40 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
     gLine.attr("transform", "translate(" + (40 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
     gLine.selectAll("deviceVerticalLine")
-        .style("stroke-width", (1 / zoom.scale()) + "px");
+        .style("stroke-width", (1 / zoom.scale() / zoom.scale()) + "px");
     gTag.attr("transform", "translate(0," + zoom.translate()[1]+ ")scale(" + zoom.scale() + ")");
     gTag.selectAll(".apTag.line")
       .style("stroke-width", (1 / zoom.scale()) + "px");
@@ -140,9 +141,9 @@ WifiVis.DeviceView = function(selectedDevices){
     //var _w = svg.width(), _h = svg.height()-5;
     var _w = svg.w, _h = svg.h - 5;
 
-    size = utils.initG(g, _w, _h, [0,5,20,0]);
-    timelineSize = utils.initG(gXAxis, _w, 20, [0,5,20,0]);
-    x.domain([timeFrom, timeTo]).range([0, size.width-5]);
+    size = utils.initG(g, _w-40, _h, [0,5,20,0]);
+    timelineSize = utils.initG(gXAxis, _w-40, 20, [0,5,20,0]);
+    x.domain([timeFrom, timeTo]).range([0, size.width]);
     yScale.range([size.height, 0]);
     yFloor.rangeBands([size.height, 0], .1);
     gXAxis
@@ -165,7 +166,7 @@ WifiVis.DeviceView = function(selectedDevices){
             .x(x)
             //.y(yScale)
             .on("zoom", zoomed);
-    g.call(zoom).call(zoom.event);
+    d3.select("#device-view-svg").call(zoom).call(zoom.event);
 
     gDot.attr("transform", "translate(40,0)scale(1,1)");
     gRect.attr("transform", "translate(40,0)scale(1,1)");
@@ -173,9 +174,9 @@ WifiVis.DeviceView = function(selectedDevices){
     gTag.attr("transform", "translate(0,0)scale(1,1)");
     //gXAxis.attr("transform",  "translate(0,0)scale(1,1)");
 
-    d3.select("#reset-btn").on("click", reset);
-    d3.select("#zoom-in-btn").on("click", zoomIn);
-    d3.select("#zoom-out-btn").on("click", zoomOut);
+    d3.select("#device-view-reset-btn").on("click", reset);
+    d3.select("#device-view-zoom-in-btn").on("click", zoomIn);
+    d3.select("#device-view-zoom-out-btn").on("click", zoomOut);
     //console.log(size);
   }
 
@@ -307,8 +308,9 @@ WifiVis.DeviceView = function(selectedDevices){
 
   ObserverManager.addListener(DeviceView);
   DeviceView.OMListen = function(message, data){
-
+    console.log(data);
     if(message == WFV.Message.DeviceSelect){
+      if (!data.isAdd) return;
       console.log(data.device);
       var deviceList = data.device;
       DeviceView.update(deviceList);
@@ -350,6 +352,7 @@ WifiVis.DeviceView = function(selectedDevices){
     apNameMappings = {}, apFloorMappings = {};
     for (var k = 0; k < deviceList.length; k++) {
       access_data.push(get_access_data(deviceList[k], [timeFrom]));
+      clicked[deviceList[k]] = false;
     }
     access_data = access_data.filter(function(d) {
       return d[0].lines.length > 0;
@@ -461,6 +464,23 @@ WifiVis.DeviceView = function(selectedDevices){
     render(1);
   }
 
+  function highlightTrace(mac) {
+    gRect.selectAll(".mac" + mac)
+      .style("fill-opacity", 1);
+    gDot.selectAll(".mac" + mac)
+      .style("fill-opacity", 1);
+    gLine.selectAll(".mac" + mac)
+      .style("stroke-opacity", 1);
+  }
+  function dehighlightTrace(mac) {
+    gRect.selectAll(".mac" + mac)
+      .style("fill-opacity", 0.3);
+    gDot.selectAll(".mac" + mac)
+      .style("fill-opacity", 0.3);
+    gLine.selectAll(".mac" + mac)
+      .style("stroke-opacity", 0.1);
+  }
+
   function render(needRemove) {
 
     //svg.selectAll(".rect")
@@ -493,11 +513,12 @@ WifiVis.DeviceView = function(selectedDevices){
       gTags
         .append("line")
         .attr("class", "apTag line")
+        .attr("transform", "translate(0,0)scale(1,1)")
         .attr("x1", function(d) {
             return 0;
         })
         .attr("x2", function(d) {
-          return size.width+40;
+          return timelineSize.width + 40;
         })
         .attr("y1", function(d) {
           return y(floorDomain[d]) - yFloor.rangeBand()/2.0;
@@ -546,38 +567,48 @@ WifiVis.DeviceView = function(selectedDevices){
           return x(d[1].date_time) - x(d[0].date_time);
         })
         .attr("height", 5)
+        .on("click", function(d, i) {
+          if (clicked[d["device"]]) {
+            clicked[d["device"]] = false;
+            dehighlightTrace(d["device"]);
+          }
+          else {
+            clicked[d["device"]] = true;
+            highlightTrace(d["device"]);
+          }
+        })
         .on("mouseover", function(d, i) {
-          var mouse = [d3.event.clientX, d3.event.clientY];
-          var timePoint = x.invert(d3.mouse(this)[0]);
-          console.log(timePoint);
-          var list = "";
-          var deviceList = [];
-          dataset.forEach(function(p, j){
-            if (timePoint >= p[0].date_time && timePoint <= p[1].date_time) {
-              console.log(p);
-              list += p["device"] + " ";
-              deviceList.push(p["device"]);
-            }
-          });
-          console.log(gRect.selectAll(".mac" + d["device"]));
-          gRect.selectAll(".mac" + d["device"])
-            .style("fill-opacity", 1);
-          gDot.selectAll(".mac" + d["device"])
-            .style("fill-opacity", 1);
-          gLine.selectAll(".mac" + d["device"])
-            .style("stroke-opacity", 1);
-          console.log(list);
+          // var mouse = [d3.event.clientX, d3.event.clientY];
+          // var timePoint = x.invert(d3.mouse(this)[0]);
+          // console.log(timePoint);
+          // var list = "";
+          // var deviceList = [];
+          // dataset.forEach(function(p, j){
+          //   if (timePoint >= p[0].date_time && timePoint <= p[1].date_time) {
+          //     console.log(p);
+          //     list += p["device"] + " ";
+          //     deviceList.push(p["device"]);
+          //   }
+          // });
+          // console.log(gRect.selectAll(".mac" + d["device"]));
+          // gRect.selectAll(".mac" + d["device"])
+          //   .style("fill-opacity", 1);
+          // gDot.selectAll(".mac" + d["device"])
+          //   .style("fill-opacity", 1);
+          // gLine.selectAll(".mac" + d["device"])
+          //   .style("stroke-opacity", 1);
+          // console.log(list);
           // focus.attr("transform", "translate(" + x(d.date) + "," + y(d.close) + ")");
           // focus.select("text").text(formatCurrency(d.close));
         })
         .on("mouseout", function(d, i){
 
-          gRect.selectAll(".mac" + d["device"])
-            .style("fill-opacity", 0.3);
-          gDot.selectAll(".mac" + d["device"])
-            .style("fill-opacity", 0.3);
-          gLine.selectAll(".mac" + d["device"])
-            .style("stroke-opacity", 0.1);
+          // gRect.selectAll(".mac" + d["device"])
+          //   .style("fill-opacity", 0.3);
+          // gDot.selectAll(".mac" + d["device"])
+          //   .style("fill-opacity", 0.3);
+          // gLine.selectAll(".mac" + d["device"])
+          //   .style("stroke-opacity", 0.1);
           
         });
 
@@ -608,7 +639,8 @@ WifiVis.DeviceView = function(selectedDevices){
         .attr("cy", function(d) {
           return y(d.apid) - yFloor.rangeBand()/2.0;
         })
-        .on("mouseover", function(d, i) {
+        //.on("mouseover", function(d, i) {
+        .on("click", function(d, i) {
           console.log(d);
           var mouse = [d3.event.clientX, d3.event.clientY];
           var timePoint = x.invert(d3.mouse(this)[0]);
@@ -622,27 +654,30 @@ WifiVis.DeviceView = function(selectedDevices){
               deviceList.push(p["device"]);
             }
           });
+          if (clicked[d["device"]]) {
+            clicked[d["device"]] = false;
+            dehighlightTrace(d["device"]);
+          }
+          else {
+            clicked[d["device"]] = true;
+            highlightTrace(d["device"]);
+          }
           console.log(gRect.selectAll(".mac" + d["device"]));
-          gRect.selectAll(".mac" + d["device"])
-            .style("fill-opacity", 1);
-          gDot.selectAll(".mac" + d["device"])
-            .style("fill-opacity", 1);
-          gLine.selectAll(".mac" + d["device"])
-            .style("stroke-opacity", 1);
-          console.log(list);
+          console.log(list);        
           // focus.attr("transform", "translate(" + x(d.date) + "," + y(d.close) + ")");
           // focus.select("text").text(formatCurrency(d.close));
         })
-        .on("mouseout", function(d, i){
+        // .on("mouseout", function(d, i){
 
-          gRect.selectAll(".mac" + d["device"])
-            .style("fill-opacity", 0.3);
-          gDot.selectAll(".mac" + d["device"])
-            .style("fill-opacity", 0.3);
-          gLine.selectAll(".mac" + d["device"])
-            .style("stroke-opacity", 0.1);
+        //   gRect.selectAll(".mac" + d["device"])
+        //     .style("fill-opacity", 0.3);
+        //   gDot.selectAll(".mac" + d["device"])
+        //     .style("fill-opacity", 0.3);
+        //   gLine.selectAll(".mac" + d["device"])
+        //     .style("stroke-opacity", 0.1);
           
-        });
+        // })
+        ;
 
         var lineSet = [];
         for (var i = 1; i < dataset.length; i++) {
@@ -672,40 +707,50 @@ WifiVis.DeviceView = function(selectedDevices){
           .attr("y2", function(d) {
             return y(d["end"].apid) - yFloor.rangeBand()/2.0;
           })
+          .on("click", function(d, i) {
+            if (clicked[d["device"]]) {
+              clicked[d["device"]] = false;
+              dehighlightTrace(d["device"]);
+            }
+            else {
+              clicked[d["device"]] = true;
+              highlightTrace(d["device"]);
+            }
+          })
           .on("mouseover", function(d, i) {
-            var mouse = [d3.event.clientX, d3.event.clientY];
-            var timePoint = x.invert(d3.mouse(this)[0]);
-            console.log(timePoint);
-            var list = "";
-            var deviceList = [];
-            dataset.forEach(function(p, j){
-              if (timePoint >= p[0].date_time && timePoint <= p[1].date_time) {
-                console.log(p);
-                list += p["device"] + " ";
-                deviceList.push(p["device"]);
-              }
-            });
-            console.log(gRect.selectAll(".mac" + d["device"]));
-            gRect.selectAll(".mac" + d["device"])
-              .style("fill-opacity", 1);
-            gDot.selectAll(".mac" + d["device"])
-              .style("fill-opacity", 1);
-            gLine.selectAll(".mac" + d["device"])
-              .style("stroke-opacity", 1);
-            console.log(list);
+            // var mouse = [d3.event.clientX, d3.event.clientY];
+            // var timePoint = x.invert(d3.mouse(this)[0]);
+            // console.log(timePoint);
+            // var list = "";
+            // var deviceList = [];
+            // dataset.forEach(function(p, j){
+            //   if (timePoint >= p[0].date_time && timePoint <= p[1].date_time) {
+            //     console.log(p);
+            //     list += p["device"] + " ";
+            //     deviceList.push(p["device"]);
+            //   }
+            // });
+            // console.log(gRect.selectAll(".mac" + d["device"]));
+            // gRect.selectAll(".mac" + d["device"])
+            //   .style("fill-opacity", 1);
+            // gDot.selectAll(".mac" + d["device"])
+            //   .style("fill-opacity", 1);
+            // gLine.selectAll(".mac" + d["device"])
+            //   .style("stroke-opacity", 1);
+            // console.log(list);
             // focus.attr("transform", "translate(" + x(d.date) + "," + y(d.close) + ")");
             // focus.select("text").text(formatCurrency(d.close));
           })
-          .on("mouseout", function(d, i){
+          // .on("mouseout", function(d, i){
 
-            gRect.selectAll(".mac" + d["device"])
-              .style("fill-opacity", 0.3);
-            gDot.selectAll(".mac" + d["device"])
-              .style("fill-opacity", 0.3);
-            gLine.selectAll(".mac" + d["device"])
-              .style("stroke-opacity", 0.1);
+          //   gRect.selectAll(".mac" + d["device"])
+          //     .style("fill-opacity", 0.3);
+          //   gDot.selectAll(".mac" + d["device"])
+          //     .style("fill-opacity", 0.3);
+          //   gLine.selectAll(".mac" + d["device"])
+          //     .style("stroke-opacity", 0.1);
             
-          });
+          // });
           //.attr("stroke", "steelblue")
           //.style("stroke-width", "0.1em");
     }

@@ -418,6 +418,7 @@ WifiVis.FloorDetail = function(){
 		}).map(function(d){return d.mac});
 		// first unselect
 		EventManager.deviceDeselect(null);
+		console.log("on brush end, device selected", selected_device.length);
 		EventManager.deviceSelect(selected_device);
 	}
 	//
