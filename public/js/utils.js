@@ -15,12 +15,12 @@ utils.getSize = function(sel){
 utils.initG = function(g, _w, _h, mgs){
 	var mg = [0, 0, 0, 0];
 	if(mgs){
-		mgs[0] && (mg[0] = mg[1] = mg[2] = mg[3] = mgs[0]);
-		mgs[1] && (mg[1] = mg[3] = mgs[1]);
-		mgs[2] && (mg[2] = mgs[2]);
-		mgs[3] && (mg[3] = mgs[3]);
+		(undefined !== mgs[0]) && (mg[0] = mg[1] = mg[2] = mg[3] = mgs[0]);
+		(undefined !== mgs[1]) && (mg[1] = mg[3] = mgs[1]);
+		(undefined !== mgs[2]) && (mg[2] = mgs[2]);
+		(undefined !== mgs[3]) && (mg[3] = mgs[3]);
 	}
-	var w = _w - mg[1] - mg[3];
+	var w = _w - mg[1] - mg[3],
 			h = _h - mg[0] - mg[2];
 	g.attr("transform", "translate("+mg[3]+","+mg[0]+")");
 	return {width: w, height: h};
@@ -31,12 +31,12 @@ utils.initSVG = function(sel, mgs){
 	
 	var mg = [0, 0, 0, 0];
 	if(mgs){
-		mgs[0] && (mg[0] = mg[1] = mg[2] = mg[3] = mgs[0]);
-		mgs[1] && (mg[1] = mg[3] = mgs[1]);
-		mgs[2] && (mg[2] = mgs[2]);
-		mgs[3] && (mg[3] = mgs[3]);
+		(undefined !== mgs[0]) && (mg[0] = mg[1] = mg[2] = mg[3] = mgs[0]);
+		(undefined !== mgs[1]) && (mg[1] = mg[3] = mgs[1]);
+		(undefined !== mgs[2]) && (mg[2] = mgs[2]);
+		(undefined !== mgs[3]) && (mg[3] = mgs[3]);
 	}
-	var w = size.width() - mg[1] - mg[3];
+	var w = size.width() - mg[1] - mg[3],
 			h = size.height() - mg[0] - mg[2];
 	var svg = d3.select(sel + " > svg").attr("width", size.width()).attr("height", size.height());			
 	// var svg = d3.select(sel + " > svg").attr("width", w).attr("height", h);			
