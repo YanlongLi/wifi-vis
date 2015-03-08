@@ -11,16 +11,23 @@ onmessage = function(event) {
     var distanceMatrix = event.data.distance;
     console.log("cmd", event.data.cmd);
     clearInterval(iterTimer);
+    var iter = maxIter;
+    if (event.data.iter != null) {
+        iter = event.data.iter;
+    }    
     if (event.data.cmd == "init") {
+        if (iterTimer != null)
+            clearInterval(iterTimer);
         tSNE.setDataDist(distanceMatrix, true);
-        start(distanceMatrix, maxIter);
+        start(distanceMatrix, iter);
     } else if (event.data.cmd == "update") {
         tSNE.setDataDist(distanceMatrix, false);
-        start(distanceMatrix, maxIter);
+        start(distanceMatrix, iter);
     }
 };
 
 function start(distanceMatrix, iter) {
+    console.log("tsne iter:" , iter);
     var count = 0;
     iterTimer = setInterval(function() {
         count++;
@@ -28,7 +35,7 @@ function start(distanceMatrix, iter) {
             clearInterval(iterTimer);
         }
         tSNE.step();
-        if (count > 300) {
+        if (count > iter * 300) {
             var state = 0;
             if (count > iter)
                 state = 1;
@@ -37,7 +44,6 @@ function start(distanceMatrix, iter) {
                 positions: tSNE.getSolution()
             });
         }
-
     }, 10)
     // for (var i = 0; i < iter; i++) {
     //  if (workTimestamp != messageTimestamp) {

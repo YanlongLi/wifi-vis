@@ -125,6 +125,7 @@ WifiVis.DeviceGraph = function(){
         //     }
         // }       
         if (message == WFV.Message.DeviceSelect) {
+            spinner.spin($("#" + DIV_ID).get(0));
             deviceList = data.device;
             devices = [];
             for (var i = 0; i < deviceList.length; i++)
@@ -132,7 +133,7 @@ WifiVis.DeviceGraph = function(){
             processData(devices);
             gNode.html("");
             gLink.html("");
-            tsneWorker.postMessage({"cmd":"init", "distance":disMatrix}); 
+            tsneWorker.postMessage({"cmd":"init", "distance":disMatrix, "iter":devices.length * 2}); 
         } 
     }   
 
