@@ -65,7 +65,7 @@ WifiVis.FloorDetail = function(){
 
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
-		size = utils.initG(g, _w, _h, [0,40,0,0]);
+		size = utils.initG(g, _w, _h, [40,0,20,40]);
 	}
 	ObserverManager.addListener(FloorDetail);
 	FloorDetail.OMListen = function(message, data){
@@ -286,8 +286,8 @@ WifiVis.FloorDetail = function(){
 		//
 		console.log("svg size", svg.width(), svg.height());
 		console.log("image shown size", imgSize.w, imgSize.h);
-		var dx = (svg.width() - imgSize.w) / 2;
-		var dy = (svg.height() - imgSize.h) / 2;
+		var dx = (size.width - imgSize.w) / 2 + 40;
+		var dy = (size.height - imgSize.h) / 2 + 40;
 		g.attr("transform", "translate("+dx+","+dy+")");
 	}
 	function move_image(){
