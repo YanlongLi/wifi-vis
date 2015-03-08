@@ -11,7 +11,7 @@ var tracer;
 var floor_bar = WFV.FloorBar([timeFrom, timeTo]);
 
 var floorDetail, floorsNav, timeline;
-var apGraph， deviceGraph;
+var apGraph, deviceGraph;
 var loading_tip = loading_tip || {};
 
 $(document).ready(function() {
