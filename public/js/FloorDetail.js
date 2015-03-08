@@ -56,7 +56,8 @@ WifiVis.FloorDetail = function(){
 	var current_floor, aps;// aps on current floor
 	var time_point, time_range = [timeFrom, timeTo],
 		deviceLst = [], selected_aps = [];
-	var interval, animation_status = 0;
+	var AnimationStatus = {stopped:0, running:1, paused: 2};
+	var interval, animation_status = AnimationStatus.stopped;
 	var graphinfo, links;
 
 	init_svg();
@@ -142,13 +143,8 @@ WifiVis.FloorDetail = function(){
 	}
 	FloorDetail.startAnimation = startAnimation;
 	FloorDetail.stopAnimation = stopAnimation;
-	AnimationStatus = {stopped:0, running:1, paused: 2};
 	function startAnimation(){
-		if(animation_status == AnimationStatus.running){
-			return;
-		}
-		var from = time_point || time_range[0], to = time_range[1];
-		animation_status = AnimationStatus.running;
+		var from = time_point, to = time_range[1];
 		interval = setInterval(function(){
 			console.log("goto time", from.to_time_str());
 			tracer.gotoTime(from);
@@ -166,16 +162,9 @@ WifiVis.FloorDetail = function(){
 		}, 1000);
 	}
 	function pauseAnimation(){
-		if(animation_status == AnimationStatus.running){
-			animation_status = AnimationStatus.paused;
-			clearInterval(interval);
-		}
+		clearInterval(interval);
 	}
 	function stopAnimation(){
-		if(animation_status == AnimationStatus.stopped){
-			return;
-		}
-		animation_status = AnimationStatus.stopped;
 		clearInterval(interval);
 		tracer.gotoTime(time_range[0]);
 		time_point = time_range[0];
@@ -210,6 +199,38 @@ WifiVis.FloorDetail = function(){
 		$(document).on("mouseleave", "#path-wrapper g.link", function(e){
 			d3.select(this).classed("hover", false);
 			//TODO
+		});
+		// animation
+		$(document).on("click", "#timeline-btn-play", function(e){
+			if(animation_status == AnimationStatus.running){
+				animation_status = AnimationStatus.paused;
+				pauseAnimation();
+				$("#timeline-btn-play i").attr("class", "fa fa-play");
+			}else if(animation_status == AnimationStatus.paused){
+				animation_status = AnimationStatus.running;
+				$("#timeline-btn-play i").attr("class", "fa fa-pause");
+				startAnimation();	
+			}else if(animation_status == AnimationStatus.stopped){
+				animation_status = AnimationStatus.running;
+				$("#timeline-btn-play i").attr("class", "fa fa-pause");
+				$("#timeline-btn-play").addClass("btn-success");
+				time_point = time_range[0];
+				startAnimation();
+			}else{
+				console.warn("illegal status");
+			}
+		});
+		$(document).on("click", "#timeline-btn-stop", function(e){
+			if(animation_status == AnimationStatus.stopped){
+				return;
+			}else if(animation_status == AnimationStatus.running ||
+					animation_status == AnimationStatus.paused){
+				animation_status = AnimationStatus.stopped;
+				$("#timeline-btn-play i").attr("class", "fa fa-play");
+				$("#timeline-btn-play").removeClass("btn-success");
+				stopAnimation();
+				time_point = time_range[0];
+			}
 		});
 	}
 	$(window).resize(function(e){
