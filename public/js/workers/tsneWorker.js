@@ -35,7 +35,7 @@ function start(distanceMatrix, iter) {
             clearInterval(iterTimer);
         }
         tSNE.step();
-        if (count > iter * 300) {
+        if (count > 300 || count >= iter) {
             var state = 0;
             if (count > iter)
                 state = 1;
