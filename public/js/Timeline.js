@@ -16,9 +16,17 @@ WFV.Timeline = function(_time_range){
 		return d3.scale.linear().range([0,10]).domain([0,1]);
 	}),y = ys[1];
 	var floor_max_count = d3.map(), ap_max_count = d3.map();
+	var tickFormat = d3.time.format.multi([
+			["%I:%M", function(d) { return d.getMinutes(); }],
+			["%H:%M", function(d) { return d.getHours(); }],
+			["%a %d", function(d) { return d.getDay() && d.getDate() != 1; }],
+			["%b %d", function(d) { return d.getDate() != 1; }]
+	]);
 	var xAxis = d3.svg.axis().scale(x).orient("bottom")
-		.tickSize(2,0,4).tickSubdivide(0);
-		//.tickFormat(function(d){return new Date(d).to_24_str()});
+		.tickSize(2,0,4).tickSubdivide(0)
+		.ticks(d3.time.hour, 2)
+		.tickPadding(6)
+		.tickFormat(tickFormat);
 	var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5)
 		.tickFormat(d3.format(",.0f"));
 	var line = d3.svg.line().interpolate("monotone")
