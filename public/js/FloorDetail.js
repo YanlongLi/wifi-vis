@@ -97,16 +97,20 @@ WifiVis.FloorDetail = function(){
 			var apids = data.apid;
 			console.log("aps selected", apids);
 			if(!apids.length){// no ap selected , back to normal
-				$("#aps-wrapper g.ap").removeClass("fading").attr("_selected", null);
-				$("#path-wrapper g.link").removeClass("fading").removeClass("hilight");
+				$("#aps-wrapper g.ap").removeClass("fading")
+					.removeClass("selected")
+					.attr("_selected", null);
+				$("#path-wrapper g.link").removeClass("fading").removeClass("selected");
 				return;
 			}
 			// fading all aps and links
 			$("#aps-wrapper g.ap").addClass("fading").attr("_selected", null);
-			$("#path-wrapper g.link").addClass("fading").removeClass("hilight");
+			$("#path-wrapper g.link").addClass("fading").removeClass("selected");
 			apids.forEach(function(apid){
 				var ele = $("#aps-wrapper g.ap[apid="+apid+"]");
-				ele.removeClass("fading").attr("_selected", true);
+				ele.removeClass("fading")
+					.addClass("selected")
+					.attr("_selected", true);
 				// hilight path
 				$("#path-wrapper g.link[sid="+apid+"]")
 					.removeClass("fading").addClass("hilight");
