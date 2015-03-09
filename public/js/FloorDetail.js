@@ -10,6 +10,7 @@ WifiVis.FloorDetail = function(){
 	var floor_color = ColorScheme.floor;
 	var opacity_by_stay_time = d3.scale.linear().range([1,0.1]).domain([60,120]).clamp(true);
 	var svg = $("#floor-detail-svg");
+	var path_histogram = svg.append("g");
 	// defs
 	// var markerEndId = "path-arrow";
 	var markerId = {
@@ -366,17 +367,17 @@ WifiVis.FloorDetail = function(){
 			device_enter.selectAll("rect").transition().style("fill", null);
 			var device_exit = gDevice.exit();
 			device_exit.transition()
-				.duration(500).attr("transform", function(d){
+				.duration(80).attr("transform", function(d){
 					var p = WFV.VIR_AP_POS[current_floor][1];
 					var dx = x(p[0]);
 					var dy = y(p[1]);
 					return "translate("+dx+","+dy+")";
-				}).transition().duration(200).remove()
+				}).transition().duration(10).remove()
 		}
 		gDevice.classed("hilight", function(d){
 			return d.device.selected;
 		}).attr("mac",function(d){return d.mac});
-		gDevice.transition().duration(500).attr("transform", function(d){
+		gDevice.transition().duration(80).ease("quard").attr("transform", function(d){
 			var dx = x(d.x) + d.dx;
 			var dy = y(d.y) + d.dy;
 			return "translate("+dx+","+dy+")";

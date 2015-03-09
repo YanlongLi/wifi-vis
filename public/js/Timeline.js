@@ -300,8 +300,9 @@ WFV.Timeline = function(_time_range){
 			EventManager.timePointChange(time_point);
 			g.select("#time-point-line").attr("d", line_time_point(time_point));
 			// TODO whether fire time point change
-			from.setMinutes(from.getMinutes() + 1);
-		}, 1000);
+			//from.setMinutes(from.getMinutes() + 1);
+			from.setSeconds(from.getSeconds() + 10);
+		}, 100);
 	}
 	function pauseAnimation(){
 		clearInterval(interval);
