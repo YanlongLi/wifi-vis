@@ -56,8 +56,6 @@ WifiVis.FloorDetail = function(){
 	var current_floor, aps;// aps on current floor
 	var time_point, time_range = [timeFrom, timeTo],
 		deviceLst = [], selected_aps = [];
-	var AnimationStatus = {stopped:0, running:1, paused: 2};
-	var interval, animation_status = AnimationStatus.stopped;
 	var graphinfo, links;
 
 	init_svg();
@@ -70,7 +68,6 @@ WifiVis.FloorDetail = function(){
 	ObserverManager.addListener(FloorDetail);
 	FloorDetail.OMListen = function(message, data){
 		if(message == WFV.Message.FloorChange){
-			stopAnimation();
 			console.log("change_floor", data);
 			current_floor = +data.floor;
 			change_image();
@@ -132,7 +129,6 @@ WifiVis.FloorDetail = function(){
 			update_device(aps);
 		}
 		if(message == WFV.Message.TimeRangeChange){
-			stopAnimation();
 		}
 		if(message == WFV.Message.TimeRangeChanged){
 			time_range = data.range;
@@ -140,34 +136,6 @@ WifiVis.FloorDetail = function(){
 				update_links(links);
 			});
 		}
-	}
-	FloorDetail.startAnimation = startAnimation;
-	FloorDetail.stopAnimation = stopAnimation;
-	function startAnimation(){
-		var from = time_point, to = time_range[1];
-		interval = setInterval(function(){
-			console.log("goto time", from.to_time_str());
-			tracer.gotoTime(from);
-			update_aps(aps);
-			update_device(aps);
-			time_point = from;
-			// TODO whether fire time point change
-			from.setMinutes(from.getMinutes() + 1);
-			if(from - to >= 0){
-				clearInterval(interval);
-				animation_status = AnimationStatus.stopped;
-				tracer.gotoTime(time_range[0]);
-				time_point = time_range[0];
-			}
-		}, 1000);
-	}
-	function pauseAnimation(){
-		clearInterval(interval);
-	}
-	function stopAnimation(){
-		clearInterval(interval);
-		tracer.gotoTime(time_range[0]);
-		time_point = time_range[0];
 	}
 	function init_interaction(){
 		$(document).on("click","#aps-wrapper g.ap", function(e){
@@ -199,38 +167,6 @@ WifiVis.FloorDetail = function(){
 		$(document).on("mouseleave", "#path-wrapper g.link", function(e){
 			d3.select(this).classed("hover", false);
 			//TODO
-		});
-		// animation
-		$(document).on("click", "#timeline-btn-play", function(e){
-			if(animation_status == AnimationStatus.running){
-				animation_status = AnimationStatus.paused;
-				pauseAnimation();
-				$("#timeline-btn-play i").attr("class", "fa fa-play");
-			}else if(animation_status == AnimationStatus.paused){
-				animation_status = AnimationStatus.running;
-				$("#timeline-btn-play i").attr("class", "fa fa-pause");
-				startAnimation();	
-			}else if(animation_status == AnimationStatus.stopped){
-				animation_status = AnimationStatus.running;
-				$("#timeline-btn-play i").attr("class", "fa fa-pause");
-				$("#timeline-btn-play").addClass("btn-success");
-				time_point = time_range[0];
-				startAnimation();
-			}else{
-				console.warn("illegal status");
-			}
-		});
-		$(document).on("click", "#timeline-btn-stop", function(e){
-			if(animation_status == AnimationStatus.stopped){
-				return;
-			}else if(animation_status == AnimationStatus.running ||
-					animation_status == AnimationStatus.paused){
-				animation_status = AnimationStatus.stopped;
-				$("#timeline-btn-play i").attr("class", "fa fa-play");
-				$("#timeline-btn-play").removeClass("btn-success");
-				stopAnimation();
-				time_point = time_range[0];
-			}
 		});
 	}
 	$(window).resize(function(e){

@@ -32,17 +32,27 @@ WFV.Timeline = function(_time_range){
 	var line = d3.svg.line().interpolate("monotone")
 			.x(function(d){return x(d.time)})
 			.y(function(d){return y(d.count)});
+	var line_time_point = function(){
+		var tp = time_point;
+		var line = d3.svg.line().x(function(d){return x(d[0])});
+		var points = [[tp, 0],[tp, size.height]];
+		return line(points);
+	};
+	g.append("path").attr("id", "time-point-line")
+		.style("stroke", "#000000").attr("stroke-width",2);
 	var brush = d3.svg.brush().x(x)
 		.on("brushstart", onBrushStart)
 		.on("brush", onBrushMove)
 		.on("brushend", onBrushEnd);
 	function onBrushStart(){
 		console.log("brush start");
+		onBtnStop();
 	}
 	function onBrushMove(e){
 		time_range  = d3.event.target.extent();
 		if(time_point - time_range[0] != 0){
 			time_point = time_range[0];
+			g.select("#time-point-line").attr("d", line_time_point(time_point));
 			EventManager.timePointChange(time_point);
 		}
 		EventManager.timeRangeChange(time_range);
@@ -68,6 +78,8 @@ WFV.Timeline = function(_time_range){
 		floor: "timeline_type_floor",
 		ap: "timeline_type_ap"
 	}
+	var AnimationStatus = {stopped:0, running:1, paused: 2};
+	var interval, animation_status = AnimationStatus.stopped;
 
 	init_svg();
 	init_interaction();
@@ -118,6 +130,7 @@ WFV.Timeline = function(_time_range){
 	Timeline.OMListen = function(message, data){
 		// floor
 		if(message == WFV.Message.FloorChange){
+			//onBtnStop();
 			console.log("timeline on floor change", data.floor)
 			current_floor = +data.floor;
 			$("#timeline-floor g.line").removeClass("current");
@@ -231,6 +244,68 @@ WFV.Timeline = function(_time_range){
 			console.log("clicked");
 			change_scale(1);
 		});
+		// animation
+		$(document).on("click", "#timeline-btn-play", onBtnPlay);
+		$(document).on("click", "#timeline-btn-stop", onBtnStop);
+	}
+	function onBtnPlay(e){
+		if(animation_status == AnimationStatus.running){
+			animation_status = AnimationStatus.paused;
+			pauseAnimation();
+			$("#timeline-btn-play i").attr("class", "fa fa-play");
+		}else if(animation_status == AnimationStatus.paused){
+			animation_status = AnimationStatus.running;
+			$("#timeline-btn-play i").attr("class", "fa fa-pause");
+			startAnimation();	
+		}else if(animation_status == AnimationStatus.stopped){
+			animation_status = AnimationStatus.running;
+			$("#timeline-btn-play i").attr("class", "fa fa-pause");
+			$("#timeline-btn-play").addClass("btn-success");
+			time_point = time_range[0];
+			g.select("#time-point-line").attr("d", line_time_point(time_point));
+			startAnimation();
+		}else{
+			console.warn("illegal status");
+		}
+	}
+	function onBtnStop(e){
+		if(animation_status == AnimationStatus.stopped){
+			return;
+		}else if(animation_status == AnimationStatus.running ||
+				animation_status == AnimationStatus.paused){
+			animation_status = AnimationStatus.stopped;
+			$("#timeline-btn-play i").attr("class", "fa fa-play");
+			$("#timeline-btn-play").removeClass("btn-success");
+			stopAnimation();
+			time_point = time_range[0];
+			g.select("#time-point-line").attr("d", line_time_point(time_point));
+		}
+	}
+	function startAnimation(){
+		var from = time_point, to = time_range[1];
+		interval = setInterval(function(){
+			if(from - to >= 0){
+				clearInterval(interval);
+				animation_status = AnimationStatus.stopped;
+				time_point = time_range[0];
+				g.select("#time-point-line").attr("d", line_time_point(time_point));
+				return;
+			}
+			console.log("goto time", from.to_time_str());
+			time_point = from;
+			EventManager.timePointChange(time_point);
+			g.select("#time-point-line").attr("d", line_time_point(time_point));
+			// TODO whether fire time point change
+			from.setMinutes(from.getMinutes() + 1);
+		}, 1000);
+	}
+	function pauseAnimation(){
+		clearInterval(interval);
+	}
+	function stopAnimation(){
+		clearInterval(interval);
+		time_point = time_range[0];
+		EventManager.timePointChange(time_point);
 	}
 	$(window).resize(function(e){
 		init_svg();
