@@ -63,7 +63,7 @@ function init(){
 	tracer = RecordTracer.CreateTracer();
 	floorDetail = WFV.FloorDetail();
 	timeline = WFV.Timeline([timeFrom, timeTo]);
-	EventManager.timeRangeChanged([new Date(2013,08,02,12), new Date(2013,08,02,16)]);
+	//EventManager.timeRangeChanged([new Date(2013,08,02,12), new Date(2013,08,02,16)]);
 	EventManager.timePointChange(new Date(2013,08,02,12));
 	EventManager.floorChange(1);
 	// apGraph
