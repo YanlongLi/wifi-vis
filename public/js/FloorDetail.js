@@ -371,7 +371,7 @@ WifiVis.FloorDetail = function(){
 					var dx = x(p[0]);
 					var dy = y(p[1]);
 					return "translate("+dx+","+dy+")";
-				}).transition().remove()
+				}).transition().duration(200).remove()
 		}
 		gDevice.classed("hilight", function(d){
 			return d.device.selected;
@@ -383,7 +383,7 @@ WifiVis.FloorDetail = function(){
 		});
 		gDevice.select("rect").datum(function(d){return d})
 			.attr("width", 6).attr("height", 6)
-			.style("opacity", function(d){
+			.style("fill-opacity", function(d){
 				var stay_time_minute = Math.round(d.device.stayTime(tracer.cur)/(1000*60));
 				return opacity_by_stay_time(stay_time_minute);
 			});
