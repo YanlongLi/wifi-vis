@@ -63,13 +63,14 @@ WifiVis.FloorDetail = function(){
 
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
-		size = utils.initG(g, _w, _h, [40,0,20,40]);
+		size = utils.initG(g, _w, _h, [40,10,0,40]);
 	}
 	ObserverManager.addListener(FloorDetail);
 	FloorDetail.OMListen = function(message, data){
 		if(message == WFV.Message.FloorChange){
 			console.log("change_floor", data);
 			current_floor = +data.floor;
+			$("#floor-detail-floor-label").text("F" + current_floor);
 			change_image();
 			resize_image();
 			move_image();
@@ -223,7 +224,7 @@ WifiVis.FloorDetail = function(){
 		console.log("svg size", svg.width(), svg.height());
 		console.log("image shown size", imgSize.w, imgSize.h);
 		var dx = (size.width - imgSize.w) / 2 + 40;
-		var dy = (size.height - imgSize.h) / 2 + 40;
+		var dy = (size.height - imgSize.h) / 2 + 20;
 		g.attr("transform", "translate("+dx+","+dy+")");
 	}
 	function move_image(){
