@@ -490,9 +490,10 @@ function generate_tl_data(records, start, end, step){
 	}
 	var data = res;
 	return data.time.map(function(time,i){
+		var count = _.uniq(data.values[i], function(d){return d.mac}).length;
 		return {
 			time   : time,
-			count  : data.count[i],
+			count  : count,
 			values : data.values[i]
 		}
 	});
