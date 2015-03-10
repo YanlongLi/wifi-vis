@@ -438,7 +438,7 @@ WFV_DB.prototype.tl_data_aps_of_floor = function(from, to, step, floor, cb){
 			if(i < len){
 				var r_of_ap = records_by_ap[i];
 				var tl_data = generate_tl_data(r_of_ap.records, from.getTime(), to.getTime(), step);	
-				res.push({apid:r_of_ap.apid, tl_data:tl_data});	
+				res.push({apid:r_of_ap.apid, tl_data:tl_data, floor:floor});
 				next(i+1)
 			}else{
 				res.floor = floor;
