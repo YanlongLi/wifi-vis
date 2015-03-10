@@ -33,6 +33,22 @@ body {
   left: 90%;
 }
 
+#device-view-non-linear-left-svg {
+  position: absolute;
+  top: 30px;
+  left: 0;
+}
+#device-view-non-linear-svg {
+  position: absolute;
+  top: 30px;
+  left: 5%;
+}
+#device-view-non-linear-list-svg {
+  position: absolute;
+  top: 30px;
+  left: 90%;
+}
+
 .remove {
   font-size: 0.8em;
 }

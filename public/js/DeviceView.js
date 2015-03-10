@@ -72,6 +72,7 @@ WifiVis.DeviceView = function(selectedDevices){
         // var y = d3.scale.ordinal()
   //     // .range([0, height])
   //     .rangeBands([0, height], .1);
+
   var yFloor = d3.scale.ordinal();
       //.rangeBands([0, height], .1);
 
@@ -207,7 +208,7 @@ WifiVis.DeviceView = function(selectedDevices){
   function reset() {
     initSvg();
     initYScale();
-    render(0);
+    render(1);
     // d3.transition().duration(750).tween("zoom", function() {
     //   var ix = d3.interpolate(x.domain(), [-size.width / 2, size.width / 2]),
     //       iy = d3.interpolate(yScale.domain(), [-size.height / 2, size.height / 2]);
@@ -260,7 +261,6 @@ WifiVis.DeviceView = function(selectedDevices){
 
   function initYScale() {
     var yHeight = size.height;
-    console.log(Object.keys(floorDomain).length * 7  + ", " + size.height);
     if (Object.keys(floorDomain).length * 7 > yHeight) {
       yHeight = Object.keys(floorDomain).length * 7;
     }
@@ -285,7 +285,6 @@ WifiVis.DeviceView = function(selectedDevices){
     svg = utils.resizeSVG(svg);
     initSvg();
     initYScale();
-
     // var deviceList = ["3990015a90", "603ccf71d3", "8379e95b56", "b3366559ca", "b0f34cb2ff",
     //                   "ed1bd9acf3", "8e8e9157ca", "d56cd93ff1", "cab06cd66c", "2f3d995c92"];
     // DeviceView.update(deviceList)
@@ -371,7 +370,6 @@ WifiVis.DeviceView = function(selectedDevices){
     for (var apName in floorDomain) {
       var floor = apFloorMappings[nameAPMappings[apName]];
       if (apName.length < 4) floor = apName;
-      console.log(floor + ", " + apName);
       if (floorCollapsed[floor] === true) {
         if (floor === apName) {
           yDomain.push(apName);
@@ -577,6 +575,7 @@ WifiVis.DeviceView = function(selectedDevices){
       gRect.selectAll(".deviceAPRect").remove();
       gDot.selectAll(".deviceAPDot").remove();
       gLine.selectAll(".deviceVerticalLine").remove();
+      gSeg.selectAll(".deviceLogin").remove();
       gFloor.selectAll(".floorBtn").remove();
       gDevice.selectAll(".deviceList").remove();
       d3.select("#device-view-wrapper").selectAll(".remove").remove();
@@ -613,19 +612,18 @@ WifiVis.DeviceView = function(selectedDevices){
       d3.select("#device-view-wrapper")
         .on("mousemove", function(){  
           mousex = d3.mouse(this);
-          mousex = mousex[0] + 5;
-          if (mousex < leftSvg.w + 60) mousex = leftSvg.w + 65;
-          if (mousex > leftSvg.w + svg.w + 40) mousex = leftSvg.w + svg.w + 40;
+          mousex = mousex[0] + 2;
+          if (mousex < 58) mousex = leftSvg.w + 58;
+          if (mousex > svg.w + 40) mousex = svg.w + 40;
           vertical.style("left", mousex + "px" );
-          var timePoint = x.invert(mousex - leftSvg.w - 65);
-          console.log(timePoint);
+          var timePoint = x.invert(mousex - 60);
           tooltip.html( "<p>" + d3.time.format("%c")(timePoint) + "</p>" ).style("visibility", "visible");
         })
         .on("mouseover", function(){  
           mousex = d3.mouse(this);
-          mousex = mousex[0] + 5;
-          if (mousex < leftSvg.w + 60) mousex = leftSvg.w + 60;
-          if (mousex > leftSvg.w + svg.w + 40) mousex = leftSvg.w + svg.w + 40;
+          mousex = mousex[0] + 2;
+          if (mousex < 58) mousex = 58;
+          if (mousex > svg.w + 40) mousex = svg.w + 40;
           vertical.style("left", mousex + "px")}
         );
       
@@ -789,15 +787,12 @@ WifiVis.DeviceView = function(selectedDevices){
         })
         //.on("mouseover", function(d, i) {
         .on("click", function(d, i) {
-          console.log(d);
           var mouse = [d3.event.clientX, d3.event.clientY];
           var timePoint = x.invert(d3.mouse(this)[0]);
-          console.log(timePoint);
           var list = "";
           var overlayDeviceList = [];
           dataset.forEach(function(p, j){
             if (timePoint >= p[0].date_time && timePoint <= p[1].date_time) {
-              console.log(p);
               list += p["device"] + " ";
               overlayDeviceList.push(p["device"]);
             }
@@ -810,8 +805,7 @@ WifiVis.DeviceView = function(selectedDevices){
             clicked[d["device"]] = true;
             highlightTrace(d["device"]);
           }
-          console.log(gRect.selectAll(".mac" + d["device"]));
-          console.log(list);        
+          
           // focus.attr("transform", "translate(" + x(d.date) + "," + y(d.close) + ")");
           // focus.select("text").text(formatCurrency(d.close));
         })
