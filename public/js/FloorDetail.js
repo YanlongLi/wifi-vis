@@ -444,8 +444,19 @@ WifiVis.FloorDetail = function(){
 			var device_enter = gDevice.enter().append("g")
 				.attr("class","device");
 			device_enter.append("rect").attr("width", 6)
-				.attr("height", 6).style("fill", "red");
-			device_enter.selectAll("rect").transition().style("fill", null);
+				.attr("height", 6);
+			//
+			device_enter.each(function(d){
+				/*
+				 * var previousRecord = d.device.previousRecord();
+				 * if(!previousRecord){
+				 *   return;
+				 * }
+				 * var fromFloor = previousRecord.ap.floor;
+				 * d3.select(this).select("rect").style("fill", floor_color(fromFloor));
+				 */
+			});
+			//
 			var device_exit = gDevice.exit();
 			device_exit.transition()
 				.duration(80).attr("transform", function(d){
