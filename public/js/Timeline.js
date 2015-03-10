@@ -50,8 +50,12 @@ WFV.Timeline = function(_time_range){
 	}
 	function onBrushMove(e){
 		time_range  = d3.event.target.extent();
-		if(time_point - time_range[0] != 0){
+		if(time_point - time_range[0] <= 0){
 			time_point = time_range[0];
+			g.select("#time-point-line").attr("d", line_time_point(time_point));
+			EventManager.timePointChange(time_point);
+		}else if(time_point - time_range[1] >= 0){
+			time_point = time_range[1];
 			g.select("#time-point-line").attr("d", line_time_point(time_point));
 			EventManager.timePointChange(time_point);
 		}
@@ -261,7 +265,7 @@ WFV.Timeline = function(_time_range){
 			animation_status = AnimationStatus.running;
 			$("#timeline-btn-play i").attr("class", "fa fa-pause");
 			$("#timeline-btn-play").addClass("btn-success");
-			time_point = time_range[0];
+			// time_point = time_range[0];
 			g.select("#time-point-line").attr("d", line_time_point(time_point));
 			startAnimation();
 		}else{
@@ -296,8 +300,9 @@ WFV.Timeline = function(_time_range){
 			EventManager.timePointChange(time_point);
 			g.select("#time-point-line").attr("d", line_time_point(time_point));
 			// TODO whether fire time point change
-			from.setMinutes(from.getMinutes() + 1);
-		}, 1000);
+			//from.setMinutes(from.getMinutes() + 1);
+			from.setSeconds(from.getSeconds() + 10);
+		}, 100);
 	}
 	function pauseAnimation(){
 		clearInterval(interval);
