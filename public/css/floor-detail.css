@@ -31,7 +31,7 @@
  */
 #device-wrapper .device rect,
 #aps-wrapper .device rect{
-	fill: #000000;
+	fill: #6D6868;
 }
 
 #device-wrapper .device.selected rect,
@@ -75,10 +75,13 @@
 #path-wrapper .link path{
 	fill: none;
 	stroke: #8B8B8B;
-	opacity: 0.5;
+	opacity: 0.4;
 	marker-end: url("#path-arrow-normal");
 }
 
+#path-wrapper .link.selected path{
+	opacity: 1;
+}
 #path-wrapper .fading{
 	opacity: 0.1;
 }
@@ -102,4 +105,36 @@
 #path-wrapper .hover path{
 	stroke: #8B8B8B;
 	marker-end: url("#path-arrow-hover");
+}
+/*
+ * histogram
+ */
+#floor-detail-histogram g.hist rect{
+	fill: #98DF8A;
+}
+#floor-detail-histogram g.hist.hover rect{
+	fill: #98DF8A;
+}
+#floor-detail-histogram g.hist.selected rect{
+	fill: #EDA915;
+}
+
+
+/*
+ * ap description
+ */
+.floor-detail-tip-wrapper{
+	position: absolute;
+	left:0;
+	top:0;
+	display: none;
+	padding: 6;
+	background-color: #CCCCCC;
+	opacity: 0.9;
+	border: 1px solid;
+	border-radius: 5;
+	color: darkgoldenrod;
+	font-family: monospace;
+	font-size: 14;
+	font-weight: bold;
 }
