@@ -118,3 +118,23 @@
 #floor-detail-histogram g.hist.selected rect{
 	fill: #EDA915;
 }
+
+
+/*
+ * ap description
+ */
+.floor-detail-tip-wrapper{
+	position: absolute;
+	left:0;
+	top:0;
+	display: none;
+	padding: 6;
+	background-color: #CCCCCC;
+	opacity: 0.9;
+	border: 1px solid;
+	border-radius: 5;
+	color: darkgoldenrod;
+	font-family: monospace;
+	font-size: 14;
+	font-weight: bold;
+}

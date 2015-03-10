@@ -182,10 +182,23 @@ WifiVis.FloorDetail = function(){
 		$(document).on("mouseenter", "#aps-wrapper g.ap", function(e){
 			var apid = $(this).attr("apid");
 			EventManager.apHover([apid]);
+			var dx = e.pageX - $("#floor-detail-svg").offset().left;
+			var dy = e.pageY - $("#floor-detail-svg").offset().top;
+			var ap = apMap.get(apid);
+			var desc = "ap id: " + ap.apid + "</br>"
+				+ "ap name: " + ap.name + "</br>"
+				+ "ap floor: " + ap.floor + "</br>";
+			$("#floor-detail-ap-description").html(desc);
+			$("#floor-detail-ap-description").css({
+				"left": dx + 10,
+				"top": dy
+			});
+			$("#floor-detail-ap-description").show();
 		});
 		$(document).on("mouseleave", "#aps-wrapper g.ap", function(e){
 			var apid = $(this).attr("apid");
 			EventManager.apDehover([apid]);
+			$("#floor-detail-ap-description").hide();
 		});
 		// device, event add when add element
 		// path
