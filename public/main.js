@@ -30,7 +30,11 @@ $(document).ready(function() {
 		start: function() {
 			$(this).css("z-index", currentZIndex++);
 		}
-	});
+	}).resizable({
+        start: function() {
+            $(this).css("z-index", currentZIndex++);
+        }
+    });
 })
 
 db.init(function(){ 

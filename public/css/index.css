@@ -92,3 +92,7 @@
 	width: 30%;
 	height: 50%;
 }
+
+.ui-resizable-se {
+	opacity: 0 !important;
+}

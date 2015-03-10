@@ -3,13 +3,14 @@
 	<meta charset="utf-8">
 	<!---->
 	<script type="text/javascript" src="jslib/jquery-2.1.1.js"></script>
-	<script type="text/javascript" src="jslib/jquery-ui.js"></script>
+	<script type="text/javascript" src="jslib/jquery-ui/jquery-ui.js"></script>
 	<script type="text/javascript" src="jslib/svgclass.js"></script>
 	<script type="text/javascript" src="jslib/underscore.js"></script>
 	<script type="text/javascript" src="jslib/spin.min.js"></script>	
 	<script type="text/javascript" src="jslib/d3/d3.js"></script>
 	<script type="text/javascript" src="jslib/d3.slider.js"></script>
 	<link rel="stylesheet" href="jslib/bootstrap/css/bootstrap.css"/>
+	<link rel="stylesheet" href="jslib/jquery-ui/jquery-ui.css"/>
 	<link rel="stylesheet" href="jslib/font-awesome/css/font-awesome.min.css">
 
 	<!-- <link rel="stylesheet" href="jslib/bootstrap/css/bootstrap-theme.css"/> -->
@@ -39,7 +40,11 @@
     <div class="navbar navbar-default navbar-fixed-top">
         <div class="container">
             <span><strong class="l-font">WifiVis</strong></span>
-            <span class="float-right">Peking University</span>
+            <span>Peking University</span>
+            <span class="float-right">
+            	<span class="btn btn-default btn-xs">Control</span>
+
+            </span>
         </div>
     </div>
 
@@ -84,7 +89,7 @@
 			</div>
 			<div class="dragbox graph-view" id="device-graph-wrapper" style="z-index:9">
 				<h3 class="header"></h3>
-				<div class="btn-group btn-group-sm float-right">
+				<div class="btn-group btn-group-xs float-right">
 					<span class="btn btn-default btn-xs">AP</span>
 					<span class="btn btn-default btn-xs active">Device</span>
 				</div>
