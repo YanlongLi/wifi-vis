@@ -10,7 +10,6 @@ WifiVis.FloorDetail = function(){
 	var floor_color = ColorScheme.floor;
 	var opacity_by_stay_time = d3.scale.linear().range([1,0.1]).domain([60,120]).clamp(true);
 	var svg = $("#floor-detail-svg");
-	var path_histogram = svg.append("g");
 	// defs
 	// var markerEndId = "path-arrow";
 	var markerId = {
@@ -44,6 +43,10 @@ WifiVis.FloorDetail = function(){
 			x = d3.scale.linear(), y = d3.scale.linear(),
 			img = g.select("#floor-background"),
 			IMG_DIR = "data/floors/";
+	//
+	var y_hist = d3.scale.linear().range([20, 0]);
+	var x_hist = d3.scale.ordinal();
+	//
 	var r_scale = d3.scale.log().range([10, 30]).clamp(true);
 			link_scale = d3.scale.linear().range([2, 10]);
 	//var imgOffset = [20,20];
@@ -65,6 +68,26 @@ WifiVis.FloorDetail = function(){
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
 		size = utils.initG(g, _w, _h, [40,10,0,40]);
+		x_hist.rangeRoundBands([0,size.width], .1);
+		d3.select("#floor-detail-histogram").attr("transform", "translate(0,"+(svg.height() - 30)+")");
+		// repostion_histgram();
+	}
+	function repostion_histgram(){
+		switch(current_floor){
+			case 2:
+			case 3:
+			case 7:
+			case 8:
+			case 15:
+			case 16:
+			case 17:
+				x_hist.rangeRoundBands([0,size.height], .1);
+				d3.select("#floor-detail-histogram").attr("transform", "translate("+(svg.width()-30)+","+svg.height()+")rotate(-90)");
+				break;
+			default:
+				x_hist.rangeRoundBands([0,size.width], .1);
+				d3.select("#floor-detail-histogram").attr("transform", "translate(0,"+(svg.height() - 30)+")");
+		}
 	}
 	ObserverManager.addListener(FloorDetail);
 	FloorDetail.OMListen = function(message, data){
@@ -80,6 +103,8 @@ WifiVis.FloorDetail = function(){
 			update_device(aps);
 			load_new_data(function(){
 				update_links(links);
+				// repostion_histgram();
+				update_histogram(links);
 			});
 		}
 		if(message == WFV.Message.ApHover){
@@ -140,6 +165,7 @@ WifiVis.FloorDetail = function(){
 			time_range = data.range;
 			load_new_data(function(){
 				update_links(links);
+				update_histogram(links);
 			});
 		}
 	}
@@ -174,11 +200,34 @@ WifiVis.FloorDetail = function(){
 			d3.select(this).classed("hover", false);
 			//TODO
 		});
+		// histogram
+		$(document).on("click", "#floor-detail-histogram g.hist", function(e){
+			var sid = $(this).attr("sid"), tid = $(this).attr("tid"), weight = $(this).attr("weight");
+			if($(this).attr("_selected")){
+				_select_path(sid, tid, false);
+				// EventManager.pathSelect(sid, tid, weight, FloorDetail);
+			}else{
+				_select_path(sid, tid, true);
+				// EventManager.pathDeselect(sid, tid, weight, FloorDetail);
+			}
+		});
+		function _select_path(sid, tid, flag){
+			var ele = $("#floor-detail-histogram g.hist[sid="+sid+"][tid="+tid+"]");
+			var ele2 = $("#path-wrapper g.link[sid="+sid+"][tid="+tid+"]");
+			if(flag){
+				ele.attr("_selected", true).addClass("selected");
+				ele2.attr("_selected", true).addClass("selected");
+			}else{
+				ele.attr("_selected", null).removeClass("selected");
+				ele2.attr("_selected", null).removeClass("selected");
+			}
+		}
 	}
 	$(window).resize(function(e){
 		init_svg();
 		resize_image();
 		update_links();
+		update_histogram();
 		update_aps();
 		update_device();
 	});
@@ -338,6 +387,31 @@ WifiVis.FloorDetail = function(){
 			}).style("stroke-width",function(d){
 				return link_scale(d.weight);
 			});
+	}
+	function update_histogram(_data){
+		// [{sid:, tid:, weight:}]
+		// if no _data, resize
+		var hists = d3.select("#floor-detail-histogram").selectAll("g.hist");
+		if(_data){
+			var max = d3.max(_data, function(d){return d.weight});
+			y_hist.domain([0, max]);
+			x_hist.domain(_data.map(function(d){return d.source + "," + d.target}));
+			hists = d3.select("#floor-detail-histogram").selectAll("g.hist")
+							.data(_data, function(d){return d.source+","+d.target});
+			var hists_enter = hists.enter().append("g").attr("class", "hist");
+			hists_enter.append("rect");
+			hists.exit().remove();
+		}
+		hists.attr("sid",function(d){return d.source}).attr("tid",function(d){return d.target})
+			.attr("weight",function(d){return d.weight})
+			.transition()
+			.attr("transform", function(d){
+			var dx = x_hist(d.source+","+d.target);
+			return "translate("+dx+")";
+		});
+		hists.select("rect").datum(function(d){return d})
+			.attr("y", function(d){return y_hist(d.weight)}).attr("width", x_hist.rangeBand())
+			.transition().attr("height", function(d){return 20-y_hist(d.weight)});
 	}
 	function update_device(_data){// update device pos by aps(current floor)
 		// assume apLst exist[{ap with cluster}]

@@ -31,7 +31,7 @@
  */
 #device-wrapper .device rect,
 #aps-wrapper .device rect{
-	fill: #000000;
+	fill: #6D6868;
 }
 
 #device-wrapper .device.selected rect,
@@ -75,10 +75,13 @@
 #path-wrapper .link path{
 	fill: none;
 	stroke: #8B8B8B;
-	opacity: 0.5;
+	opacity: 0.4;
 	marker-end: url("#path-arrow-normal");
 }
 
+#path-wrapper .link.selected path{
+	opacity: 1;
+}
 #path-wrapper .fading{
 	opacity: 0.1;
 }
@@ -102,4 +105,16 @@
 #path-wrapper .hover path{
 	stroke: #8B8B8B;
 	marker-end: url("#path-arrow-hover");
+}
+/*
+ * histogram
+ */
+#floor-detail-histogram g.hist rect{
+	fill: #98DF8A;
+}
+#floor-detail-histogram g.hist.hover rect{
+	fill: #98DF8A;
+}
+#floor-detail-histogram g.hist.selected rect{
+	fill: #EDA915;
 }
