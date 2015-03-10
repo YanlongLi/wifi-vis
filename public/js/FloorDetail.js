@@ -231,6 +231,13 @@ WifiVis.FloorDetail = function(){
 		update_aps();
 		update_device();
 	});
+	// TODO
+	FloorDetail.filter_path = filter_path;
+	function filter_path(from, to){
+		var fls = links.filter(function(l){return l.weight >= from && l.weight < to});
+		update_links(fls);
+		update_histogram(fls);
+	}
 	function load_new_data(cb){// load new graph link data
 		var range = time_range;
 		var from = new Date(range[0]), to = new Date(range[1]);
