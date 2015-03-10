@@ -25,8 +25,10 @@ WifiVis.ApView = function(selectedDevices) {
   var gXAxis = d3.select("#ap-view-x-axis-g");
   var gYAxis = d3.select("#ap-view-y-axis-g");
   //var gXAxis = g.append("g").attr("class", "timeline");
-  var gRect = g.append("g").attr("class", "rects"), gDot = g.append("g").attr("class", "dots"),
-      gLine = g.append("g").attr("class", "lines"), gTag = g.append("g").attr("class", "tags"),
+  var gRect = g.append("g").attr("class", "rects"), 
+      //gDot = g.append("g").attr("class", "dots"),
+      //gLine = g.append("g").attr("class", "lines"), 
+      gTag = g.append("g").attr("class", "tags"),
       gSeg = g.append("g").attr("class", "logins");
   
   var parseDate = d3.time.format("%H:%M").parse;
@@ -56,15 +58,15 @@ WifiVis.ApView = function(selectedDevices) {
   function zoomed() {
     var zoomX = zoom.translate()[0], zoomY = zoom.translate()[1];
   
-    gDot.attr("transform", "translate(" + (50 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
-    gDot.selectAll(".deviceAPDot")
-        .attr("r", 2 / Math.sqrt(zoom.scale()));
+    //gDot.attr("transform", "translate(" + (50 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
+    //gDot.selectAll(".deviceAPDot")
+    //    .attr("r", 2 / Math.sqrt(zoom.scale()));
     gRect.selectAll(".deviceAPRect")
         .attr("height", 5 / Math.sqrt(zoom.scale()));
     gRect.attr("transform", "translate(" + (50 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
-    gLine.attr("transform", "translate(" + (50 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
-    gLine.selectAll("deviceVerticalLine")
-        .style("stroke-width", (1 / zoom.scale()) + "px");  
+    //gLine.attr("transform", "translate(" + (50 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
+    //gLine.selectAll("deviceVerticalLine")
+    //    .style("stroke-width", (1 / zoom.scale()) + "px");  
     gTag.attr("transform", "translate(0," + zoomY + ")scale(" + zoom.scale() + ")");
     gTag.selectAll(".deviceTag.line")
       .style("stroke-width", (1 / zoom.scale()) + "px");
@@ -107,9 +109,9 @@ WifiVis.ApView = function(selectedDevices) {
             .on("zoom", zoomed);
     d3.select("#ap-view-svg").call(zoom).call(zoom.event);
 
-    gDot.attr("transform", "translate(50,0)scale(1,1)");
+    //gDot.attr("transform", "translate(50,0)scale(1,1)");
     gRect.attr("transform", "translate(50,0)scale(1,1)");
-    gLine.attr("transform", "translate(50,0)scale(1,1)");
+    //gLine.attr("transform", "translate(50,0)scale(1,1)");
     gSeg.attr("transform", "translate(50,0)scale(1,1)");
     gTag.attr("transform", "translate(0,0)scale(1,1)");
     //gXAxis.attr("transform",  "translate(0,0)scale(1,1)");
@@ -122,7 +124,7 @@ WifiVis.ApView = function(selectedDevices) {
 
   function reset() {
     initSvg();
-    render(0);
+    render(1);
     // d3.transition().duration(750).tween("zoom", function() {
     //   var ix = d3.interpolate(x.domain(), [-size.width / 2, size.width / 2]),
     //       iy = d3.interpolate(yScale.domain(), [-size.height / 2, size.height / 2]);
@@ -396,7 +398,8 @@ WifiVis.ApView = function(selectedDevices) {
     if (needRemove === 1) {
       gTag.selectAll(".deviceTag").remove();
       gRect.selectAll(".apDeviceRect").remove();
-      gDot.selectAll(".apDeviceDot").remove();
+      //gDot.selectAll(".apDeviceDot").remove();
+      gSeg.selectAll(".deviceLogin").remove();
       d3.select("#ap-view-wrapper").selectAll(".remove").remove();
 
       var tooltip = d3.select("#ap-view-wrapper")
@@ -535,7 +538,7 @@ WifiVis.ApView = function(selectedDevices) {
         .attr("class", function(d) {
           return "apDeviceRect apid" + d.start.apid;
         })
-        .attr("transform", "translate(50,0)scale(1,1)")
+        .attr("transform", "translate(0,0)scale(1,1)")
         .attr("fill", function(d) {
           var floor = +apFloorMappings[d.start.apid].substring(1);
           return ColorScheme.floor(floor);
