@@ -194,6 +194,17 @@ WifiVis.FloorDetail = function(){
 			var desc = "ap id: " + ap.apid + "</br>"
 				+ "ap name: " + ap.name + "</br>"
 				+ "ap floor: " + ap.floor + "</br>";
+			//
+			var devs = ap.cluster.deviceLst();
+			desc = desc + "device number: " +devs.length + "</br>";
+			var f = d3.time.format("20%y-%m-%d %H:%M:%S");
+			desc = desc + f(time_point) +"</br>";
+			/*
+			 * devs.forEach(function(d){
+			 *   console.log(d);
+			 *   desc = desc + d.device.mac + "</br>";
+			 * });
+			 */
 			$("#floor-detail-ap-description").html(desc);
 			$("#floor-detail-ap-description").css({
 				"left": dx + 10,
