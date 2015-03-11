@@ -148,9 +148,15 @@ WifiVis.FloorDetail = function(){
 			// TODO
 			var devs = data.device, change = data.change, isAdd = data.isAdd;
 			if(isAdd){
-		
+				change.forEach(function(mac){
+					$("#device-wrapper g.device[mac="+mac+"]")
+						.attr("_selected", true).addClass("selected");
+				});	
 			}else{
-				
+				change.forEach(function(mac){
+					$("#device-wrapper g.device[mac="+mac+"]")
+						.attr("_selected", null).removeClass("selected");
+				});
 			}
 		}
 		if(message == WFV.Message.TimePointChange){
@@ -501,13 +507,9 @@ WifiVis.FloorDetail = function(){
 		function deviceClick(d){
 			var ele = d3.select(this);
 			if(ele.attr("_selected")){
-				ele.attr("_selected", null).classed("selected", false);
-				d.device.selected = false;
-				EventManager.deviceSelect([d.mac]);
-			}else{
-				ele.attr("_selected", true).classed("selected", true);
-				d.device.selected = true;
 				EventManager.deviceDeselect([d.mac]);
+			}else{
+				EventManager.deviceSelect([d.mac]);
 			}
 		}
 		function deviceHover(d){
