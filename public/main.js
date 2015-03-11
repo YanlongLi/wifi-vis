@@ -11,7 +11,7 @@ var tracer;
 var floor_bar = WFV.FloorBar([timeFrom, timeTo]);
 
 var floorDetail, floorsNav, timeline;
-var apGraph, deviceGraph;
+var apGraph, deviceGraph, controllerView;
 var loading_tip = loading_tip || {};
 
 $(document).ready(function() {
@@ -35,6 +35,11 @@ $(document).ready(function() {
             $(this).css("z-index", currentZIndex++);
         }
     });
+
+    $("#controller-button").click(function() {
+        $(this).toggleClass("active");
+        $("#controller-wrapper").toggle();
+    })
 })
 
 db.init(function(){ 
@@ -90,4 +95,8 @@ function init(){
 	// //
 	// timeline.update();
 	apGraph.draw(); 
+
+    controllerView = WFV.ControllerView();
+    controllerView.init()
+
 }
