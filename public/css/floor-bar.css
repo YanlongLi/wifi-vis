@@ -84,6 +84,17 @@
 #floor-bar-tl-x-axis.axis.x{
 	
 }
+
+/*
+ * tip
+ */
+
+#floor-bar-tip{
+	max-width: 120px;
+	min-width: 100px;
+	z-index: 200;
+}
+
 /*******/
 
 #floor-bar-btn-wrapper .btn.btn-tl{

@@ -188,8 +188,10 @@ WifiVis.FloorDetail = function(){
 		$(document).on("mouseenter", "#aps-wrapper g.ap", function(e){
 			var apid = $(this).attr("apid");
 			EventManager.apHover([apid]);
-			var dx = e.pageX - $("#floor-detail-svg").offset().left;
-			var dy = e.pageY - $("#floor-detail-svg").offset().top;
+			var dx = $(this).offset().left - $("#floor-detail-svg").offset().left;
+			var dy = $(this).offset().top - $("#floor-detail-svg").offset().top;
+			// var dx = e.pageX - $("#floor-detail-svg").offset().left;
+			// var dy = e.pageY - $("#floor-detail-svg").offset().top;
 			var ap = apMap.get(apid);
 			var desc = "ap id: " + ap.apid + "</br>"
 				+ "ap name: " + ap.name + "</br>"
@@ -207,8 +209,8 @@ WifiVis.FloorDetail = function(){
 			 */
 			$("#floor-detail-ap-description").html(desc);
 			$("#floor-detail-ap-description").css({
-				"left": dx + 10,
-				"top": dy
+				"left": dx + 30,
+				"top": dy + 30
 			});
 			$("#floor-detail-ap-description").show();
 		});

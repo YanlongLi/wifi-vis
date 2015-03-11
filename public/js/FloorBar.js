@@ -190,7 +190,7 @@ WFV.FloorBar = function(_time_range){
 	}
 	function init_interaction(){
 		// for floor circle
-		$(document).on("click", "#floor-bar-circles .floor", function(e){
+		$(document).on("click", "#floor-bar-circles .floor, #floor-bar-tls g.floor", function(e){
 			var floor = $(this).attr("floor");
 			if(floor == current_floor){
 				is_floor_tl = !is_floor_tl;
@@ -223,6 +223,31 @@ WFV.FloorBar = function(_time_range){
 		$(document).on("mouseleave", "#floor-bar-circles .floor, #floor-bar-tls .floor", function(e){
 			var sel_f = $(this).attr("floor");
 			EventManager.floorDehover([+sel_f]);
+		});
+		$(document).on("mouseenter", "#floor-bar-tls g.tl", function(e){
+			var dx = e.pageX - $("#floor-bar-wrapper").offset().left;
+			var dy = e.pageY - $("#floor-bar-wrapper").offset().top;
+			//
+			var html = "";
+			if($(this).attr("floor")){
+				var floor = $(this).attr("floor");
+				html = html + "floor: " + floor + "</br>";
+			}else{
+				var apid = $(this).attr("apid");
+				var ap = apMap.get(apid);
+				html = html + "apid: " + apid + "</br>";
+				html = html + "name: " + ap.name + "</br>";
+			}
+			//
+			$("#floor-bar-tip").html(html);
+			$("#floor-bar-tip").css({
+				"left": dx + 10,
+				"top": dy
+			});
+			$("#floor-bar-tip").show();
+		});
+		$(document).on("mouseleave", "#floor-bar-tls g.tl", function(e){
+			$("#floor-bar-tip").hide();
 		});
 		// for bars
 		$(document).on("click", "#floor-bar-aps .floor .bar", function(e){
@@ -459,8 +484,8 @@ WFV.FloorBar = function(_time_range){
 					.attr("x", -30).attr("y", vertical_scale[0].rangeBand()/2).attr("dy", 5);
 			}else{
 				ele.attr("apid", d.apid);
-				ele.select("text").text(apMap.get(d.apid).name)
-					.attr("x", -30).attr("y", vertical_scale[0].rangeBand()/2).attr("dy", 5);
+				// ele.select("text").text(apMap.get(d.apid).name)
+					// .attr("x", -30).attr("y", vertical_scale[0].rangeBand()/2).attr("dy", 5);
 			}
 			var dy = vertical_scale[0](_tl_key(d));
 			ele.attr("transform", "translate(0,"+dy+")");
@@ -603,11 +628,13 @@ WFV.FloorBar = function(_time_range){
 	}
 	$(window).resize(function(e){
 		init_svg();
+		update_all_tls();
+		update_horizon_bars();
 		// update_floor_circle();
-		update_ap_bars();
-		update_floor_tls();
-		update_floor_ap_tls();
-		change_tl();
+		// update_ap_bars();
+		// update_floor_tls();
+		// update_floor_ap_tls();
+		// change_tl();
 	});
 	function _sort_by_floor(f1, f2){
 		var a = f1.floor, b = f2.floor;
