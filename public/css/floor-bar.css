@@ -1,7 +1,9 @@
 /*
  * floor bar circles
  */
-#floor-bar-circles .floor circle{
+
+#floor-bar-circles .ap rect,
+#floor-bar-circles .floor rect{
 	/*fill: #A2CE85;*/
 	fill:#C8CCD5; 
 }
@@ -12,19 +14,25 @@
 	font-size: 12px;
 }
 
-#floor-bar-circles .floor.current circle{
+#floor-bar-circles .ap text{
+	font-size: 10px;
+	text-anchor: start;
+	stroke: #666666; 
+}
+
+#floor-bar-circles .floor.current rect{
 	fill: #646464;
 	stroke: #646464;
 	stroke-width: 2;
 }
 
-#floor-bar-circles .floor.selected circle{
+#floor-bar-circles .floor.selected rect{
 	fill: #646464;
 	stroke: #646464;
 	stroke-width: 2;
 }
 
-#floor-bar-circles .floor.hover circle{
+#floor-bar-circles .floor.hover rect{
 	fill: #646464;
 	stroke: #646464;
 	stroke-width: 2;
@@ -56,7 +64,8 @@
 #floor-bar-tls .floor path,
 #floor-bar-tls .ap path {
 	stroke: #898989;
-	fill: none;
+	fill: rgb(5, 5, 5);
+	fill-opacity: 0.2;
 }
 
 #floor-bar-tls .floor.current path{

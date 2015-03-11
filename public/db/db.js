@@ -338,16 +338,18 @@ WFV_DB.prototype.ap_bar_data = function(from, to, cb){
 	function _structure_records(records){
 		var data = d3.nest().key(function(r){return r.floor}).sortKeys(d3.asceding)
 			.key(function(r){return r.apid}).sortKeys(d3.asceding)
-			.rollup(function(leaves){return leaves.length})
+			.rollup(function(leaves){return leaves})
 			.entries(records);
 		data.forEach(function(f){
 			f.floor = +f.key; delete f.key;
 			f.aps = f.values; delete f.values;
 			f.aps.forEach(function(ap){
 				ap.apid = +ap.key; delete ap.key;
-				ap.count = ap.values; delete ap.values;
+				//ap.count = ap.values; delete ap.values;
+				ap.count = _.uniq(ap.values, function(d){return d.mac}).length;
 			});
 			f.count = d3.sum(f.aps, function(ap){return ap.count});
+			f.type = "floor";
 		});
 		cb && cb(data);
 	}
