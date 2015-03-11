@@ -37,12 +37,12 @@
 #device-wrapper .device.selected rect,
 #aps-wrapper .device.selected rect{
 	/*fill: #71B1F0;*/
-	stroke: #8E1212;
+	stroke: #303030;
 }
 
 #device-wrapper .device.hover rect,
 #aps-wrapper .device.hover rect{
-	stroke: #8E1212;
+	stroke: #303030;
 }
 
 /*
