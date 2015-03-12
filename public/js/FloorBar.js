@@ -465,10 +465,12 @@ WFV.FloorBar = function(_time_range){
 			update_floor_circle();
 		}
 	}
+	var horizon_data;
 	function update_horizon_bars(_data){
 		var bars = g.select("#floor-bar-circles").selectAll("g.bar");
 		if(_data){
-			// vertical_scale[0].domain(_data.map(_tl_key));
+			horizon_data = _data;
+			vertical_scale[0].domain(_data.map(_tl_key));
 			var cmax = d3.max(_data, function(d){return d.count});
 			circle_scale.range([0, 38]).domain([0, cmax]);
 			bars = bars.data(_data, _tl_key);
@@ -477,7 +479,8 @@ WFV.FloorBar = function(_time_range){
 			enter.append("text");
 			bars.exit().remove();
 		}
-		bars.each(function(d){
+		bars.order();
+		bars.each(function(d, i){
 			var ele = d3.select(this);
 			if(d.type == "floor"){
 				ele.attr("floor", d.floor);
@@ -498,9 +501,9 @@ WFV.FloorBar = function(_time_range){
 					.attr("x", -6).attr("y", vertical_scale[0].rangeBand()/2).attr("dy", 5);
 			}
 			var dy = vertical_scale[0](_tl_key(d));
-			ele.attr("transform", "translate(0,"+dy+")");
 			ele.select("rect").attr("height", vertical_scale[0].rangeBand() - 2)
 				.attr("width", circle_scale(d.count));
+			ele.transition().attr("transform", "translate(0,"+dy+")");
 		});
 		//
 		function _tl_key(d){
@@ -511,9 +514,11 @@ WFV.FloorBar = function(_time_range){
 			}
 		}
 	}
+	var all_tls_data;
 	function update_all_tls(_data){
 		var all_tls = g.select("#floor-bar-tls").selectAll("g.tl");
 		if(_data){
+			all_tls_data = _data;
 			vertical_scale[0].domain(_data.map(_tl_key));
 			y_line_scale[0].range([vertical_scale[0].rangeBand(),0]);
 			line_generator[0].y0(vertical_scale[0].rangeBand());
@@ -522,6 +527,37 @@ WFV.FloorBar = function(_time_range){
 			enter.append("path");
 			all_tls.exit().remove();
 		}
+		all_tls.order();
+		var drag = d3.behavior.drag()
+			.origin(function(d){
+				var x = 0;
+				var y = vertical_scale[0](_tl_key(d));
+				console.log("timeline drag start");
+				return {x: 0, y: 0};
+			}).on("dragstart", function(d) {
+				d3.event.sourceEvent.stopPropagation();
+			}).on("drag", function(d) {
+				var x = d3.event.x, y = d3.event.y;
+				var ox = 0 + x, oy = vertical_scale[0](_tl_key(d)) + y;
+				d3.select(this).attr("transform", "translate("+ox+","+oy+")");
+				//
+				if(d.floor){
+					$("#floor-bar-circles g.floor[floor="+d.floor+"]").attr("transform","translate("+ox+","+oy+")");
+				}else{
+					$("#floor-bar-circles g.ap[apid="+d.floor+"]").attr("transform","translate("+ox+","+oy+")");
+				}
+				//
+				d3.selectAll("#floor-bar-tls .tl, #floor-bar-circles .bar").style("pointer-events", "none");
+			}).on("dragend", function(d, i){
+				var new_all_tls_data = [].concat(d, all_tls_data.slice(0, i), all_tls_data.slice(i+1, all_tls_data.length));
+				update_all_tls(new_all_tls_data);
+				//
+				var new_horizon_data = [].concat(horizon_data[i], horizon_data.slice(0, i), horizon_data.slice(i+1, horizon_data.length));
+				update_horizon_bars(new_horizon_data);
+				//
+				d3.selectAll("#floor-bar-tls .tl, #floor-bar-circles .bar").style("pointer-events", null);
+			});
+		all_tls.call(drag);
 		all_tls.each(function(d){
 			var ele = d3.select(this);
 			if(d.type == "floor"){
@@ -534,7 +570,7 @@ WFV.FloorBar = function(_time_range){
 			y_line_scale[0].domain([0, cmax]);
 			ele.select('path').attr("d", line_generator[0](d.tl_data));
 			var dy = vertical_scale[0](_tl_key(d));
-			ele.attr("transform", "translate(0,"+dy+")");
+			ele.transition().attr("transform", "translate(0,"+dy+")");
 		});
 		//
 		function _tl_key(d){
