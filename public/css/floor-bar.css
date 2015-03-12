@@ -8,6 +8,10 @@
 	fill:#C8CCD5; 
 }
 
+#floor-bar-circles .bar text::selection{
+	background: none;
+}
+
 #floor-bar-circles .floor text{
 	text-anchor: end;
 	stroke: #666666; 
