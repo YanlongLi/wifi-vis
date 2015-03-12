@@ -46,5 +46,6 @@ rect.placeholder{
 	font-family: monospace;
 	font-size: 14;
 	font-weight: bold;
+	z-index: 100000;
 }
 

@@ -1,6 +1,8 @@
 importScripts("../../jslib/tsne.js")
 
-var opt = {epsilon: 2};
+
+var opt = {epsilon: 2, perplexity:30};
+console.log("opt", opt);
 var tSNE = new tsnejs.tSNE(opt);
 var _distanceMatrix;
 
@@ -34,7 +36,8 @@ function start(distanceMatrix, iter) {
         if (count > iter) {
             clearInterval(iterTimer);
         }
-        tSNE.step();
+        var cost = tSNE.step();
+        // console.log("cost", count, cost);
         if (count > 300 || count >= iter) {
             var state = 0;
             if (count > iter)
@@ -55,3 +58,8 @@ function start(distanceMatrix, iter) {
     // }
     // postMessage(tSNE.getSolution());
 }
+
+// function repel(positions, r) {
+//     for (var i = 0; i < )
+
+// }
