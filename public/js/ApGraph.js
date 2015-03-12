@@ -35,7 +35,6 @@ WifiVis.ApGraph = function(){
 		tsneWorker = worker;
 		// worker.postMessage({"cmd":"init", "distance":disMatrix});
 		worker.onmessage = function(event) {
-			console.log("ap graph on message");
 			dotPositions = event.data.positions;
 			if (event.data.state == 0)
 				isShowEdge = false;
@@ -151,10 +150,27 @@ WifiVis.ApGraph = function(){
 				var ap = aps[index];
 				svg.selectAll(".link[source-id='" + ap._id + "']").classed("temp-highlight", true);
 				svg.selectAll(".link[target-id='" + ap._id + "']").classed("temp-highlight", true);
+
+				//tip
+				var dx = $(this).offset().left - $("#"+DIV_ID).offset().left;
+				var dy = $(this).offset().top - $("#"+DIV_ID).offset().top;
+
+				var desc = "ap id: " + ap.apid + "</br>"
+					+ "ap name: " + ap.name + "</br>"
+					+ "ap floor: " + ap.floor + "</br>";
+				console.log(desc);
+				$("#ap-graph-description").html(desc);
+				$("#ap-graph-description").css({
+					"left": dx + 15,
+					"top": dy + 15
+				});
+				$("#ap-graph-description").show();
 			})
 			.on('mouseout', function(d, index) {
 				d3.select(this).classed("temp-highlight", false);
 				svg.selectAll(".link").classed("temp-highlight", false);
+				//tip
+				$("#ap-graph-description").hide();
 			})
 			.on("click", function(d,index) {
 				console.log("click")
@@ -226,8 +242,14 @@ WifiVis.ApGraph = function(){
 			gLink.selectAll(".link").style("display", "none");
 		}
 
-     
+		repel(dotPositions);
 	}
+
+	function repel(dotPositions, radiusList) {
+		for (var i = 0; i < dotPositions.length; i++) {
+			dotPositions = [0, 0];
+		}
+	} 
 
 	function initDragPolygon(){
 		//reference from http://bl.ocks.org/bycoffe/5871227
