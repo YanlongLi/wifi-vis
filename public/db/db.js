@@ -343,12 +343,15 @@ WFV_DB.prototype.ap_bar_data = function(from, to, cb){
 		data.forEach(function(f){
 			f.floor = +f.key; delete f.key;
 			f.aps = f.values; delete f.values;
+			var macs = [];
 			f.aps.forEach(function(ap){
 				ap.apid = +ap.key; delete ap.key;
 				//ap.count = ap.values; delete ap.values;
 				ap.count = _.uniq(ap.values, function(d){return d.mac}).length;
+				macs = macs.concat(ap.values);
 			});
-			f.count = d3.sum(f.aps, function(ap){return ap.count});
+			// f.count = d3.sum(f.aps, function(ap){return ap.count});
+			f.count = _.uniq(macs, function(d){return d.mac}).length;
 			f.type = "floor";
 		});
 		cb && cb(data);

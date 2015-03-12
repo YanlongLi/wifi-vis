@@ -8,7 +8,7 @@ var floor_image_size = WFV.FLOOR_IMG_SIZE;
 WifiVis.FloorDetail = function(){
 	function FloorDetail(){}
 	var floor_color = ColorScheme.floor;
-	var opacity_by_stay_time = d3.scale.linear().range([1,0.1]).domain([60,120]).clamp(true);
+	var opacity_by_stay_time = d3.scale.linear().range([1,0.3]).domain([60,120]).clamp(true);
 	var svg = $("#floor-detail-svg");
 	// defs
 	// var markerEndId = "path-arrow";
@@ -159,6 +159,13 @@ WifiVis.FloorDetail = function(){
 				});
 			}
 		}
+		if(message == WFV.Message.DeviceHover){
+			// TODO
+			var devs = data.device, change = data.change, isAdd = data.isAdd;
+			if(isAdd){
+			}else{
+			}
+		}
 		if(message == WFV.Message.TimePointChange){
 			time_point = data.time;
 			tracer.gotoTime(time_point);
@@ -193,12 +200,13 @@ WifiVis.FloorDetail = function(){
 			// var dx = e.pageX - $("#floor-detail-svg").offset().left;
 			// var dy = e.pageY - $("#floor-detail-svg").offset().top;
 			var ap = apMap.get(apid);
-			var desc = "ap id: " + ap.apid + "</br>"
-				+ "ap name: " + ap.name + "</br>"
-				+ "ap floor: " + ap.floor + "</br>";
+			var _name = ap.name.split(/ap|f/);
+			_name.shift();
+			var desc = "ap: " + _name.join("-") + "</br>"
+			desc = desc + "apid: " + apid  + "</br>"
 			//
 			var devs = ap.cluster.deviceLst();
-			desc = desc + "device number: " +devs.length + "</br>";
+			desc = desc + "persons: " +devs.length + "</br>";
 			var f = d3.time.format("20%y-%m-%d %H:%M:%S");
 			desc = desc + f(time_point) +"</br>";
 			/*
@@ -527,13 +535,33 @@ WifiVis.FloorDetail = function(){
 		}
 		function deviceHover(d){
 			EventManager.apHover([d.ap.apid]);
-			d3.select(this).classed("hover", true);
 			d3.select(this).classed('hover', true);
+			//
+			var dx = $(this).offset().left - $("#floor-detail-svg").offset().left;
+			var dy = $(this).offset().top - $("#floor-detail-svg").offset().top;
+			// var dx = e.pageX - $("#floor-detail-svg").offset().left;
+			// var dy = e.pageY - $("#floor-detail-svg").offset().top;
+			var desc = d.mac + "</br>";
+			var stay_time_minute = Math.round(d.device.stayTime(tracer.cur)/(1000*60));
+			desc = desc + "stay time: " + stay_time_minute + " minutes</br>";
+			var f = d3.time.format("20%y-%m-%d %H:%M:%S");
+			desc = desc + "cur time: " + f(time_point) +"</br>";
+			$("#floor-detail-ap-description").html(desc);
+			$("#floor-detail-ap-description").css({
+				"left": dx + 30,
+				"top": dy + 30
+			});
+			$("#floor-detail-ap-description").show();
+			//
+			EventManager.deviceHover([d.mac]);
 		}
 		function deviceDehover(d){
 			EventManager.apDehover([d.ap.apid]);
-			d3.select(this).classed("hover", false);
 			d3.select(this).classed('hover', false);
+			//
+			$("#floor-detail-ap-description").hide();
+			//
+			EventManager.deviceDehover([d.mac]);
 		}
 		return;
 	}
