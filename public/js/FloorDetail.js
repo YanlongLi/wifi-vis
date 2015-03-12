@@ -43,6 +43,7 @@ WifiVis.FloorDetail = function(){
 			x = d3.scale.linear(), y = d3.scale.linear(),
 			img = g.select("#floor-background"),
 			IMG_DIR = "data/floors/";
+
 	//
 	var y_hist = d3.scale.linear().range([20, 0]);
 	var x_hist = d3.scale.ordinal();
@@ -61,7 +62,23 @@ WifiVis.FloorDetail = function(){
 	var time_point, time_range = [timeFrom, timeTo],
 		deviceLst = [], selected_aps = [];
 	var graphinfo, links;
-
+	//
+	// for zoom
+	/*
+	 * var zoom = d3.behavior.zoom()
+	 *   .scaleExtent([1, 10])
+	 *   .on("zoom", zoomed);
+	 * function zoomed(){
+	 *   g.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")")	;
+	 * }
+	 * d3.select("#floor-detail-svg").call(zoom);
+	 * d3.select("#floor-detail-svg").on("click", function(){
+	 *   var dx = (size.width - imgSize.w) / 2 + 40;
+	 *   var dy = (size.height - imgSize.h) / 2 + 20;
+	 *   g.attr("transform", "translate("+dx+","+dy+")");
+	 * });
+	 */
+	//
 	init_svg();
 	init_interaction();
 
@@ -417,6 +434,7 @@ WifiVis.FloorDetail = function(){
 			gLinks = gLinks.data(_data, function(d){return d.sid + "," + d.tid});
 			var link_enter = gLinks.enter().append("g").attr("class", "link");
 			link_enter.append('path');
+			link_enter.append('text').append("textpath");
 			gLinks.exit().remove();
 		}
 		var arcline = utils.arcline();
@@ -433,7 +451,14 @@ WifiVis.FloorDetail = function(){
 				return arcline([p1,p2]);
 			}).style("stroke-width",function(d){
 				return link_scale(d.weight);
-			});
+			}).attr("id", function(d){return d.sid + "to" + d.tid});
+		// TODO: something wrong, text doesn't show up
+		gLinks.each(function(d){
+			var ele = d3.select(this);
+			ele.select("text").select("textpath")
+				.attr("xlink:href", "#"+d.sid+"to"+d.tid)
+				.text(d.weight);
+		});
 	}
 	function update_histogram(_data){
 		// [{sid:, tid:, weight:}]
@@ -571,6 +596,7 @@ WifiVis.FloorDetail = function(){
 		deviceLst.forEach(function(d){
 			d.selected = false;
 		});
+		d3.event.sourceEvent.stopPropagation();
 	}
 	function brushed(){
 		var extent = brush.extent();
@@ -596,6 +622,7 @@ WifiVis.FloorDetail = function(){
 				}
 				return false;
 			});
+		d3.event.sourceEvent.stopPropagation();
 	}
 	function brushend(){
 		console.log("on brush end, device selected", deviceLst.length);
@@ -611,6 +638,7 @@ WifiVis.FloorDetail = function(){
 		EventManager.deviceDeselect(null);
 		console.log("on brush end, device selected", selected_device.length);
 		EventManager.deviceSelect(selected_device);
+		d3.event.sourceEvent.stopPropagation();
 	}
 	//
 	return FloorDetail;
