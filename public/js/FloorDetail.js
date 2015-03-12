@@ -46,7 +46,7 @@ WifiVis.FloorDetail = function(){
 
 	//
 	var y_hist = d3.scale.linear().range([20, 0]);
-	var x_hist = d3.scale.ordinal();
+	var x_hist = d3.scale.linear();
 	//
 	var r_scale = d3.scale.log().range([10, 30]).clamp(true);
 			link_scale = d3.scale.linear().range([2, 10]);
@@ -85,7 +85,7 @@ WifiVis.FloorDetail = function(){
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
 		size = utils.initG(g, _w, _h, [40,10,0,40]);
-		x_hist.rangeRoundBands([0,size.width], .1);
+		x_hist.range([0, size.width]);
 		d3.select("#floor-detail-histogram").attr("transform", "translate(0,"+(svg.height() - 30)+")");
 		// repostion_histgram();
 	}
@@ -461,6 +461,34 @@ WifiVis.FloorDetail = function(){
 		});
 	}
 	function update_histogram(_data){
+		// [{sid:, tid:, weight:}]
+		// if no _data, resize
+		var hists = d3.select("#floor-detail-histogram").selectAll("g.hist")
+		if(_data){
+			var max = d3.max(_data, function(d){return d.weight});
+			x_hist.domain([0, max]);
+			var data = d3.layout.histogram()
+				.bins(x_hist.ticks(10)).value(function(d){return +d.weight})(_data);
+			y_hist.domain([0, d3.max(data,function(d){return d.y})]);
+			hists = hists.data(data);
+			var enter = hists.enter().append("g").attr("class", "hist");
+			enter.append("rect");
+			enter.append("text");
+		}
+		hists.attr("transform", function(d){
+			return "translate("+x_hist(d.x)+","+y_hist(d.y)+")"
+		}).each(function(d){
+			var ele = d3.select(this);
+			ele.select("rect").attr("x", 1)
+				.attr("width", function(){return x_hist(d.dx) - 1})
+				.attr("height", function(){return 20 - y_hist(d.y)});
+			ele.select("text").attr("y", -3)
+				.attr("x", x_hist(d.dx) / 2)
+				.attr("text-anchor", "middle")
+				.text(d.y);
+		});
+	}
+	function update_histogram_(_data){
 		// [{sid:, tid:, weight:}]
 		// if no _data, resize
 		var hists = d3.select("#floor-detail-histogram").selectAll("g.hist");
