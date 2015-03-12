@@ -9,14 +9,14 @@
 }
 
 #floor-bar-circles .floor text{
-	text-anchor: start;
+	text-anchor: end;
 	stroke: #666666; 
-	font-size: 12px;
+	font-size: 10px;
 }
 
 #floor-bar-circles .ap text{
-	font-size: 10px;
-	text-anchor: start;
+	font-size: 8px;
+	text-anchor: end;
 	stroke: #666666; 
 }
 

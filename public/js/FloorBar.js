@@ -235,8 +235,10 @@ WFV.FloorBar = function(_time_range){
 			}else{
 				var apid = $(this).attr("apid");
 				var ap = apMap.get(apid);
+				var _name = ap.name.split(/ap|f/);
+				_name.shift();
+				html = html + "ap: " + _name.join("-") + "</br>"
 				html = html + "apid: " + apid + "</br>";
-				html = html + "name: " + ap.name + "</br>";
 			}
 			//
 			$("#floor-bar-tip").html(html);
@@ -300,11 +302,11 @@ WFV.FloorBar = function(_time_range){
 
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
-		size = utils.initG(g, _w, _h, [10, 20, 30, 45]);
+		size = utils.initG(g, _w, _h, [10, 20, 30, 30]);
 		vertical_scale[0].rangeBands([0, size.height]);
 		vertical_scale[1].rangeBands([0, size.height]);
 		//per_h.h0 = size.height / 17;
-		var offset = 20;
+		var offset = 40;
 		x_line_scale.range([0, size.width - offset]);
 		//line_generator[0].y0(per_h.h0);
 		
@@ -468,10 +470,10 @@ WFV.FloorBar = function(_time_range){
 		if(_data){
 			// vertical_scale[0].domain(_data.map(_tl_key));
 			var cmax = d3.max(_data, function(d){return d.count});
-			circle_scale.range([0, 20]).domain([0, cmax]);
+			circle_scale.range([0, 38]).domain([0, cmax]);
 			bars = bars.data(_data, _tl_key);
 			var enter = bars.enter().append("g").attr("class", function(d){return "bar "+d.type});
-			enter.append("rect");
+			enter.append("rect").append("title");
 			enter.append("text");
 			bars.exit().remove();
 		}
@@ -479,13 +481,21 @@ WFV.FloorBar = function(_time_range){
 			var ele = d3.select(this);
 			if(d.type == "floor"){
 				ele.attr("floor", d.floor);
-				ele.select("rect").style("fill", floor_color(d.floor));
-				ele.select("text").text("F"+d.floor)
-					.attr("x", -30).attr("y", vertical_scale[0].rangeBand()/2).attr("dy", 5);
+				ele.select("rect").style("fill", floor_color(d.floor))
+					.select("title").text(function(){
+						return "persons(occur): " + d.count;
+					});
+				ele.select("text").text("'"+d.floor+"")
+					.attr("x", -6).attr("y", vertical_scale[0].rangeBand()/2).attr("dy", 5);
 			}else{
 				ele.attr("apid", d.apid);
-				// ele.select("text").text(apMap.get(d.apid).name)
-					// .attr("x", -30).attr("y", vertical_scale[0].rangeBand()/2).attr("dy", 5);
+				var _name = apMap.get(d.apid).name.split(/ap|f/);
+				_name.shift();
+				ele.select("rect").select("title").text(function(){
+						return "persons(occur): " + d.count;
+					});
+				ele.select("text").text(_name.join("-"))
+					.attr("x", -6).attr("y", vertical_scale[0].rangeBand()/2).attr("dy", 5);
 			}
 			var dy = vertical_scale[0](_tl_key(d));
 			ele.attr("transform", "translate(0,"+dy+")");
