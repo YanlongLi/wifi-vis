@@ -190,32 +190,6 @@ WFV.FloorBar = function(_time_range){
 	}
 	function init_interaction(){
 		// for floor circle
-		$(document).on("mousedown", "#floor-bar-circles .floor, #floor-bar-tls g.floor", function(e){e.stopPropagation()});
-		$(document).on("click", "#floor-bar-circles .floor, #floor-bar-tls g.floor", function(e){
-			var floor = $(this).attr("floor");
-			if(floor == current_floor){
-				is_floor_tl = !is_floor_tl;
-				// change_tl();
-				if(ftlData.floorStatus[current_floor]){
-					ftlData.unflatFloor(current_floor, function(){
-						ftlData.getFlattedData(update_all_tls);
-					});
-					barData.unflatFloor(current_floor, function(){
-						barData.getFlattedData(update_horizon_bars);
-					});
-				}else{
-					ftlData.flatFloor(current_floor, function(){
-						ftlData.getFlattedData(update_all_tls);
-					});
-					barData.flatFloor(current_floor, function(){
-						barData.getFlattedData(update_horizon_bars);
-					});
-				}
-			}else{
-				EventManager.apDeselect(null);
-				EventManager.floorChange(floor);
-			}
-		});
 		$(document).on("mouseenter", "#floor-bar-circles .floor, #floor-bar-tls .floor", function(e){
 			console.log("fire floor over event");
 			var sel_f = $(this).attr("floor");
@@ -507,6 +481,8 @@ WFV.FloorBar = function(_time_range){
 			ele.transition().attr("transform", "translate(0,"+dy+")");
 		});
 		//
+		bars.on("click", on_floor_click);
+		//
 		function _tl_key(d){
 			if(d.type == "floor"){
 				return "floor-" + d.floor;
@@ -516,6 +492,7 @@ WFV.FloorBar = function(_time_range){
 		}
 	}
 	var all_tls_data;
+	var isDrag = false;// check whether it is drag or click event, if click, no drag move
 	function update_all_tls(_data){
 		var all_tls = g.select("#floor-bar-tls").selectAll("g.tl");
 		if(_data){
@@ -529,15 +506,17 @@ WFV.FloorBar = function(_time_range){
 			all_tls.exit().remove();
 		}
 		all_tls.order();
+		all_tls.on("click", on_floor_click);
 		var drag = d3.behavior.drag()
 			.origin(function(d){
 				var x = 0;
 				var y = vertical_scale[0](_tl_key(d));
-				console.log("timeline drag start");
 				return {x: 0, y: 0};
 			}).on("dragstart", function(d) {
 				d3.event.sourceEvent.stopPropagation();
 			}).on("drag", function(d) {
+				isDrag = true;
+				d3.event.sourceEvent.stopPropagation();
 				var x = d3.event.x, y = d3.event.y;
 				var ox = 0 + x, oy = vertical_scale[0](_tl_key(d)) + y;
 				d3.select(this).attr("transform", "translate("+ox+","+oy+")");
@@ -550,6 +529,10 @@ WFV.FloorBar = function(_time_range){
 				//
 				d3.selectAll("#floor-bar-tls .tl, #floor-bar-circles .bar").style("pointer-events", "none");
 			}).on("dragend", function(d, i){
+				if(!isDrag){
+					return;
+				}
+				isDrag = false;
 				var new_all_tls_data = [].concat(d, all_tls_data.slice(0, i), all_tls_data.slice(i+1, all_tls_data.length));
 				update_all_tls(new_all_tls_data);
 				//
@@ -582,7 +565,33 @@ WFV.FloorBar = function(_time_range){
 			}
 		}
 	}
-
+	function on_floor_click(d){
+		console.log("clicked");
+		if (d3.event.defaultPrevented) return; 
+		var floor = d.floor;
+		if(floor == current_floor){
+			is_floor_tl = !is_floor_tl;
+			// change_tl();
+			if(ftlData.floorStatus[current_floor]){
+				ftlData.unflatFloor(current_floor, function(){
+					ftlData.getFlattedData(update_all_tls);
+				});
+				barData.unflatFloor(current_floor, function(){
+					barData.getFlattedData(update_horizon_bars);
+				});
+			}else{
+				ftlData.flatFloor(current_floor, function(){
+					ftlData.getFlattedData(update_all_tls);
+				});
+				barData.flatFloor(current_floor, function(){
+					barData.getFlattedData(update_horizon_bars);
+				});
+			}
+		}else{
+			EventManager.apDeselect(null);
+			EventManager.floorChange(floor);
+		}
+	}
 	function update_floor_tls(_data){
 		return;
 		// assume time_range.domain already been set
