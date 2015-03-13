@@ -484,7 +484,12 @@ WifiVis.FloorDetail = function(){
 					$("#aps-wrapper g.ap[apid="+l.sid+"]").removeClass("selected");
 					$("#aps-wrapper g.ap[apid="+l.tid+"]").removeClass("selected");
 				});
+				//
+				if(d3.select("#floor-detail-histogram").selectAll("g.selected").empty()){
+					d3.select("#path-wrapper").selectAll("g.link").classed("fading", false);
+				}
 			}else{
+				d3.select("#path-wrapper").selectAll("g.link").classed("fading", true);
 				ele.attr("_selected", true).classed("selected", true);
 				d.forEach(function(l){
 					_select_path(l.sid, l.tid, true);
@@ -544,7 +549,7 @@ WifiVis.FloorDetail = function(){
 			//
 			var device_exit = gDevice.exit();
 			device_exit.transition()
-				.duration(80).attr("transform", function(d){
+				.duration(10).attr("transform", function(d){
 					var p = WFV.VIR_AP_POS[current_floor][1];
 					var dx = x(p[0]);
 					var dy = y(p[1]);
@@ -554,7 +559,7 @@ WifiVis.FloorDetail = function(){
 		gDevice.classed("hilight", function(d){
 			return d.device.selected;
 		}).attr("mac",function(d){return d.mac});
-		gDevice.transition().duration(80).ease("quard").attr("transform", function(d){
+		gDevice.transition().duration(10).ease("quard").attr("transform", function(d){
 			var dx = x(d.x) + d.dx;
 			var dy = y(d.y) + d.dy;
 			return "translate("+dx+","+dy+")";

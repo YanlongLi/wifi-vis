@@ -273,8 +273,6 @@ WFV.FloorBar = function(_time_range){
 			d3.select(this).style("stroke", null);
 		});
 	}
-
-
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
 		size = utils.initG(g, _w, _h, [10, 20, 30, 30]);
@@ -610,8 +608,10 @@ WFV.FloorBar = function(_time_range){
 		}
 	}
 	function on_floor_click(d){
-		console.log("clicked");
-		if (d3.event.defaultPrevented) return; 
+		if(d.type != "floor"){
+			return;
+		}
+		if(d3.event.defaultPrevented) return; 
 		var floor = d.floor;
 		if(floor == current_floor){
 			is_floor_tl = !is_floor_tl;
