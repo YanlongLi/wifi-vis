@@ -60,6 +60,11 @@ WifiVis.NlDeviceView = function(selectedDevices){
   var yAxis = d3.svg.axis()
       .scale(yScale)
       .orient("left");
+  var nlZoom = d3.behavior.zoom()
+            .center([0, 0])
+            .scaleExtent([1, 10])
+            //.y(yScale)
+            .on("zoom", nlZoomed);
   
       
 
@@ -80,6 +85,15 @@ WifiVis.NlDeviceView = function(selectedDevices){
       .attr("transform", "translate(40," + (nlSize.height+5) + ")");
       //.attr("transform", "translate(40," + 0 + ")")
       //.call(xAxis);
+    var nlDomainLen = nlX.domain().length;
+    if (nlDomainLen > 0) {
+      nlX.range(nlX.domain().map(function(d, i) {
+        return 0.5 * (x(d) + nlSize.width * (i + 1) / (nlDomainLen + 1));
+      }));
+
+      nlZoom.x(nlX);
+      nlGXAxis.call(nlXAxis);
+    }
 
      // gYAxis
      //  .attr("class", "y axis")
