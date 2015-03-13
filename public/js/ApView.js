@@ -13,6 +13,8 @@ WifiVis.ApView = function(selectedDevices) {
   var clicked = {};
   var loginRecords;
 
+  var deviceList = [], apList = [], apMap = {};
+
   var checkInIntervalString = "2013-09-02 00:00:30";
   var checkInInterval;
 
@@ -215,13 +217,36 @@ WifiVis.ApView = function(selectedDevices) {
 
   ObserverManager.addListener(ApView);
   ApView.OMListen = function(message, data){
-    console.log(data);
-    if(message == WFV.Message.DeviceSelect){
-      if (!data.isAdd) return;
-      console.log(data.device);
-      var deviceList = data.device;
+    //console.log(data);
+    // if(message == WFV.Message.DeviceSelect){
+    //   if (!data.isAdd) return;
+    //   console.log(data.device);
+    //   deviceList = data.device;
+    //   ApView.update();
+    // }
 
-      ApView.update(deviceList);
+    if(message == WFV.Message.ApSelect){
+      if (!data.isAdd) return;
+      console.log(data.apid);
+      apList = data.apid;
+      apMap = {};
+      apList.forEach(function(d) {
+        apMap[d] = d;
+      });
+      apList.forEach(function(d) {
+        console.log(d);
+        db.macs_by_ap(timeFrom, timeTo, d, function(res) {
+          deviceList = [];
+          // deviceList.concat(res.map(function(p) {
+          //   return p.mac;
+          // }));
+          res.forEach(function(p) {
+            deviceList.push(p.mac);
+          })
+          console.log(deviceList);
+          ApView.update();
+        }); 
+      });
     }
   }
 
@@ -242,8 +267,9 @@ WifiVis.ApView = function(selectedDevices) {
     }
   }
 
-  ApView.update = function(deviceList){
-    console.log(deviceList);
+  ApView.update = function(){
+
+
     loginRecords = [];
     var access_data = [];
     apNameMappings = {}, apFloorMappings = {};
@@ -431,7 +457,6 @@ WifiVis.ApView = function(selectedDevices) {
           if (mousex > svg.w + 5) mousex = svg.w + 5;
           vertical.style("left", mousex + "px" );
           var timePoint = x.invert(mousex - 55);
-          console.log(timePoint);
           tooltip.html( "<p>" + d3.time.format("%c")(timePoint) + "</p>" ).style("visibility", "visible");
         })
         .on("mouseover", function(){  
@@ -484,7 +509,7 @@ WifiVis.ApView = function(selectedDevices) {
         })
         .style("font-size", "0.6em")
         .text(function(d) {
-          return d;
+          return db.macid_by_mac(d);
         });
 
       // var gDeviceRect = gRect.selectAll(".apDeviceG")
@@ -532,7 +557,9 @@ WifiVis.ApView = function(selectedDevices) {
       // //
 
       gRect.selectAll(".apDeviceRect")
-        .data(dataset)
+        .data(dataset.filter(function(d){
+          return d.start.apid in apMap;
+        }))
         .enter()
         .append("rect")
         .attr("class", function(d) {
