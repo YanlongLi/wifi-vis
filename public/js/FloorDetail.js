@@ -160,9 +160,9 @@ WifiVis.FloorDetail = function(){
 					.attr("_selected", true);
 				// hilight path
 				$("#path-wrapper g.link[sid="+apid+"]")
-					.removeClass("fading").addClass("hilight");
+					.removeClass("fading").addClass("selected");
 				$("#path-wrapper g.link[tid="+apid+"]")
-					.removeClass("fading").addClass("hilight");
+					.removeClass("fading").addClass("selected");
 			});
 		}
 		if(message == WFV.Message.DeviceSelect){
@@ -481,11 +481,15 @@ WifiVis.FloorDetail = function(){
 				ele.attr("_selected", null).classed("selected", false);
 				d.forEach(function(l){
 					_select_path(l.sid, l.tid, false);
+					$("#aps-wrapper g.ap[apid="+l.sid+"]").removeClass("selected");
+					$("#aps-wrapper g.ap[apid="+l.tid+"]").removeClass("selected");
 				});
 			}else{
 				ele.attr("_selected", true).classed("selected", true);
 				d.forEach(function(l){
 					_select_path(l.sid, l.tid, true);
+					$("#aps-wrapper g.ap[apid="+l.sid+"]").addClass("selected");
+					$("#aps-wrapper g.ap[apid="+l.tid+"]").addClass("selected");
 				});
 			}
 			function _select_path(sid, tid, flag){

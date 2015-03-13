@@ -83,7 +83,7 @@
 	opacity: 1;
 }
 #path-wrapper .fading{
-	opacity: 0.1;
+	/*opacity: 0.1;*/
 }
 #path-wrapper .fading path{
 	opacity: 0.1;

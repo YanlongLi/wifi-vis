@@ -190,6 +190,7 @@ WFV.FloorBar = function(_time_range){
 	}
 	function init_interaction(){
 		// for floor circle
+		$(document).on("mousedown", "#floor-bar-circles .floor, #floor-bar-tls g.floor", function(e){e.stopPropagation()});
 		$(document).on("click", "#floor-bar-circles .floor, #floor-bar-tls g.floor", function(e){
 			var floor = $(this).attr("floor");
 			if(floor == current_floor){
