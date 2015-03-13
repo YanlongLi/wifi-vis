@@ -60,6 +60,11 @@ WifiVis.NlDeviceView = function(selectedDevices){
   var yAxis = d3.svg.axis()
       .scale(yScale)
       .orient("left");
+  var nlZoom = d3.behavior.zoom()
+            .center([0, 0])
+            .scaleExtent([1, 10])
+            //.y(yScale)
+            .on("zoom", nlZoomed);
   
       
 
@@ -80,6 +85,15 @@ WifiVis.NlDeviceView = function(selectedDevices){
       .attr("transform", "translate(40," + (nlSize.height+5) + ")");
       //.attr("transform", "translate(40," + 0 + ")")
       //.call(xAxis);
+    var nlDomainLen = nlX.domain().length;
+    if (nlDomainLen > 0) {
+      nlX.range(nlX.domain().map(function(d, i) {
+        return 0.5 * (x(d) + nlSize.width * (i + 1) / (nlDomainLen + 1));
+      }));
+
+      nlZoom.x(nlX);
+      nlGXAxis.call(nlXAxis);
+    }
 
      // gYAxis
      //  .attr("class", "y axis")
@@ -186,7 +200,6 @@ WifiVis.NlDeviceView = function(selectedDevices){
 
   function initYScale() {
     var yHeight = nlSize.height;
-    console.log(Object.keys(floorDomain).length * 7  + ", " + nlSize.height);
     if (Object.keys(floorDomain).length * 7 > yHeight) {
       yHeight = Object.keys(floorDomain).length * 7;
     }
@@ -244,10 +257,8 @@ WifiVis.NlDeviceView = function(selectedDevices){
 
   ObserverManager.addListener(NlDeviceView);
   NlDeviceView.OMListen = function(message, data){
-    console.log(data);
     if(message == WFV.Message.DeviceSelect){
       if (!data.isAdd) return;
-      console.log(data.device);
       deviceList = data.device;
       NlDeviceView.update();
     }
@@ -270,7 +281,6 @@ WifiVis.NlDeviceView = function(selectedDevices){
 
   function setY() {
     var yDomain = [];
-    console.log(floorCollapsed);
      for (var floor in floorCollapsed) {
       if (floorCollapsed[floor] === false) {
         if ((floor + "apall") in floorDomain) {
@@ -537,7 +547,6 @@ WifiVis.NlDeviceView = function(selectedDevices){
           if (mousex > nlSvg.w + 40) mousex = nlSvg.w + 40;
           vertical.style("left", mousex + "px" );
           var timePoint = nlX.invert(mousex - 58);
-          console.log(timePoint);
           tooltip.html( "<p>" + d3.time.format("%c")(timePoint) + "</p>" ).style("visibility", "visible");
         })
         .on("mouseover", function(){  
@@ -669,14 +678,7 @@ WifiVis.NlDeviceView = function(selectedDevices){
           
         });
 
-      var nlD = nlX.domain();
-      console.log(nlX.domain());
-      nlD.forEach(function(d) {
-        console.log(
-          d + "," + nlX(d)
-        );
-      });
-      
+      var nlD = nlX.domain();      
 
       var dotList = [];
       //var bisect = d3.bisector(function(d) { return d.date_time; }).left;
@@ -686,9 +688,9 @@ WifiVis.NlDeviceView = function(selectedDevices){
             dot2 = {date_time:dataset[k][1].date_time, apid:dataset[k][1].apid, device:dataset[k].device};
         //var i = bisect(loginRecords, dot1.date_time);
         var i = bisect(nlX.domain(), dot1.date_time);
-        console.log(dot1.date_time);
-        console.log(nlX.domain()[i] + ", " + nlX.domain()[i+1]);
-        console.log(nlX(dot1.date_time) + ", " + nlX(nlX.domain()[i]));
+        // console.log(dot1.date_time);
+        // console.log(nlX.domain()[i] + ", " + nlX.domain()[i+1]);
+        // console.log(nlX(dot1.date_time) + ", " + nlX(nlX.domain()[i]));
 
         // console.log(nlX(dot2.date_time));
         dotList.push(dot1);
@@ -724,8 +726,6 @@ WifiVis.NlDeviceView = function(selectedDevices){
             clicked[d["device"]] = true;
             nlHighlightTrace(d["device"]);
           }
-          console.log(nlGRect.selectAll(".mac" + d["device"]));
-          console.log(list);        
           // focus.attr("transform", "translate(" + x(d.date) + "," + y(d.close) + ")");
           // focus.select("text").text(formatCurrency(d.close));
         })
@@ -880,7 +880,7 @@ WifiVis.NlDeviceView = function(selectedDevices){
               return "deviceList text mac" + d;
             })
             .text(function(d) {
-              return d;
+              return db.macid_by_mac(d);
             })
             .on("mouseover", function(d) {
               nlHighlightTrace(d);

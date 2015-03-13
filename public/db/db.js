@@ -27,6 +27,7 @@ var WFV = WFV || {};
 WFV.DATA_PATH = WFV.DATA_PATH || function(){return "data/"};
 
 WFV.AP_FILE_PATH = function(){return WFV.DATA_PATH() + "APS.csv"};
+WFV.MAC_FILE_PATH = function(){return WFV.DATA_PATH() + "macid.csv"};
 
 WFV.date_format = d3.time.format("%Y-%m-%d");
 
@@ -87,6 +88,8 @@ WFV_DB.prototype.init = function(cb){
 	this.paths = [];
 	this.pathByMac = d3.map();
 	this.recordsByRange = d3.map();
+	this.macs;
+	this.macIdByMac = d3.map();
 	var that = this;
 	//
 	console.log("GET aps:");
@@ -149,6 +152,7 @@ WFV_DB.prototype.init = function(cb){
 				});
 			}else{
 				_compute_path();
+				_init_macid();
 				// TODO
 				// _compute_records_of_floor();
 				console.log("init records done");
@@ -157,6 +161,20 @@ WFV_DB.prototype.init = function(cb){
 		})(0);
 	}
 
+	function _init_macid(){
+		console.log("GET macs:")
+		d3.csv(WFV.MAC_FILE_PATH(), function(err, macs){
+			if(err){
+				console.error(err);
+			}else{
+				console.log("result:", macs.length);
+				that.macs = macs;
+				macs.forEach(function(m){
+					that.macIdByMac.set(m.mac, m.macid);
+				});
+			}
+		});
+	}
 	function _compute_path(){
 		that.paths = d3.nest().key(function(r){return r.mac})
 			.entries(that.records).map(function(o){
@@ -330,6 +348,13 @@ WFV_DB.prototype.macs_by_ap = function(from, to, apid, cb){
 		console.log("get mac list on ap", res.length);
 		cb(res);
 	});
+}
+
+WFV_DB.prototype.macid_by_mac = function(mac){
+	if(!this.macIdByMac.has(mac)){
+		console.warn("mac not found");
+	}
+	return +this.macIdByMac.get(mac);
 }
 
 WFV_DB.prototype.ap_bar_data = function(from, to, cb){

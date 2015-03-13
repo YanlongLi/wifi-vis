@@ -3,7 +3,7 @@ var timeFrom = new Date(2013,8,2),
 		timeTo   = new Date(2013,8,3);
 var db = new WFV_DB(timeFrom, timeTo);
 
-var apLst = [], apMap = d3.map();
+var apLst = [], apMap = d3.map(), macMap;
 var records = [];
 
 var tracer;
@@ -45,6 +45,7 @@ $(document).ready(function() {
 db.init(function(){ 
   apLst = db.aps;
   apMap = db.apMap;
+	macMap = db.macIdByMac;
   records = db.records;
   init_aplst_records();
   loading_tip.add_tip("done");

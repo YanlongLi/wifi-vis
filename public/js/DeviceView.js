@@ -331,7 +331,6 @@ WifiVis.DeviceView = function(selectedDevices){
 
   ObserverManager.addListener(DeviceView);
   DeviceView.OMListen = function(message, data){
-    console.log(data);
     if(message == WFV.Message.DeviceSelect){
       if (!data.isAdd) return;
       console.log(data.device);
@@ -960,7 +959,7 @@ WifiVis.DeviceView = function(selectedDevices){
               return "deviceList text mac" + d;
             })
             .text(function(d) {
-              return d;
+              return db.macid_by_mac(d);
             })
             .on("mouseover", function(d) {
               highlightTrace(d);
