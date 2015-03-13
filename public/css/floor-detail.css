@@ -84,13 +84,14 @@
 	/*opacity: 0.1;*/
 }
 
-#path-wrapper .selected path{
-	opacity: 1;
-}
 
 #path-wrapper .fading path{
 	opacity: 0.1;
 	marker-end: url("#path-arrow-fading");
+}
+
+#path-wrapper g.link.selected path{
+	opacity: 1;
 }
 
 #path-wrapper .hilight path{
