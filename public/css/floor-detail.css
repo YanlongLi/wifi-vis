@@ -112,8 +112,9 @@
 #floor-detail-histogram g.hist rect{
 	fill: #98DF8A;
 }
-#floor-detail-histogram g.hist.hover rect{
-	fill: #98DF8A;
+#floor-detail-histogram g.hist rect:hover{
+	fill: #FAD990;
+	stroke-width: 1;
 }
 #floor-detail-histogram g.hist.selected rect{
 	fill: #EDA915;
