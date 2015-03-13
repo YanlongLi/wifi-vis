@@ -88,9 +88,10 @@ WifiVis.FloorDetail = function(){
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
 		size = utils.initG(g, _w, _h, [40,10,0,40]);
-		size.height = size.height - h_hist - 20;
+		size.height = size.height - 2 * h_hist - 20 - 20;
 		x_hist.range([0, size.width]);
-		d3.select("#floor-detail-histogram").attr("transform", "translate(0,"+size.height+")");
+		d3.select("#floor-detail-ap-histogram").attr("transform", "translate(0, -30)");
+		d3.select("#floor-detail-histogram").attr("transform", "translate(0,"+(size.height + h_hist)+")");
 		// repostion_histgram();
 	}
 	function repostion_histgram(){
@@ -126,6 +127,7 @@ WifiVis.FloorDetail = function(){
 				update_links(links);
 				// repostion_histgram();
 				update_histogram(links);
+				update_histogram_in_out(links);
 			});
 		}
 		if(message == WFV.Message.ApHover){
@@ -133,10 +135,18 @@ WifiVis.FloorDetail = function(){
 			if(data.isAdd){
 				change.forEach(function(apid){
 					$("#aps-wrapper g.ap[apid="+apid+"]").addClass("hover");
+					$("#path-wrapper g.link[sid="+apid+"]").addClass("hover");
+					$("#path-wrapper g.link[tid="+apid+"]").addClass("hover");
+					//
+					$("#floor-detail-ap-histogram g.hist[apid="+apid+"]").addClass("hover");
 				});
 			}else{
 				change.forEach(function(apid){
 					$("#aps-wrapper g.ap[apid="+apid+"]").removeClass("hover");
+					$("#path-wrapper g.link[sid="+apid+"]").removeClass("hover");
+					$("#path-wrapper g.link[tid="+apid+"]").removeClass("hover");
+					//
+					$("#floor-detail-ap-histogram g.hist[apid="+apid+"]").removeClass("hover");
 				});
 			}
 		}
@@ -200,6 +210,7 @@ WifiVis.FloorDetail = function(){
 			load_new_data(function(){
 				update_links(links);
 				update_histogram(links);
+				update_histogram_in_out(links);
 			});
 		}
 	}
@@ -324,7 +335,7 @@ WifiVis.FloorDetail = function(){
 		console.log("svg size", svg.width(), svg.height());
 		console.log("image shown size", imgSize.w, imgSize.h);
 		imgOffset[0] = (size.width - imgSize.w) / 2;
-		imgOffset[1] = (size.height - imgSize.h) / 2;
+		imgOffset[1] = (size.height - imgSize.h) / 2 + h_hist;
 		// g.attr("transform", "translate("+dx+","+dy+")");
 	}
 	function move_image(){
@@ -415,7 +426,7 @@ WifiVis.FloorDetail = function(){
 			link_scale.domain(extent);
 			gLinks = gLinks.data(_data, function(d){return d.sid + "," + d.tid});
 			var link_enter = gLinks.enter().append("g").attr("class", "link");
-			link_enter.append('path');
+			link_enter.append('path').text("   ");
 			link_enter.append('text').append("textpath");
 			gLinks.exit().remove();
 		}
@@ -440,6 +451,87 @@ WifiVis.FloorDetail = function(){
 			ele.select("text").select("textpath")
 				.attr("xlink:href", "#"+d.sid+"to"+d.tid)
 				.text(d.weight);
+		});
+	}
+	var x_ap_hist = d3.scale.ordinal();
+	var y_ap_hist = d3.scale.linear();
+	var ap_hist_axis = d3.svg.axis().scale(x_ap_hist).orient("bottom");
+	function update_histogram_in_out(_data){
+		var hists = d3.select("#floor-detail-ap-histogram").selectAll("g.hist");
+		if(_data && _data.length){
+			var aps = d3.map();
+			_data.forEach(function(l){
+				if(!aps.has(+l.sid)){
+					aps.set(+l.sid, {in:0, out:0});
+				}
+				if(!aps.has(l.tid)){
+					aps.set(+l.tid, {in:0, out:0});
+				}
+				aps.get(+l.sid).out += l.weight;
+				aps.get(+l.tid).in += l.weight;
+			});
+			var data = aps.entries().map(function(d){
+				return {apid: +d.key, in: +d.value.in, out: +d.value.out};
+			}).sort(function(a,b){
+				return b.in - a.in;
+			});
+			x_ap_hist.domain(data.map(function(d){
+				var ap = apMap.get(d.apid);
+				d.ap = ap;
+				var arr = ap.name.split(/f|ap/);
+				arr.shift();
+				return arr.join("-");
+			})).rangeRoundBands([0, size.width], 0.1);
+			y_ap_hist.domain([0,d3.max(data,function(d){return d.out > d.in ? d.out : d.in})])
+				.range([h_hist, 0]);
+			//
+			hists = hists.data(data);
+			var enter = hists.enter().append("g").attr("class", "hist");
+			enter.append("rect").attr("class", "in");
+			enter.append("rect").attr("class", "out");
+			enter.append("text").attr("class", "in");
+			enter.append("text").attr("class", "out");
+			hists.exit().remove();
+		}
+		//
+		d3.select("#floor-detail-ap-histogram").select(".x.axis")
+			.attr("transform", "translate(0,"+h_hist+")").call(ap_hist_axis);
+		hists.attr("apid", function(d){return d.apid}).attr("transform", function(d){
+			var arr = d.ap.name.split(/f|ap/);
+			arr.shift();
+			var dx = x_ap_hist(arr.join("-"));
+			return "translate("+dx+",0)";
+		});
+		hists.each(function(d){
+			var ele = d3.select(this);
+			var band = x_ap_hist.rangeBand();
+			ele.select("rect.in").attr("width", band/2 - 1)
+				.attr("height", h_hist - y_ap_hist(d.in))
+				.attr("y", y_ap_hist(d.in))
+				.on("mouseover", function(){
+					$("#path-wrapper g.link[tid="+d.apid+"]").addClass("hover");
+				}).on("mouseleave", function(){
+					$("#path-wrapper g.link[tid="+d.apid+"]").removeClass("hover");
+				});
+			ele.select("text.in").attr("x", band/4)
+				.attr("y", y_ap_hist(d.in)).text(d.in)
+				.attr("dy", -3);
+			ele.select("rect.out").attr("width", band/2 - 1)
+				.attr("height", h_hist - y_ap_hist(d.out))
+				.attr("x", band/2).attr("y", y_ap_hist(d.out))
+				.on("mouseover", function(){
+					$("#path-wrapper g.link[sid="+d.apid+"]").addClass("hover");
+				}).on("mouseleave", function(){
+					$("#path-wrapper g.link[sid="+d.apid+"]").removeClass("hover");
+				});
+			ele.select("text.out").attr("x", band*3/4)
+				.attr("y", y_ap_hist(d.out)).text(d.out)
+				.attr("dy", -3);
+		}).on("mouseover", function(d){
+			$("#aps-wrapper g.ap[apid="+d.apid+"]").addClass("hover");
+		}).on("mouseleave", function(d){
+			EventManager.apDehover([d.apid]);
+			$("#aps-wrapper g.ap[apid="+d.apid+"]").removeClass("hover");
 		});
 	}
 	function update_histogram(_data){
