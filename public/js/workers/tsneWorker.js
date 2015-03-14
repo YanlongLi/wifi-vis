@@ -39,12 +39,13 @@ function start(distanceMatrix, iter) {
         var cost = tSNE.step();
         // console.log("cost", count, cost);
         if (count > 300 || count >= iter) {
-            var state = 0;
+            var isFinished = false;
             if (count > iter)
-                state = 1;
+                isFinished = true;
             postMessage({
-                state: state,
-                positions: tSNE.getSolution()
+                isFinished: isFinished,
+                positions: tSNE.getSolution(),
+
             });
         }
     }, 10)

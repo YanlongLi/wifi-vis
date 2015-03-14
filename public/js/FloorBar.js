@@ -190,31 +190,6 @@ WFV.FloorBar = function(_time_range){
 	}
 	function init_interaction(){
 		// for floor circle
-		$(document).on("click", "#floor-bar-circles .floor, #floor-bar-tls g.floor", function(e){
-			var floor = $(this).attr("floor");
-			if(floor == current_floor){
-				is_floor_tl = !is_floor_tl;
-				// change_tl();
-				if(ftlData.floorStatus[current_floor]){
-					ftlData.unflatFloor(current_floor, function(){
-						ftlData.getFlattedData(update_all_tls);
-					});
-					barData.unflatFloor(current_floor, function(){
-						barData.getFlattedData(update_horizon_bars);
-					});
-				}else{
-					ftlData.flatFloor(current_floor, function(){
-						ftlData.getFlattedData(update_all_tls);
-					});
-					barData.flatFloor(current_floor, function(){
-						barData.getFlattedData(update_horizon_bars);
-					});
-				}
-			}else{
-				EventManager.apDeselect(null);
-				EventManager.floorChange(floor);
-			}
-		});
 		$(document).on("mouseenter", "#floor-bar-circles .floor, #floor-bar-tls .floor", function(e){
 			console.log("fire floor over event");
 			var sel_f = $(this).attr("floor");
@@ -298,8 +273,6 @@ WFV.FloorBar = function(_time_range){
 			d3.select(this).style("stroke", null);
 		});
 	}
-
-
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
 		size = utils.initG(g, _w, _h, [10, 20, 30, 30]);
@@ -506,6 +479,8 @@ WFV.FloorBar = function(_time_range){
 			ele.transition().attr("transform", "translate(0,"+dy+")");
 		});
 		//
+		bars.on("click", on_floor_click);
+		//
 		function _tl_key(d){
 			if(d.type == "floor"){
 				return "floor-" + d.floor;
@@ -515,6 +490,7 @@ WFV.FloorBar = function(_time_range){
 		}
 	}
 	var all_tls_data;
+	var isDrag = false;// check whether it is drag or click event, if click, no drag move
 	function update_all_tls(_data){
 		var all_tls = g.select("#floor-bar-tls").selectAll("g.tl");
 		if(_data){
@@ -528,31 +504,81 @@ WFV.FloorBar = function(_time_range){
 			all_tls.exit().remove();
 		}
 		all_tls.order();
+		all_tls.on("click", on_floor_click);
+		var drag_x = 0, drag_y = 0;
 		var drag = d3.behavior.drag()
 			.origin(function(d){
 				var x = 0;
 				var y = vertical_scale[0](_tl_key(d));
-				console.log("timeline drag start");
 				return {x: 0, y: 0};
 			}).on("dragstart", function(d) {
 				d3.event.sourceEvent.stopPropagation();
 			}).on("drag", function(d) {
+				isDrag = true;
+				d3.event.sourceEvent.stopPropagation();
 				var x = d3.event.x, y = d3.event.y;
 				var ox = 0 + x, oy = vertical_scale[0](_tl_key(d)) + y;
 				d3.select(this).attr("transform", "translate("+ox+","+oy+")");
+				drag_x = ox;
+				drag_y = oy;
 				//
-				if(d.floor){
+				if(d.type == "floor"){
 					$("#floor-bar-circles g.floor[floor="+d.floor+"]").attr("transform","translate("+ox+","+oy+")");
 				}else{
-					$("#floor-bar-circles g.ap[apid="+d.floor+"]").attr("transform","translate("+ox+","+oy+")");
+					$("#floor-bar-circles g.ap[apid="+d.apid+"]").attr("transform","translate("+ox+","+oy+")");
 				}
 				//
 				d3.selectAll("#floor-bar-tls .tl, #floor-bar-circles .bar").style("pointer-events", "none");
 			}).on("dragend", function(d, i){
-				var new_all_tls_data = [].concat(d, all_tls_data.slice(0, i), all_tls_data.slice(i+1, all_tls_data.length));
+				if(!isDrag){
+					return;
+				}
+				isDrag = false;
+				//
+				var new_all_tls_data = all_tls_data;
+				var new_horizon_data = horizon_data;
+				//
+				var gap = vertical_scale[0].rangeBand();
+				var index = Math.floor(drag_y / gap);
+				var isRemove = drag_x > x_line_scale.range()[1] ? true : false;
+				console.log("isRemove", isRemove);
+				index = index < 0 ? -1 : index;
+				index = index >= vertical_scale[0].domain().length ? vertical_scale[0].domain().length - 1 : index;
+				if(index == i || index == i-1){
+					if(isRemove){
+						new_all_tls_data = [].concat(all_tls_data.slice(0, i), all_tls_data.slice(i+1, all_tls_data.length));
+						new_horizon_data = [].concat(horizon_data.slice(0, i), horizon_data.slice(i+1, horizon_data.length));
+					}
+				}else if(index < i){
+					var a1 = all_tls_data.slice(0, index+1);
+					var a2 = isRemove ? [] : [all_tls_data[i]];
+					var a3 = all_tls_data.slice(index + 1, i);
+					var a4 = all_tls_data.slice(i+1, all_tls_data.length);
+					new_all_tls_data = [].concat(a1, a2, a3, a4);
+					//
+					a1 = horizon_data.slice(0, index+1);
+					a2 = isRemove ? [] : [horizon_data[i]];
+					a3 = horizon_data.slice(index + 1, i);
+					a4 = horizon_data.slice(i+1, horizon_data.length);
+					new_horizon_data = [].concat(a1, a2, a3, a4);
+				}else if(index > i){
+					var a1 = all_tls_data.slice(0, i);
+					var a2 = all_tls_data.slice(i + 1, index+1);
+					var a3 = isRemove ? [] : [all_tls_data[i]];
+					var a4 = all_tls_data.slice(index+1, all_tls_data.length);
+					new_all_tls_data = [].concat(a1, a2, a3, a4);
+					//
+					a1 = horizon_data.slice(0, i);
+					a2 = horizon_data.slice(i + 1, index + 1);
+					a3 = isRemove ? [] : [horizon_data[i]];
+					a4 = horizon_data.slice(index+1, horizon_data.length);
+					new_horizon_data = [].concat(a1, a2, a3, a4);
+				}else{
+					// none
+				}
+				//
 				update_all_tls(new_all_tls_data);
 				//
-				var new_horizon_data = [].concat(horizon_data[i], horizon_data.slice(0, i), horizon_data.slice(i+1, horizon_data.length));
 				update_horizon_bars(new_horizon_data);
 				//
 				d3.selectAll("#floor-bar-tls .tl, #floor-bar-circles .bar").style("pointer-events", null);
@@ -581,7 +607,35 @@ WFV.FloorBar = function(_time_range){
 			}
 		}
 	}
-
+	function on_floor_click(d){
+		if(d.type != "floor"){
+			return;
+		}
+		if(d3.event.defaultPrevented) return; 
+		var floor = d.floor;
+		if(floor == current_floor){
+			is_floor_tl = !is_floor_tl;
+			// change_tl();
+			if(ftlData.floorStatus[current_floor]){
+				ftlData.unflatFloor(current_floor, function(){
+					ftlData.getFlattedData(update_all_tls);
+				});
+				barData.unflatFloor(current_floor, function(){
+					barData.getFlattedData(update_horizon_bars);
+				});
+			}else{
+				ftlData.flatFloor(current_floor, function(){
+					ftlData.getFlattedData(update_all_tls);
+				});
+				barData.flatFloor(current_floor, function(){
+					barData.getFlattedData(update_horizon_bars);
+				});
+			}
+		}else{
+			EventManager.apDeselect(null);
+			EventManager.floorChange(floor);
+		}
+	}
 	function update_floor_tls(_data){
 		return;
 		// assume time_range.domain already been set

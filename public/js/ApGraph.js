@@ -12,11 +12,11 @@ WifiVis.ApGraph = function(){
 	var aps, links;
 	var gLink = g.append("g").attr("class", "links"),
 		gNode = g.append("g").attr("class", "nodes");
-	var edgeFilterWeight = 30;
+	var edgeFilterWeight = 0;
 	var isShowEdge = false;     
 
 	var timeRange = [timeFrom, timeTo];
-	var disMatrix = [], dotPositions;
+	var disMatrix = [], dotPositions, dotNormalPositions = [];
 	var tsneWorker;
 	var graphinfo;
 	var spinner;
@@ -35,12 +35,18 @@ WifiVis.ApGraph = function(){
 		tsneWorker = worker;
 		// worker.postMessage({"cmd":"init", "distance":disMatrix});
 		worker.onmessage = function(event) {
-			dotPositions = event.data.positions;
-			if (event.data.state == 0)
+			dotPositions = event.data.positions;				
+			if (event.data.isFinished == false) {
 				isShowEdge = false;
-			else 
+				render();
+			}
+			else {
 				isShowEdge = true;
-			render();
+				// console.log("XXX", dotNormalPositions)
+				repel();
+				
+			}
+			
 		}
 		var drag = initDragPolygon();
 		o.svg.call(drag)
@@ -48,7 +54,6 @@ WifiVis.ApGraph = function(){
 				console.log("svg click");
 				EventManager.apDeselect(null, this);
 			});
-
 	}
 	ApGraph.draw = function(){
 		this.update(timeRange);
@@ -199,9 +204,12 @@ WifiVis.ApGraph = function(){
 			.style("display", "none");	
 	}
 
-	function render() {
+	function render(needScale) {
 		spinner.stop();	
 
+		if (needScale == null)
+			needScale = true;
+		
 		var _this = this;
 		var minX = _.min(dotPositions, function(d) {return d[0]})[0];
 		var maxX = _.max(dotPositions, function(d) {return d[0]})[0];
@@ -215,20 +223,38 @@ WifiVis.ApGraph = function(){
 			createElements();
 		}
 
-		gNode.selectAll(".dot")
-			.data(dotPositions)
-			.attr("cx", function(d, index) {
-				var ap = aps[index];
-				var x = mapping(d[0], minX, maxX, 0, width);
-				ap.x = x;
-				return x;
-			})
-			.attr("cy", function(d, index) {
-				var ap = aps[index];
-				y = mapping(d[1], minY, maxY, 0, height);
-				ap.y = y;
-				return y;
-			})
+		if (needScale) {
+			gNode.selectAll(".dot")
+				.data(dotPositions)
+				.attr("cx", function(d, index) {
+					var ap = aps[index];
+					var x = mapping(d[0], minX, maxX, 0, width);
+					dotNormalPositions[index][0] = x;
+					ap.x = x;
+					return x;
+				})
+				.attr("cy", function(d, index) {
+					var ap = aps[index];
+					y = mapping(d[1], minY, maxY, 0, height);
+					dotNormalPositions[index][1] = y;
+					ap.y = y;
+					return y;
+				})			
+		} else {
+			gNode.selectAll(".dot")
+				.data(dotPositions)
+				.attr("cx", function(d, index) {
+					var ap = aps[index];
+					ap.x = d[0];
+					return d[0];					
+				})
+				.attr("cy", function(d, index) {
+					var ap = aps[index];
+					ap.y = d[1];
+					return d[1];					
+				})				
+		}
+
 		// isShowEdge = false;
 		if (isShowEdge) {
 			gLink.selectAll(".link")
@@ -241,13 +267,64 @@ WifiVis.ApGraph = function(){
 		} else {
 			gLink.selectAll(".link").style("display", "none");
 		}
-
-		repel(dotPositions);
 	}
 
-	function repel(dotPositions, radiusList) {
+	function repel() {
+		var radius = [], delta = [];
+		dotPositions = dotNormalPositions;
+		console.log("dotNormalPositions", dotNormalPositions);
+		
 		for (var i = 0; i < dotPositions.length; i++) {
-			dotPositions = [0, 0];
+			radius[i] = 5;
+			delta[i] = [0, 0];
+		}
+
+		var cost = 10000;
+		var iter = 0;
+
+		var timer = setInterval(function() {
+			iterFunc();
+			if (iter > 100 || cost < 5) {
+				clearInterval(timer);
+			}
+		}, 30)
+
+		function iterFunc() {
+			iter++;
+			cost = 0;
+			for (var i = 0; i < dotPositions.length; i++) {
+				delta[i] = [0, 0];
+			}			
+			for (var i = 0; i < dotPositions.length; i++) {
+				var pi = dotPositions[i];
+				for (var j = i+1; j < dotPositions.length; j++) {
+					var pj = dotPositions[j];
+					dis = Math.sqrt( (pi[0]-pj[0])*(pi[0]-pj[0]) + (pi[1]-pj[1])*(pi[1]-pj[1]) );
+					if (dis < radius[i] + radius[j]) {
+						// console.log("iter", iter, "===", radius[i] + radius[j] - dis, radius[i], radius[j], dis)
+						cost += radius[i] + radius[j] - dis;
+						if (pi[0] > pj[0]) {
+							delta[i][0]++;
+							delta[j][0]--;
+						} else {
+							delta[i][0]--;
+							delta[j][0]++;
+						}
+						if (pi[1] > pj[1]) {
+							delta[i][1]++;
+							delta[j][1]--;
+						} else {
+							delta[i][1]--;
+							delta[j][1]++;
+						}
+					}
+				}
+			}
+			for (var i = 0; i < dotPositions.length; i++) {
+				dotPositions[i][0] += delta[i][0] * 0.5;
+				dotPositions[i][1] += delta[i][1] * 0.5;
+			}
+			render(false);
 		}
 	} 
 
@@ -357,8 +434,8 @@ WifiVis.ApGraph = function(){
 	function processData() {
 		aps = db.aps_all();
 		var defaultValue = getDistance(0);
-		console.log("aps.length", aps.length);
 		for (var i = 0; i < aps.length; i++) {
+			dotNormalPositions[i] = [0, 0];
 			disMatrix[i] = [];
 			for (var j = 0; j < aps.length; j++) {
 				if (i == j)
