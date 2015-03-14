@@ -14,6 +14,7 @@ WifiVis.FloorDetail = function(){
 	// var markerEndId = "path-arrow";
 	var markerId = {
 		normal: "path-arrow-normal",
+		device: "path-arrow-device",
 		hilight: "path-arrow-hilight",
 		reverse: "path-arrow-reverse",
 		fading: "path-arrow-fading",
@@ -178,6 +179,11 @@ WifiVis.FloorDetail = function(){
 		if(message == WFV.Message.DeviceSelect){
 			// TODO
 			var devs = data.device, change = data.change, isAdd = data.isAdd;
+			// draw device path
+			d3.select("#path-wrapper").selectAll(".device-path").remove();
+			devs.forEach(function(mac){
+					db.path_by_mac(mac, time_range[0], time_range[1], draw_device_path);
+			});
 			if(isAdd){
 				change.forEach(function(mac){
 					$("#device-wrapper g.device[mac="+mac+"]")
@@ -206,6 +212,7 @@ WifiVis.FloorDetail = function(){
 		if(message == WFV.Message.TimeRangeChange){
 		}
 		if(message == WFV.Message.TimeRangeChanged){
+			d3.select("#path-wrapper").selectAll(".device-path").remove();
 			time_range = data.range;
 			load_new_data(function(){
 				update_links(links);
@@ -249,7 +256,7 @@ WifiVis.FloorDetail = function(){
 			 */
 			$("#floor-detail-ap-description").html(desc);
 			$("#floor-detail-ap-description").css({
-				"left": dx + 30,
+				"left": dx + 60,
 				"top": dy + 30
 			});
 			$("#floor-detail-ap-description").show();
@@ -458,7 +465,8 @@ WifiVis.FloorDetail = function(){
 	var ap_hist_axis = d3.svg.axis().scale(x_ap_hist).orient("bottom");
 	function update_histogram_in_out(_data){
 		var hists = d3.select("#floor-detail-ap-histogram").selectAll("g.hist");
-		if(_data && _data.length){
+		if(_data){
+			if(!_data.length) return;
 			var aps = d3.map();
 			_data.forEach(function(l){
 				if(!aps.has(+l.sid)){
@@ -601,6 +609,36 @@ WifiVis.FloorDetail = function(){
 				}
 			}
 		});
+	}
+	function draw_device_path(_path){
+		var line = d3.svg.line().x(function(r){
+			var ap = apMap.get(r.apid);
+			return  x(ap.pos_x);
+		}).y(function(r){
+			var ap = apMap.get(r.apid);
+			return  y(ap.pos_y);
+		});
+		var path = _path.filter(function(r){return r.floor == current_floor});
+		if(path.length <= 1) return;
+		var links = path.map(function(r){
+			var ap = apMap.get(r.apid);
+			return [x(ap.pos_x), y(ap.pos_y), 15];
+		}).map(function(r, i, d){
+			if(i == 0) return null;
+			return [d[i-1], r];
+		});
+		links.shift();
+		var arcline = utils.arcline();
+		console.log(links);
+		g.select("#path-wrapper").append("g").attr("class", "device-path")
+			.selectAll("path").data(links).enter().append("path")
+			.attr("d", function(d){
+				var p1 = d[0], p2 = d[1];
+				if(p1[0] == p2[0] && p1[1] == p2[1]){
+					return "M"+p1[0]+","+p1[1];
+				}
+				return arcline(d);
+			});
 	}
 	function update_device(_data){// update device pos by aps(current floor)
 		// assume apLst exist[{ap with cluster}]
