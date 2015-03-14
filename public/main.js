@@ -84,7 +84,7 @@ function init(){
 	deviceGraph.init();
 
 	deviceView = WFV.DeviceView();
-	nlDeviceView = WFV.NlDeviceView();
+	//nlDeviceView = WFV.NlDeviceView();
 	//deviceView.draw();
 	apView = WFV.ApView();
 	// floorDetail.addFloorChangeListener(apGraph);

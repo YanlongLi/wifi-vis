@@ -14,6 +14,7 @@ WifiVis.DeviceView = function(selectedDevices){
   var floorCollapsed = {};
   var deviceList;
   var loginRecords;
+  var isNLScale = false;
 
 
   var checkInIntervalString = "2013-09-02 00:00:30";
@@ -56,6 +57,7 @@ WifiVis.DeviceView = function(selectedDevices){
 
   var x = d3.time.scale()
             .domain([timeFrom, timeTo]);
+  var nlX = d3.time.scale();
       //x.domain([new Date('2013-09-02'), new Date('2013-09-03')]);
    // x.domain([new Date(2013, 08, 02, 00, 00, 00, 00), new Date(2013, 08, 03, 00, 00, 00, 00)]);
 
@@ -64,7 +66,7 @@ WifiVis.DeviceView = function(selectedDevices){
   var xAxis = d3.svg.axis()
       .scale(x)
       .orient("bottom")
-          .ticks(4);
+      .ticks(4);
       // .tickFormat(function(d) {
       //   return xformatDate(new Date(d - 8*60*60*1000))
       // })
@@ -171,9 +173,31 @@ WifiVis.DeviceView = function(selectedDevices){
     yFloor.rangeBands([size.height, 0], .1);
     gXAxis
       .attr("class", "x axis")
-      .attr("transform", "translate(40," + (size.height+5) + ")")
+      .attr("transform", "translate(40," + (size.height+5) + ")");
       //.attr("transform", "translate(40," + 0 + ")")
-      .call(xAxis);
+      //.call(xAxis);
+    zoom = d3.behavior.zoom()
+            .center([0, 0])
+            .scaleExtent([1, 10])
+            //.x(x)
+            //.y(yScale)
+            .on("zoom", zoomed);
+
+    if (isNLScale) {
+      var nlDomainLen = nlX.domain().length;
+      if (nlDomainLen > 0) {
+        nlX.range(nlX.domain().map(function(d, i) {
+          return 0.5 * (x(d) + size.width * (i + 1) / (nlDomainLen + 1));
+        }));
+        zoom.x(nlX);
+        gXAxis.call(xAxis); 
+      }
+      else {
+        zoom.x(x);
+        gXAxis.call(xAxis);  
+      }
+    }
+    
 
      // gYAxis
      //  .attr("class", "y axis")
@@ -183,12 +207,7 @@ WifiVis.DeviceView = function(selectedDevices){
 
    
     //g.call(d3.behavior.zoom().scaleExtent([1, 10]).on("zoom", zoomed));
-    zoom = d3.behavior.zoom()
-            .center([0, 0])
-            .scaleExtent([1, 10])
-            .x(x)
-            //.y(yScale)
-            .on("zoom", zoomed);
+    
     d3.select("#device-view-svg").call(zoom).call(zoom.event);
     d3.select("#device-view-left-svg").call(zoom).call(zoom.event);
 
@@ -202,6 +221,22 @@ WifiVis.DeviceView = function(selectedDevices){
     d3.select("#device-view-reset-btn").on("click", reset);
     d3.select("#device-view-zoom-in-btn").on("click", zoomIn);
     d3.select("#device-view-zoom-out-btn").on("click", zoomOut);
+    d3.select("#device-view-non-linear-scale-btn").on("click", function() {
+      if (nlX.domain().length > 0) {
+        xAxis.scale(nlX);
+        zoom.x(nlX);
+        gXAxis.call(xAxis);
+        isNLScale = true;
+        render(1);
+      }
+    });
+    d3.select("#device-view-linear-scale-btn").on("click", function() {
+      xAxis.scale(x);
+      zoom.x(x);
+      gXAxis.call(xAxis);
+      isNLScale = false;
+      render(1);
+    });
     //console.log(size);
   }
 
@@ -435,7 +470,26 @@ WifiVis.DeviceView = function(selectedDevices){
     });
     access_data = access_data.filter(function(d) {
       return d[0].lines.length > 0;
-    })
+    });
+
+    loginRecords = loginRecords.sort(function(a, b) {
+      return a.date_time - b.date_time;
+    });
+
+
+    var nlDomain = [timeFrom].concat(loginRecords.map(function(d) {
+          return new Date(d.date_time);
+        }));
+    
+    nlX.domain(nlDomain);
+    var nlDomainLen = nlX.domain().length;
+    nlX.range(nlDomain.map(function(d, i) {
+      return 0.5 * (x(d) + size.width * (i + 1) / (nlDomainLen + 1));
+    }));
+
+    zoom.x(nlX);
+    gXAxis.call(xAxis);
+
 
     floorAP = {};
     yFloorAP = [], nameAPMappings = {};
@@ -594,7 +648,7 @@ WifiVis.DeviceView = function(selectedDevices){
           .style("z-index", "20")
           .style("visibility", "hidden")
           .style("top", "10px")
-          .style("left", "100px");
+          .style("left", "180px");
 
       var vertical = d3.select("#device-view-wrapper")
           .append("div")
@@ -612,9 +666,16 @@ WifiVis.DeviceView = function(selectedDevices){
         .on("mousemove", function(){  
           mousex = d3.mouse(this);
           mousex = mousex[0] + 2;
-          if (mousex < 58) mousex = leftSvg.w + 58;
-          if (mousex > svg.w + 40) mousex = svg.w + 40;
-          vertical.style("left", mousex + "px" );
+          //if (mousex < 58) mousex = leftSvg.w + 58;
+          //if (mousex > svg.w + 40) mousex = svg.w + 40;
+          if (mousex < 58 || mousex > svg.w + 40) {
+            tooltip.style("visibility", "hidden");
+            vertical.style("visibility", "hidden");
+            return;
+          }
+          
+          vertical.style("visibility", "visible")
+            .style("left", mousex + "px" );
           var timePoint = x.invert(mousex - 60);
           tooltip.html( "<p>" + d3.time.format("%c")(timePoint) + "</p>" ).style("visibility", "visible");
         })
@@ -703,13 +764,19 @@ WifiVis.DeviceView = function(selectedDevices){
         //   return ColorScheme.floor(floor);
         // })
         .attr("x", function(d){
+          if (isNLScale) 
+            return nlX(d[0].date_time);
+          else
             return x(d[0].date_time);
-          })
+        })
         .attr("y", function(d){
           return y(d[0].apid) - yFloor.rangeBand()/2.0 - 2.5;
         })
         .attr("width", function(d){
-          return x(d[1].date_time) - x(d[0].date_time);
+          if (isNLScale) 
+            return nlX(d[1].date_time) - nlX(d[0].date_time);
+          else
+            return x(d[1].date_time) - x(d[0].date_time);
         })
         .attr("height", 5)
         .on("click", function(d, i) {
@@ -779,7 +846,10 @@ WifiVis.DeviceView = function(selectedDevices){
         //   return "#8080FF";
         // })
         .attr("cx", function(d){
-          return x(d.date_time);
+          if (isNLScale)
+            return nlX(d.date_time);
+          else
+            return x(d.date_time);
         })
         .attr("cy", function(d) {
           return y(d.apid) - yFloor.rangeBand()/2.0;
@@ -837,10 +907,16 @@ WifiVis.DeviceView = function(selectedDevices){
           })
           //.style("stroke-dasharray", "1,1")
           .attr("x1", function(d) {
-            return x(d["start"].date_time);
+            if (isNLScale)
+              return nlX(d["start"].date_time);
+            else
+              return x(d["start"].date_time);
           })
           .attr("x2", function(d) {
-            return x(d["end"].date_time);
+            if (isNLScale)
+              return nlX(d["end"].date_time);
+            else
+              return x(d["end"].date_time);
           })
           .attr("y1", function(d) {
             return y(d["start"].apid) - yFloor.rangeBand()/2.0;
@@ -901,10 +977,16 @@ WifiVis.DeviceView = function(selectedDevices){
             .append("line")
             .attr("class", "deviceLogin line")
             .attr("x1", function(d) {
-              return x(d.date_time);
+              if (isNLScale)
+                return nlX(d.date_time);
+              else
+                return x(d.date_time);
             })
             .attr("x2", function(d) {
-              return x(d.date_time);
+              if (isNLScale)
+                return nlX(d.date_time);
+              else
+                return x(d.date_time);
             })
             .attr("y1", function(d) {
               return y(d.apid) - yFloor.rangeBand()/2.0 - 3.5;
@@ -1002,8 +1084,11 @@ WifiVis.DeviceView = function(selectedDevices){
       yScale.domain([0, Object.keys(floorDomain).length]);
       gRect.selectAll(".deviceAPRect")
         .attr("x", function(d){
+          if (isNLScale)
+            return nlX(d[0].date_time);
+          else
             return x(d[0].date_time);
-          })
+        })
         .attr("y", function(d){
           return y(d[0].apid) - yFloor.rangeBand()/2.0 - 2.5;
         })
@@ -1015,7 +1100,10 @@ WifiVis.DeviceView = function(selectedDevices){
       gDot.selectAll(".deviceAPDot")
         .attr("r", 2 / Math.sqrt(zoom.scale()))
         .attr("cx", function(d){
-          return x(d.date_time);
+          if (isNLScale)
+            return nlX(d.date_time);
+          else
+            return x(d.date_time);
         })
         .attr("cy", function(d) {
           return y(d.apid) - yFloor.rangeBand()/2.0;
@@ -1032,10 +1120,16 @@ WifiVis.DeviceView = function(selectedDevices){
         gLine.selectAll(".deviceVerticalLine")
           //.style("stroke-dasharray", "1,1")
           .attr("x1", function(d) {
-            return x(d["start"].date_time);
+            if (isNLScale)
+              return nlX(d["start"].date_time);
+            else
+              return x(d["start"].date_time);
           })
           .attr("x2", function(d) {
-            return x(d["end"].date_time);
+            if (isNLScale)
+              return nlX(d["end"].date_time);
+            else
+              return x(d["end"].date_time);
           })
           .attr("y1", function(d) {
             return y(d["start"].apid) - yFloor.rangeBand()/2.0;
