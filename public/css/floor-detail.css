@@ -55,6 +55,10 @@
 	fill: #8B8B8B;
 }
 
+#path-arrow-device{
+	fill: #E19634;
+}
+
 #path-arrow-fading{
 	/*opacity: 0.1;*/
 	fill: #8B8B8B;
@@ -76,19 +80,22 @@
 #path-wrapper .link path{
 	fill: none;
 	stroke: #8B8B8B;
-	opacity: 0.4;
+	opacity: 0.1;
 	marker-end: url("#path-arrow-normal");
 }
 
-#path-wrapper .link.selected path{
-	opacity: 1;
-}
 #path-wrapper .fading{
 	/*opacity: 0.1;*/
 }
+
+
 #path-wrapper .fading path{
 	opacity: 0.1;
 	marker-end: url("#path-arrow-fading");
+}
+
+#path-wrapper g.link.selected path{
+	opacity: 1;
 }
 
 #path-wrapper .hilight path{
@@ -104,26 +111,57 @@
 }
 
 #path-wrapper .hover path{
-	stroke: #8B8B8B;
-	marker-end: url("#path-arrow-hover");
+	opacity: 1;
 }
 /*
  * histogram
  */
+#floor-detail-ap-histogram g.hist rect,
 #floor-detail-histogram g.hist rect{
 	fill: #98DF8A;
 }
+
+#floor-detail-ap-histogram g.hover rect,
+#floor-detail-ap-histogram g.hist rect:hover,
 #floor-detail-histogram g.hist rect:hover{
-	fill: #FAD990;
+	opacity: 1;
 	stroke-width: 1;
+	stroke: #5C5C5C;
 }
+
+#floor-detail-ap-histogram g.hist.selected rect,
 #floor-detail-histogram g.hist.selected rect{
 	fill: #EDA915;
 }
 
+#floor-detail-ap-histogram g.hist rect.in{
+}
+#floor-detail-ap-histogram g.hist rect.out{
+	opacity: 0.6;
+}
 
+#floor-detail-ap-histogram g.hist text,
+#floor-detail-histogram g.hist text{
+	text-anchor: middle;
+	font-size: 8px;
+}
+#floor-detail-histogram g.hist text::selection{
+	background: none;
+}
 /*
  * ap description
  */
 .floor-detail-tip-wrapper{
+}
+
+/*
+ * device path
+ */
+
+#path-wrapper .device-path path{
+	opacity: 0.8;
+	fill: none;
+	stroke: #E19634;
+	stroke-width: 4;
+	marker-end: url("#path-arrow-device");
 }
