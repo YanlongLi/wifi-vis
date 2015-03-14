@@ -12,7 +12,7 @@ WifiVis.ApGraph = function(){
 	var aps, links;
 	var gLink = g.append("g").attr("class", "links"),
 		gNode = g.append("g").attr("class", "nodes");
-	var edgeFilterWeight = 30;
+	var edgeFilterWeight = 0;
 	var isShowEdge = false;     
 
 	var timeRange = [timeFrom, timeTo];
