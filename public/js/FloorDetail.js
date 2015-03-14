@@ -130,6 +130,8 @@ WifiVis.FloorDetail = function(){
 				update_histogram(links);
 				update_histogram_in_out(links);
 			});
+			//
+			d3.select("#path-wrapper").selectAll(".device-path").remove();
 		}
 		if(message == WFV.Message.ApHover){
 			var apdis = data.apids, change = data.change;
@@ -679,17 +681,17 @@ WifiVis.FloorDetail = function(){
 			//
 			var device_exit = gDevice.exit();
 			device_exit.transition()
-				.duration(10).attr("transform", function(d){
+				.duration(80).attr("transform", function(d){
 					var p = WFV.VIR_AP_POS[current_floor][1];
 					var dx = x(p[0]);
 					var dy = y(p[1]);
 					return "translate("+dx+","+dy+")";
-				}).transition().duration(10).remove()
+				}).transition().duration(80).remove()
 		}
 		gDevice.classed("hilight", function(d){
 			return d.device.selected;
 		}).attr("mac",function(d){return d.mac});
-		gDevice.transition().duration(10).ease("quard").attr("transform", function(d){
+		gDevice.transition().duration(80).ease("quard").attr("transform", function(d){
 			var dx = x(d.x) + d.dx;
 			var dy = y(d.y) + d.dy;
 			return "translate("+dx+","+dy+")";
