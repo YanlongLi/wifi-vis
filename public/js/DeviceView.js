@@ -96,11 +96,11 @@ WifiVis.DeviceView = function(selectedDevices){
     // gRect.attr("transform", "translate(" + zoom.translate() + ")scale(" + zoom.scale() + ")");
     // gLine.attr("transform", "translate(" + zoom.translate() + ")scale(" + zoom.scale() + ")");
 
-    gDot.attr("transform", "translate(" + (40 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
+    gDot.attr("transform", "translate(" + (30 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
     gDot.selectAll(".deviceAPDot")
         .attr("r", 2 / Math.sqrt(zoom.scale()));
-    gRect.attr("transform", "translate(" + (40 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
-    gLine.attr("transform", "translate(" + (40 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
+    gRect.attr("transform", "translate(" + (30 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
+    gLine.attr("transform", "translate(" + (30 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
     gLine.selectAll("deviceVerticalLine")
         .style("stroke-width", (1 / zoom.scale() / zoom.scale()) + "px");
     gTag.attr("transform", "translate(0," + zoomY + ")scale(" + zoom.scale() + ")");
@@ -108,14 +108,17 @@ WifiVis.DeviceView = function(selectedDevices){
       .style("stroke-width", (1 / zoom.scale()) + "px");
     gTag.selectAll(".apTag.text")
       .style("font-size", (0.6 / zoom.scale()) + "em");
-    gSeg.attr("transform", "translate(" + (40 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
+    gSeg.attr("transform", "translate(" + (30 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
     gSeg.selectAll(".deviceLogin")
       .style("stroke-width", (1 / zoom.scale()) + "px");
     gFloor.attr("transform", "translate(0," + zoomY + ")scale(" + zoom.scale() + ")");
     //gFloor.attr("transform", "translate(0," + zoom.translate()[1]+ ")scale(1," + zoom.scale() + ")");
-    gFloor.selectAll(".floorBtn")
+    gFloor.selectAll(".floorBtn.circle")
         .attr("cx", 8 / zoom.scale())
         .attr("r", 4 / zoom.scale());
+    gFloor.selectAll(".floorBtn.text")
+      .style("font-size", (0.7 / zoom.scale()) + "em")
+      .attr("x", 16 / zoom.scale());
 
     //gYAxis.call(yAxis);
     gXAxis.call(xAxis);
@@ -173,11 +176,11 @@ WifiVis.DeviceView = function(selectedDevices){
     yFloor.rangeBands([size.height, 0], .1);
     gXAxis
       .attr("class", "x axis")
-      .attr("transform", "translate(40," + (size.height+5) + ")");
+      .attr("transform", "translate(30," + (size.height+5) + ")");
       //.attr("transform", "translate(40," + 0 + ")")
       //.call(xAxis);
     zoom = d3.behavior.zoom()
-            .center([0, 0])
+            .center([10, 0])
             .scaleExtent([1, 10])
             //.x(x)
             //.y(yScale)
@@ -211,10 +214,10 @@ WifiVis.DeviceView = function(selectedDevices){
     d3.select("#device-view-svg").call(zoom).call(zoom.event);
     d3.select("#device-view-left-svg").call(zoom).call(zoom.event);
 
-    gDot.attr("transform", "translate(40,0)scale(1,1)");
-    gRect.attr("transform", "translate(40,0)scale(1,1)");
-    gLine.attr("transform", "translate(40,0)scale(1,1)");
-    gSeg.attr("transform", "translate(40,0)scale(1,1)");
+    gDot.attr("transform", "translate(30,0)scale(1,1)");
+    gRect.attr("transform", "translate(30,0)scale(1,1)");
+    gLine.attr("transform", "translate(30,0)scale(1,1)");
+    gSeg.attr("transform", "translate(30,0)scale(1,1)");
     gTag.attr("transform", "translate(0,0)scale(1,1)");
     //gXAxis.attr("transform",  "translate(0,0)scale(1,1)");
 
@@ -295,10 +298,11 @@ WifiVis.DeviceView = function(selectedDevices){
   }
 
   function initYScale() {
-    var yHeight = size.height;
-    if (Object.keys(floorDomain).length * 7 > yHeight) {
-      yHeight = Object.keys(floorDomain).length * 7;
-    }
+    // var yHeight = size.height;
+    // if (Object.keys(floorDomain).length * 8 > yHeight) {
+    //   yHeight = Object.keys(floorDomain).length * 8;
+    // }
+    var yHeight = Object.keys(floorDomain).length * 8;
     yScale.domain([0, Object.keys(floorDomain).length]);
 
 
@@ -425,10 +429,11 @@ WifiVis.DeviceView = function(selectedDevices){
     }
 
     //yFloor.domain(yDomain.sort(sortAPName));
-    var yHeight = size.height;
-    if (yDomain.length * 7 > yHeight) {
-      yHeight = yDomain.length * 7;
-    }
+    //var yHeight = size.height;
+    //if (yDomain.length * 8 > yHeight) {
+    //  yHeight = yDomain.length * 8;
+    //}
+    var yHeight = yDomain.length * 8;
 
     yFloor.domain(yDomain.sort(sortAPName))
           .rangeBands([yHeight, 0], .1);
@@ -486,8 +491,10 @@ WifiVis.DeviceView = function(selectedDevices){
     nlX.range(nlDomain.map(function(d, i) {
       return 0.5 * (x(d) + size.width * (i + 1) / (nlDomainLen + 1));
     }));
+    console.log(nlX.range());
 
-    zoom.x(nlX);
+    if (isNLScale) zoom.x(nlX);
+      else zoom.x(x);
     gXAxis.call(xAxis);
 
 
@@ -579,10 +586,12 @@ WifiVis.DeviceView = function(selectedDevices){
     console.log(yFloor.domain());
 
 
-    var yHeight = size.height;
-    if (Object.keys(floorDomain).length * 7 > yHeight) {
-      yHeight = Object.keys(floorDomain).length * 7;
-    }
+    // var yHeight = size.height;
+    // if (Object.keys(floorDomain).length * 8 > yHeight) {
+    //   yHeight = Object.keys(floorDomain).length * 8;
+    // }
+
+    var yHeight = Object.keys(floorDomain).length * 8;
 
     for (var ap in floorDomain) {
       apNumMappings[ap] = apNum++;
@@ -624,12 +633,12 @@ WifiVis.DeviceView = function(selectedDevices){
 
   function render(needRemove) {
     if (needRemove === 1) {
-      gTag.selectAll(".apTag").remove();
+      gTag.selectAll("g").remove();
       gRect.selectAll(".deviceAPRect").remove();
       gDot.selectAll(".deviceAPDot").remove();
       gLine.selectAll(".deviceVerticalLine").remove();
       gSeg.selectAll(".deviceLogin").remove();
-      gFloor.selectAll(".floorBtn").remove();
+      gFloor.selectAll("g").remove();
       gDevice.selectAll(".deviceList").remove();
       d3.select("#device-view-wrapper").selectAll(".remove").remove();
 
@@ -646,9 +655,9 @@ WifiVis.DeviceView = function(selectedDevices){
           .attr("class", "remove")
           .style("position", "absolute")
           .style("z-index", "20")
-          .style("visibility", "hidden")
-          .style("top", "10px")
-          .style("left", "180px");
+          .style("visibility", "hidden");
+          //.style("top", "10px")
+          //.style("left", "180px");
 
       var vertical = d3.select("#device-view-wrapper")
           .append("div")
@@ -664,11 +673,10 @@ WifiVis.DeviceView = function(selectedDevices){
 
       d3.select("#device-view-wrapper")
         .on("mousemove", function(){  
-          mousex = d3.mouse(this);
-          mousex = mousex[0] + 2;
+          var mousex = d3.mouse(this)[0] + 2, mousey = d3.mouse(this)[1];
           //if (mousex < 58) mousex = leftSvg.w + 58;
           //if (mousex > svg.w + 40) mousex = svg.w + 40;
-          if (mousex < 58 || mousex > svg.w + 40) {
+          if (mousex < 58 || mousex > svg.w + 30) {
             tooltip.style("visibility", "hidden");
             vertical.style("visibility", "hidden");
             return;
@@ -676,16 +684,25 @@ WifiVis.DeviceView = function(selectedDevices){
           
           vertical.style("visibility", "visible")
             .style("left", mousex + "px" );
-          var timePoint = x.invert(mousex - 60);
-          tooltip.html( "<p>" + d3.time.format("%c")(timePoint) + "</p>" ).style("visibility", "visible");
+          var timePoint;
+          if (isNLScale)
+            timePoint = nlX.invert(mousex - 58);
+          else
+            timePoint = x.invert(mousex - 58);
+          // tooltip.html( "<p>" + d3.time.format("%c")(timePoint) + "</p>" ).style("visibility", "visible");
+          // tooltip.style("top", mousey + "px")
+          //   .style("left", mousex + "px");
+          $("#device-view-login-description").html(d3.time.format("%c")(timePoint));
+          $("#device-view-login-description").css({
+            "left": mousex,
+            "top": mousey
+          });
+          $("#device-view-login-description").show();
         })
-        .on("mouseover", function(){  
-          mousex = d3.mouse(this);
-          mousex = mousex[0] + 2;
-          if (mousex < 58) mousex = 58;
-          if (mousex > svg.w + 40) mousex = svg.w + 40;
-          vertical.style("left", mousex + "px")}
-        );
+        .on("mouseout", function(){  
+          $("#device-view-login-description").hide();
+          vertical.style("visibility", "hidden");
+        });
       
       var gTags = gTag.selectAll(".apTag")
         .data(yFloor.domain().filter(function(d) {
@@ -713,7 +730,7 @@ WifiVis.DeviceView = function(selectedDevices){
             return 0;
         })
         .attr("x2", function(d) {
-          return size.width + 40;
+          return size.width + 30;
         })
         .attr("y1", function(d) {
           return y(floorDomain[d]) - yFloor.rangeBand()/2.0;
@@ -740,7 +757,7 @@ WifiVis.DeviceView = function(selectedDevices){
         .attr("y", function(d){
           return y(floorDomain[d]) - yFloor.rangeBand()/2.0;
         })
-        .style("font-size", "0.6em")
+        .style("font-size", (0.6 / zoom.scale()) + "em")
         .style("fill", function(d) {
           if (d.indexOf("all") > 0) {
             return ColorScheme.floor(+apFloorMappings[d].substring(1));  
@@ -749,7 +766,7 @@ WifiVis.DeviceView = function(selectedDevices){
           return ColorScheme.floor(floor);
         })
         .text(function(d) {
-          return d;
+          return d.substring(d.indexOf("ap") + 2);
         });
 
       gRect.selectAll(".deviceAPRect")
@@ -789,29 +806,35 @@ WifiVis.DeviceView = function(selectedDevices){
             highlightTrace(d["device"]);
           }
         })
-        .on("mouseover", function(d, i) {
-          // var mouse = [d3.event.clientX, d3.event.clientY];
-          // var timePoint = x.invert(d3.mouse(this)[0]);
-          // console.log(timePoint);
-          // var list = "";
-          // var deviceList = [];
-          // dataset.forEach(function(p, j){
-          //   if (timePoint >= p[0].date_time && timePoint <= p[1].date_time) {
-          //     console.log(p);
-          //     list += p["device"] + " ";
-          //     deviceList.push(p["device"]);
-          //   }
-          // });
-          // console.log(gRect.selectAll(".mac" + d["device"]));
-          // gRect.selectAll(".mac" + d["device"])
-          //   .style("fill-opacity", 1);
-          // gDot.selectAll(".mac" + d["device"])
-          //   .style("fill-opacity", 1);
-          // gLine.selectAll(".mac" + d["device"])
-          //   .style("stroke-opacity", 1);
-          // console.log(list);
-          // focus.attr("transform", "translate(" + x(d.date) + "," + y(d.close) + ")");
-          // focus.select("text").text(formatCurrency(d.close));
+        .on("mousemove", function(d, i) {
+          //d3.event.preventDefault();
+          d3.event.stopPropagation();
+          var mousex = d3.mouse(this)[0] + 2, mousey = d3.mouse(this)[1];
+          //if (mousex < 58) mousex = leftSvg.w + 58;
+          //if (mousex > svg.w + 40) mousex = svg.w + 40;
+          
+          vertical.style("visibility", "visible")
+            .style("left", (mousex + 58) + "px" );
+          var timePoint;
+          var timeLasted = d[1].date_time - d[0].date_time;
+          if (isNLScale)
+            timePoint = nlX.invert(mousex);
+          else
+            timePoint = x.invert(mousex);
+          // tooltip.html( "<p>" + d3.time.format("%c")(timePoint) + "</p>" ).style("visibility", "visible");
+          // tooltip.style("top", mousey + "px")
+          //   .style("left", mousex + "px");
+          var descStr = "Device no." + db.macid_by_mac(d.device) + "<br />" 
+              + apNameMappings[d[0].apid] + "<br />"
+              + "Lasted " + (timeLasted / 60000) + " mins" + "<br />"
+              + d3.time.format("%c")(timePoint) + "<br />" ;
+          console.log(descStr);
+          $("#device-view-login-description").html(descStr);
+          $("#device-view-login-description").css({
+            "left": mousex + 58,
+            "top": mousey
+          });
+          $("#device-view-login-description").show();
         })
         .on("mouseout", function(d, i){
 
@@ -857,7 +880,11 @@ WifiVis.DeviceView = function(selectedDevices){
         //.on("mouseover", function(d, i) {
         .on("click", function(d, i) {
           var mouse = [d3.event.clientX, d3.event.clientY];
-          var timePoint = x.invert(d3.mouse(this)[0]);
+          var timePoint;
+          if (isNLScale)
+            timePoint = nlX.invert(d3.mouse(this)[0]);
+          else
+            timePoint = x.invert(d3.mouse(this)[0]);
           var list = "";
           var overlayDeviceList = [];
           dataset.forEach(function(p, j){
@@ -994,16 +1021,18 @@ WifiVis.DeviceView = function(selectedDevices){
             .attr("y2", function(d) {
               return y(d.apid) - yFloor.rangeBand()/2.0 + 3.5;
             });
-          gFloor.selectAll(".floorBtn")
+          var gFloors = gFloor.selectAll(".floorBtn")
             .data(Object.keys(floorAP))
             .enter()
+            .append("g");
+          gFloors
             .append("circle")
             .attr("class", function(d) {
               var classStr = "floorBtn circle floor-" + d;
               if (floorCollapsed[d]) classStr += " collapsed";
               return classStr;
             })
-            .attr("r", 4)
+            .attr("r", 4 / zoom.scale())
             .style("fill", function(d) {
               return ColorScheme.floor(+d.substring(1));
             })
@@ -1027,13 +1056,38 @@ WifiVis.DeviceView = function(selectedDevices){
               setY();
               render(1);
             });
+          gFloors
+            .append("text")
+            .attr("class", function(d) {
+              var classStr = "floorBtn text floor-" + d;
+              if (floorCollapsed[d]) classStr += " collapsed";
+              return classStr;
+            })
+            .style("font-size", (0.7 / zoom.scale()) + "em")
+            .style("fill", function(d) {
+              if (d.indexOf("all") > 0) {
+                return ColorScheme.floor(+apFloorMappings[d].substring(1));  
+              }
+              var floor = +apFloorMappings[nameAPMappings[d]].substring(1);
+              return ColorScheme.floor(floor);
+            })
+            .attr("x", 16)
+            .attr("y", function(d) {
+              if (floorCollapsed[d] === true)
+                return yFloor(d) - yFloor.rangeBand()/2;
+              else
+                return yFloor(d) - yFloor.rangeBand()/2 - Object.keys(floorAP[d]).length * 3.5 + 3.5;
+            })
+            .text(function(d) {
+              return d;
+            });
 
           console.log(deviceList);
-          gDevice.selectAll(".rect")
+          gDevice.selectAll(".text")
             .data(deviceList)
             .enter()
             .append("text")
-            .attr("x", 0)
+            .attr("x", 30)
             .attr("y", function(d, i) {
               return 10 + 10 * i;
             })
@@ -1045,9 +1099,13 @@ WifiVis.DeviceView = function(selectedDevices){
             })
             .on("mouseover", function(d) {
               highlightTrace(d);
+              d3.select(this)
+                .style("fill-opacity", 1.0);
             })
             .on("mouseout", function(d) {
               if (!clicked[d]) dehighlightTrace(d);
+              d3.select(this)
+                .style("fill-opacity", 0.3);
             });
     }
     else {
@@ -1066,7 +1124,7 @@ WifiVis.DeviceView = function(selectedDevices){
             return 0;
         })
         .attr("x2", function(d) {
-          return size.width+40;
+          return size.width+30;
         })
         .attr("y1", function(d) {
           return y(floorDomain[d]) - yFloor.rangeBand()/2.0;
@@ -1137,7 +1195,7 @@ WifiVis.DeviceView = function(selectedDevices){
           .attr("y2", function(d) {
             return y(d["end"].apid) - yFloor.rangeBand()/2.0;
           });
-        gFloor.selectAll(".floorBtn")
+        gFloor.selectAll(".floorBtn.circle")
           .attr("r", 4 / zoom.scale())
           .attr("cx", function(d){
             return 8;
@@ -1146,8 +1204,11 @@ WifiVis.DeviceView = function(selectedDevices){
             if (floorCollapsed[d] === true)
                 return yFloor(d) - yFloor.rangeBand()/2 - 3.5;
               else
-                return yFloor(d) - yFloor.rangeBand()/2 - Object.keys(floorAP[d]).length * 3.5;
+                return yFloor(d) - yFloor.rangeBand()/2 - Object.keys(floorAP[d]).length * 3.5 - 3.5;
           });
+        gFloor.selectAll(".floorBtn.text")
+          .attr("x", 16)
+          .style("font-size", (0.7 / zoom.scale()) + "em");
     }
 
   }

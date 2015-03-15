@@ -12,10 +12,13 @@ WifiVis.ApView = function(selectedDevices) {
   var apNum = 0;
   var clicked = {};
   var loginRecords;
+  var deviceTotalLoginDuration = {};
+  var deviceLoginDuration = {};
 
   var deviceList = [], apList = [], apMap = {};
 
   var checkInIntervalString = "2013-09-02 00:00:30";
+  var checkInIntervalDate = new Date(checkInIntervalString);
   var checkInInterval;
 
   var size, timelineSize;
@@ -275,6 +278,8 @@ WifiVis.ApView = function(selectedDevices) {
     apNameMappings = {}, apFloorMappings = {};
     for (var k = 0; k < deviceList.length; k++) {
       access_data.push(get_access_data(deviceList[k], [timeFrom]));
+      deviceTotalLoginDuration[deviceList[k]] = 0.0;
+      deviceLoginDuration[deviceList[k]] = [];
     }
     access_data.forEach(function(d) {
       d[0].line.forEach(function(p){
@@ -309,10 +314,14 @@ WifiVis.ApView = function(selectedDevices) {
     //   .call(xAxis);
 
     //dataset = {};
-    checkInInterval = x(parseTime.parse(checkInIntervalString)) - x(timeFrom);
+    //checkInInterval = x(parseTime.parse(checkInIntervalString)) - x(timeFrom);
+    checkInInterval = x(checkInIntervalDate) - x(timeFrom);
+    console.log(checkInInterval);
     dataset = [];
     var cnt = 0;
     var dataDeviceMappings = {};
+
+
 
     for (var device = 0; device < access_data.length; device ++) {
     //for (var device = 2; device < 4; device ++) {
@@ -329,10 +338,10 @@ WifiVis.ApView = function(selectedDevices) {
         //if (x(dataset[cnt][1].date_time) - x(cur[0].date_time) > 5.0 || cur[0].apid != dataset[cnt][1].apid) {
         //if (x(dataset[deviceList[device]][cnt-1].end.date_time) - x(cur.start.date_time) > 0.0 || 
         //    cur.start.apid !== dataset[deviceList[device]][cnt-1].end.apid) {
-          if (x(dataset[cnt-1].end.date_time) - x(cur.start.date_time) > 0.0 || 
-              cur.start.apid !== dataset[cnt-1].end.apid || 
-              x(cur.start.date_time) - x(dataset[cnt-1].end.date_time) > checkInInterval
-              ) {
+        if (0.0 + x(dataset[cnt-1].end.date_time) - x(cur.start.date_time) > 0.0 || 
+            cur.start.apid !== dataset[cnt-1].end.apid || 
+            0.0 + x(cur.start.date_time) - x(dataset[cnt-1].end.date_time) > checkInInterval
+            ) {
           //dataset[deviceList[device]].push(cur);
           dataset.push(cur);
           dataDeviceMappings[cnt++] = device;
@@ -344,7 +353,14 @@ WifiVis.ApView = function(selectedDevices) {
       }
     }
 
+    dataset.forEach(function(d) {
+      if (d.start.apid in apMap){
+        deviceTotalLoginDuration[d.device] += x(d.end.date_time) - x(d.start.date_time);
+        deviceLoginDuration[d.device].push(d);
+      }
+    });
     console.log(dataset);
+
     
     // apConnCnt = {};
     // dataset.forEach(function(d, i) {
@@ -370,20 +386,24 @@ WifiVis.ApView = function(selectedDevices) {
     }
     
     //var yHeight = size.height;
-    //if (deviceList.length * 7 > yHeight) {
-      yHeight = deviceList.length * 8;
+    //if (deviceList.length * 8 > yHeight) {
+      //yHeight = deviceList.length * 8;
     //}
+
+    var yHeight = deviceList.length * 8;
 
     for (var ap in floorDomain) {
       apNumMappings[ap] = apNum++;
     }
+
   
     console.log(deviceList);
-    yScale.domain(deviceList)
+    var yDomain = deviceList.sort(function(a, b){
+                    return deviceTotalLoginDuration[a] - deviceTotalLoginDuration[b];
+                  });
+    console.log(yDomain);
+    yScale.domain(yDomain)
           .rangeBands([yHeight, 0], 0.1);
-    for (var i = 0; i < deviceList.length; i++) {
-      console.log(yScale(deviceList[i]));
-    }
     //gYAxis.call(yAxis);
 
     render(1);
@@ -421,21 +441,24 @@ WifiVis.ApView = function(selectedDevices) {
     //svg.selectAll(".rect")
     console.log(yScale.range());
     console.log(yScale.domain());
+    console.log(deviceTotalLoginDuration);
+    console.log(deviceLoginDuration);
+    
     if (needRemove === 1) {
-      gTag.selectAll(".deviceTag").remove();
+      gTag.selectAll("g").remove();
       gRect.selectAll(".apDeviceRect").remove();
       //gDot.selectAll(".apDeviceDot").remove();
       gSeg.selectAll(".deviceLogin").remove();
       d3.select("#ap-view-wrapper").selectAll(".remove").remove();
 
-      var tooltip = d3.select("#ap-view-wrapper")
-          .append("div")
-          .attr("class", "remove")
-          .style("position", "absolute")
-          .style("z-index", "20")
-          .style("visibility", "hidden")
-          .style("top", "10px")
-          .style("left", "100px");
+      // var tooltip = d3.select("#ap-view-wrapper")
+      //     .append("div")
+      //     .attr("class", "remove")
+      //     .style("position", "absolute")
+      //     .style("z-index", "20")
+      //     .style("visibility", "hidden");
+          // .style("top", "10px")
+          // .style("left", "100px");
 
       var vertical = d3.select("#ap-view-wrapper")
           .append("div")
@@ -451,21 +474,32 @@ WifiVis.ApView = function(selectedDevices) {
 
       d3.select("#ap-view-wrapper")
         .on("mousemove", function(){  
-          mousex = d3.mouse(this);
-          mousex = mousex[0] + 5;
+          var mousex = d3.mouse(this)[0] + 2, mousey = d3.mouse(this)[1];
           if (mousex < 55) mousex = 55;
           if (mousex > svg.w + 5) mousex = svg.w + 5;
-          vertical.style("left", mousex + "px" );
-          var timePoint = x.invert(mousex - 55);
-          tooltip.html( "<p>" + d3.time.format("%c")(timePoint) + "</p>" ).style("visibility", "visible");
+          vertical.style("left", mousex + "px" )
+            .style("visibility", "visible");
+          var timePoint = x.invert(mousex - 50);
+          // tooltip.html( "<p>" + d3.time.format("%c")(timePoint) + "</p>" ).style("visibility", "visible");
+          // tooltip.style("top", mousey + "px")
+          //   .style("left", mousex + "px");
+
+          $("#ap-view-login-description").html(d3.time.format("%c")(timePoint));
+          $("#ap-view-login-description").css({
+            "left": mousex,
+            "top": mousey
+          });
+          $("#ap-view-login-description").show();
         })
-        .on("mouseover", function(){  
-          mousex = d3.mouse(this);
-          mousex = mousex[0] + 5;
-          if (mousex < 55) mousex = 55;
-          if (mousex > svg.w + 5) mousex = svg.w + 5;
-          vertical.style("left", mousex + "px")}
-        );
+        .on("mouseout", function(){  
+          $("#ap-view-login-description").hide();
+          vertical.style("visibility", "hidden");
+          // mousex = d3.mouse(this);
+          // mousex = mousex[0] + 5;
+          // if (mousex < 55) mousex = 55;
+          // if (mousex > svg.w + 5) mousex = svg.w + 5;
+          // vertical.style("left", mousex + "px")
+        });
 
       var gTags = gTag.selectAll(".deviceTag")
         //.data(Object.keys(dataset))
@@ -507,7 +541,7 @@ WifiVis.ApView = function(selectedDevices) {
         .attr("y", function(d){
           return yScale(d) + yScale.rangeBand()/2.0 + 2.5;
         })
-        .style("font-size", "0.6em")
+        .style("font-size", (0.6 / zoom.scale()) + "em")
         .text(function(d) {
           return db.macid_by_mac(d);
         });
@@ -581,21 +615,77 @@ WifiVis.ApView = function(selectedDevices) {
         })
         .attr("height", 5)
         .on("click", function(d, i) {
-          if (clicked[d.start.apid]) {
-            clicked[d.start.apid] = false;
-            dehighlightTrace(d.start.apid);
-          }
-          else {
-            clicked[d.start.apid] = true;
-            highlightTrace(d.start.apid);
-          }
+          // if (clicked[d.start.apid]) {
+          //   clicked[d.start.apid] = false;
+          //   dehighlightTrace(d.start.apid);
+          // }
+          // else {
+          //   clicked[d.start.apid] = true;
+          //   highlightTrace(d.start.apid);
+          // }
+          var mousex = d3.mouse(this)[0] + 2;
+          var timePoint = x.invert(mousex);
+          console.log(timePoint);
+          var curDuration = {};
+          yScale.domain().forEach(function(p) {
+            var i1 = -1;
+            for (var k = 0; k < deviceLoginDuration[p].length; k++) {
+              var q = deviceLoginDuration[p][k];
+              if (q.start.date_time <= timePoint && q.end.date_time >= timePoint) {
+                i1 = k;
+                break;
+              }
+            }
+            if (i1 !== -1) {
+              curDuration[p] = deviceLoginDuration[p][i1].end.date_time - deviceLoginDuration[p][i1].start.date_time;
+            }
+          });
+          curDuration[d.device] = Number.MAX_VALUE;
+          console.log(curDuration);
+          //var bisect = d3.bisector(function(p) { return p.start.date_time; }).right;
+          var yDomain = yScale.domain().sort(function(a, b) {
+            //var i1 = bisect(deviceLoginDuration[a], timePoint), i2 = bisect(deviceLoginDuration[b], timePoint);
+            if (a in curDuration && b in curDuration) {
+              return curDuration[a] - curDuration[b];
+            }
+            else {
+              if (a in curDuration)
+                return 1;
+              else
+                if (b in curDuration)
+                  return -1;
+                else return 0;
+            }
+          });
+          console.log(yDomain);
+          yScale.domain(yDomain);
+          render(1);
         })
         .on("mouseover", function(d, i) {
+          var mousex = d3.mouse(this)[0] + 2, mousey = d3.mouse(this)[1];
+          if (mousex < 55) mousex = 55;
+          if (mousex > svg.w + 5) mousex = svg.w + 5;
+          vertical.style("left", mousex + "px" )
+            .style("visibility", "visible");
+          var timePoint = x.invert(mousex - 50);
+          $("#ap-view-login-description").html("Device no." + db.macid_by_mac(d.device) + "<br />" + d3.time.format("%c")(timePoint));
+          $("#ap-view-login-description").css({
+            "left": mousex,
+            "top": mousey
+          });
+          $("#ap-view-login-description").show();
+        })
+        .on("mouseout", function(){  
+          $("#ap-view-login-description").hide();
+          vertical.style("visibility", "hidden");
+
         });
 
       console.log(loginRecords);
       gSeg.selectAll(".deviceLogin")
-        .data(loginRecords)
+        .data(loginRecords.filter(function(d) {
+          return d.apid in apMap;
+        }))
         .enter()
         .append("line")
         .attr("class", "deviceLogin line")
