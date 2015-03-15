@@ -12,6 +12,7 @@ WifiVis.ApGraph = function(){
 	var aps, links;
 	var gLink = g.append("g").attr("class", "links"),
 		gNode = g.append("g").attr("class", "nodes");
+		gPath = g.append("g").attr("class", "paths");
 	var edgeFilterWeight = 0;
 	var isShowEdge = false;     
 
@@ -126,8 +127,50 @@ WifiVis.ApGraph = function(){
 				console.log(".dot[apid='" + id + "']")
 				svg.selectAll(".dot[apid='" + id + "']").classed("highlight", true);
 			}
+		}
+		if (message == WFV.Message.DeviceSelect) {
+			if (!(data.change.length == 1 && data.isAdd == true))
+				return;
+			var deviceID = data.change[0]
+			var pathOfAP = [];
+			var path = db.path_by_mac(deviceID);
+			for (var i = 0; i < path.length; i++) {
+				pathOfAP.push(path[i].apid);
+			}
+			console.log("path of AP", pathOfAP);
+			drawDevicePath(pathOfAP);
 		}		
 	}	
+
+	function drawDevicePath(path) {
+		gPath.selectAll(".route").remove();
+		var links = [];
+		for (var i = 0; i < path.length-1; i++) {
+			var l = {};
+			l.source = _.findWhere(aps, {apid:path[i]})
+			l.target = _.findWhere(aps, {apid:path[i+1]})
+			l.weight = 1;
+			links.push(l);
+		}
+		gPath.selectAll(".route")
+			.data(links)
+			.enter()
+			.append("line")
+			.attr("class", "route")
+			.attr("source-id", function(d) {
+				return d.source._id; 
+			})
+			.attr("target-id", function(d) {
+				return d.target._id;
+			})
+			.style("stroke-width", function(d) {
+				return 2;
+			})
+			.attr("x1", function(d) { return d.source.x; })
+			.attr("y1", function(d) { return d.source.y; })
+			.attr("x2", function(d) { return d.target.x; })
+			.attr("y2", function(d) { return d.target.y; }) 			
+	}
 
 	function createElements() {
 		gNode.selectAll(".dot")

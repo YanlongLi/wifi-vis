@@ -16,15 +16,15 @@ WifiVis.ControllerView = function(){
   }
 
   CV.OMListen = function(message, data){
-    console.log(message, data);
+    // console.log(message, data);
     if (message == WFV.Message.ApSelect) {
       var apids = data.apid;
-      console.log(apids.length)
+      // console.log(apids.length)
       rootEle.find("#ap-selected-count").html(apids.length)
     }   
     if (message == WFV.Message.DeviceSelect) {
       var devices = data.device;
-      console.log(devices.length)
+      // console.log(devices.length)
       rootEle.find("#device-selected-count").html(devices.length)
     }
   } 

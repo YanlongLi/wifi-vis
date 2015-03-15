@@ -123,18 +123,21 @@ WifiVis.DeviceGraph = function(){
         //         console.log(".dot[apid='" + id + "']")
         //         svg.selectAll(".dot[apid='" + id + "']").classed("highlight", true);
         //     }
-        // }       
-        if (message == WFV.Message.DeviceSelect) {
-            spinner.spin($("#" + DIV_ID).get(0));
-            deviceList = data.device;
-            devices = [];
-            for (var i = 0; i < deviceList.length; i++)
-                devices.push({id:deviceList[i]});
-            processData(devices);
-            gNode.html("");
-            gLink.html("");
-            tsneWorker.postMessage({"cmd":"init", "distance":disMatrix, "iter":devices.length * 2}); 
-        } 
+        // }      
+
+// ==========
+
+        // if (message == WFV.Message.DeviceSelect) {
+        //     spinner.spin($("#" + DIV_ID).get(0));
+        //     deviceList = data.device;
+        //     devices = [];
+        //     for (var i = 0; i < deviceList.length; i++)
+        //         devices.push({id:deviceList[i]});
+        //     processData(devices);
+        //     gNode.html("");
+        //     gLink.html("");
+        //     tsneWorker.postMessage({"cmd":"init", "distance":disMatrix, "iter":devices.length * 2}); 
+        // } 
     }   
 
     function createElements() {
