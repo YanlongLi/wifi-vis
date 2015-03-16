@@ -19,6 +19,7 @@ WFV.FloorBar = function(_time_range){
 	//
 	var ftlData = new FloorBarTlData();
 	var barData = new FloorBarBarData();
+	var tl_offset = 40;
 	//
 	var per_h = {h0:1, h1:0}, w_bar, bar_gap = 2, max_ap_number = 24;
 	var circle_scale = d3.scale.linear().clamp(true),
@@ -58,11 +59,6 @@ WFV.FloorBar = function(_time_range){
 			if(current_floor == data.floor) return;
 			current_floor = data.floor;
 			//
-			db.tl_data_aps_of_floor(time_range[0],
-					time_range[1],
-					step, current_floor,
-					update_floor_ap_tls);
-			change_tl();
 			$("#floor-bar-circles .floor").removeClass("current");
 			$("#floor-bar-circles .floor[floor="+current_floor+"]").addClass("current");
 			// TODO other clean action after floor change, espacially for eles always exits
@@ -130,6 +126,11 @@ WFV.FloorBar = function(_time_range){
 						.removeClass("selected").attr("_selected", null);
 				});
 			}
+			// update sel ap bars and tls
+			console.log("selected aps", apids);
+			barData.getSelData(apids, update_sel_ap_bars);
+			ftlData.getSelData(apids, update_sel_ap_tls);
+			selected_aps = apids;
 		}
 		if(message == WFV.Message.ApHover){// isAdd true or false
 			var apids = data.apid, change = data.change, isAdd = data.isAdd;
@@ -163,6 +164,8 @@ WFV.FloorBar = function(_time_range){
 			barData.changeRange(time_range, function(){
 				barData.getFlattedData(update_horizon_bars);
 			});
+			barData.getSelData(selected_aps, update_sel_ap_bars);
+			ftlData.getSelData(selected_aps, update_sel_ap_tls);
 			return;
 			// floor tl data
 			(function next_f(f, _data, cb){
@@ -279,11 +282,11 @@ WFV.FloorBar = function(_time_range){
 		vertical_scale[0].rangeBands([0, size.height]);
 		vertical_scale[1].rangeBands([0, size.height]);
 		//per_h.h0 = size.height / 17;
-		var offset = 40;
+		var offset = tl_offset;
 		x_line_scale.range([0, size.width - offset]);
 		//line_generator[0].y0(per_h.h0);
 		
-		g.selectAll("#floor-bar-aps, #floor-bar-tls")
+		g.selectAll("#floor-bar-aps, #floor-bar-tls, #floor-bar-ap-sel-tls")
 			.attr("transform", "translate("+offset+")");
 		g.select("#floor-bar-tl-x-axis")
 			.attr("class", "x axis")
@@ -338,50 +341,65 @@ WFV.FloorBar = function(_time_range){
 			g.select("#floor-bar-tl-x-axis").attr("display", "none");
 		}
 	}
-	function update_floor_circle(_data){
-		return;
-		// [{floor:, count:}]	
-		// if no _data, update size
-		var scale = circle_scale.range([2, per_h.h0/2]);
-		var floors = g.select("#floor-bar-circles").selectAll("g.floor");
+	var sel_height = 0, tls_height = 0;
+	function update_sel_ap_bars(_data){
+		var per_height = 30;
+		var bars = g.select("#floor-bar-ap-sel-circles").selectAll("g.bar");
 		if(_data){
-			var extent = d3.extent(_data, function(d){return d.count});
-			extent[0] = extent[0] ? extent[0] : 1;
-			extent[1] = extent[1] > extent[0] ? extent[1] : extent[0] + 1;
-			scale.domain(extent);
-			//console.log(scale.domain(), scale.range());
-			if(isNaN(extent[1])){
-				var c_a = Array.prototype
-					.concat.apply([], _data.map(function(d){
-						return d.count;
-					}));
-				console.log(c_a);
-				console.warn("elegal domain")
-			}
-			floors = floors.data(_data, function(d){return d.floor});
-			var floors_enter = floors.enter().append("g").attr("class","floor");
-			floors_enter.append("circle");
-			floors_enter.append("text"); // floor label
-			floors.attr("floor", function(d){return d.floor});
+			bars = bars.data(_data, function(d){return d.apid});
+			var enter = bars.enter().append("g").attr("class", function(d){return "bar ap"});
+			enter.append("rect").append("title");
+			enter.append("text");
+			bars.exit().remove();
+			//
+			console.log("yOff", per_height, _data.length);
+			var yOff = per_height * _data.length;
+			sel_height = yOff;
+			d3.select("#floor-bar-circles").attr("transform", "translate(0,"+yOff+")");
 		}
-		floors.sort(_sort_by_floor);
-		floors.select("circle").datum(function(d){return d})
-			.attr("cx", per_h.h0/2).attr("cy", per_h.h0/2)
-			.attr("count",function(d){return d.count})
-			.attr("r", function(d){
-				console.log("count at floor",d.floor, d.count);
-				var r = scale(d.count);
-				return  isNaN(r) || r < 1 ? 1 : r;
-			}).style("fill", function(d){return floor_color(d.floor)});
-		floors.select("text").datum(function(d){return d.floor})
-			.attr("x", -30).attr("y", per_h.h0/2)
-			.text(function(d){return "F"+d})
-			.attr("dy", 5);
-		floors.transition().attr("transform", function(d,i){
-			//var dy = per_h.h0 * i;
-			var dy = per_h.h0 * i;
-			return "translate(0,"+dy+")";
+		bars.each(function(d, i){
+			var ele = d3.select(this);
+			ele.attr("apid", d.apid);
+			var _name = apMap.get(d.apid).name.split(/ap|f/);
+			_name.shift();
+			ele.select("rect").select("title").text(function(){
+				return "persons(occur): " + d.count;
+			});
+			ele.select("text").text(_name.join("-"))
+				.attr("x", -6).attr("y", vertical_scale[0].rangeBand()/2).attr("dy", 5);
+			var dy = per_height * i;
+			ele.select("rect").attr("height", vertical_scale[0].rangeBand() - 2)
+				.attr("width", circle_scale(d.count));
+			ele.transition().attr("transform", "translate(0,"+dy+")");
 		});
+		_change_svg_size();
+	}
+	function update_sel_ap_tls(_data){
+		var per_height = 30;
+		var all_tls = g.select("#floor-bar-ap-sel-tls").selectAll("g.tl");
+		if(_data){
+			// all_tls_data = _data;
+			y_line_scale[0].range([per_height,0]);
+			line_generator[0].y0(per_height);
+			all_tls = all_tls.data(_data, function(d){return d.apid});
+			var enter = all_tls.enter().append("g").attr("class",function(d){return "tl " + d.type});
+			enter.append("path");
+			all_tls.exit().remove();
+			//
+			var yOff = per_height * _data.length;
+			sel_height = yOff;
+			d3.select("#floor-bar-tls").attr("transform", "translate("+tl_offset+","+yOff+")");
+		}
+		all_tls.each(function(d, i){
+			var ele = d3.select(this);
+			ele.attr("apid", d.apid);
+			var cmax = d3.max(d.tl_data, function(d){return d.count});
+			y_line_scale[0].domain([0, cmax * 1.2]);
+			ele.select('path').attr("d", line_generator[0](d.tl_data));
+			var dy = per_height * i;
+			ele.transition().attr("transform", "translate(0,"+dy+")");
+		});
+		_change_svg_size();
 	}
 	function update_ap_bars(_data){
 		// [{floor:,aps:[{apid:, count:}]}]
@@ -438,16 +456,21 @@ WFV.FloorBar = function(_time_range){
 			update_floor_circle();
 		}
 	}
-	var horizon_data;
+	// var horizon_data;
 	function update_horizon_bars(_data){
 		var bars = g.select("#floor-bar-circles").selectAll("g.bar");
-		if(_data){
-			horizon_data = _data;
+		if(_data && _data.length){
+			// horizon_data = _data;
 			vertical_scale[0].domain(_data.map(_tl_key));
 			var cmax = d3.max(_data, function(d){return d.count});
-			circle_scale.range([0, 38]).domain([0, cmax]);
+			circle_scale.range([0, tl_offset-2]).domain([0, cmax]);
 			bars = bars.data(_data, _tl_key);
 			var enter = bars.enter().append("g").attr("class", function(d){return "bar "+d.type});
+			enter.filter(function(d){return d.type ==  "ap"})
+				.attr("transform", function(d){
+					var dy = vertical_scale[0]("floor-" + d.floor);
+					return "translate(0,"+dy+")";
+				});
 			enter.append("rect").append("title");
 			enter.append("text");
 			bars.exit().remove();
@@ -481,6 +504,8 @@ WFV.FloorBar = function(_time_range){
 		//
 		bars.on("click", on_floor_click);
 		//
+		_change_svg_size();
+		//
 		function _tl_key(d){
 			if(d.type == "floor"){
 				return "floor-" + d.floor;
@@ -489,101 +514,110 @@ WFV.FloorBar = function(_time_range){
 			}
 		}
 	}
-	var all_tls_data;
-	var isDrag = false;// check whether it is drag or click event, if click, no drag move
+	// var all_tls_data;
+	// var isDrag = false;// check whether it is drag or click event, if click, no drag move
 	function update_all_tls(_data){
+		var per_height = 30;
 		var all_tls = g.select("#floor-bar-tls").selectAll("g.tl");
 		if(_data){
-			all_tls_data = _data;
-			vertical_scale[0].domain(_data.map(_tl_key));
+			// all_tls_data = _data;
+			vertical_scale[0].domain(_data.map(_tl_key))
+				.rangeBands([0, per_height * _data.length]);
+			tls_height = per_height * _data.length;
 			y_line_scale[0].range([vertical_scale[0].rangeBand(),0]);
 			line_generator[0].y0(vertical_scale[0].rangeBand());
 			all_tls = all_tls.data(_data, _tl_key);
 			var enter = all_tls.enter().append("g").attr("class",function(d){return "tl " + d.type});
+			enter.filter(function(d){return d.type ==  "ap"})
+				.attr("transform", function(d){
+					var dy = vertical_scale[0]("floor-" + d.floor);
+					console.log(d.floor, dy);
+					return "translate(0,"+dy+")";
+				});
 			enter.append("path");
 			all_tls.exit().remove();
 		}
 		all_tls.order();
 		all_tls.on("click", on_floor_click);
-		var drag_x = 0, drag_y = 0;
-		var drag = d3.behavior.drag()
-			.origin(function(d){
-				var x = 0;
-				var y = vertical_scale[0](_tl_key(d));
-				return {x: 0, y: 0};
-			}).on("dragstart", function(d) {
-				d3.event.sourceEvent.stopPropagation();
-			}).on("drag", function(d) {
-				isDrag = true;
-				d3.event.sourceEvent.stopPropagation();
-				var x = d3.event.x, y = d3.event.y;
-				var ox = 0 + x, oy = vertical_scale[0](_tl_key(d)) + y;
-				d3.select(this).attr("transform", "translate("+ox+","+oy+")");
-				drag_x = ox;
-				drag_y = oy;
-				//
-				if(d.type == "floor"){
-					$("#floor-bar-circles g.floor[floor="+d.floor+"]").attr("transform","translate("+ox+","+oy+")");
-				}else{
-					$("#floor-bar-circles g.ap[apid="+d.apid+"]").attr("transform","translate("+ox+","+oy+")");
-				}
-				//
-				d3.selectAll("#floor-bar-tls .tl, #floor-bar-circles .bar").style("pointer-events", "none");
-			}).on("dragend", function(d, i){
-				if(!isDrag){
-					return;
-				}
-				isDrag = false;
-				//
-				var new_all_tls_data = all_tls_data;
-				var new_horizon_data = horizon_data;
-				//
-				var gap = vertical_scale[0].rangeBand();
-				var index = Math.floor(drag_y / gap);
-				var isRemove = drag_x > x_line_scale.range()[1] ? true : false;
-				console.log("isRemove", isRemove);
-				index = index < 0 ? -1 : index;
-				index = index >= vertical_scale[0].domain().length ? vertical_scale[0].domain().length - 1 : index;
-				if(index == i || index == i-1){
-					if(isRemove){
-						new_all_tls_data = [].concat(all_tls_data.slice(0, i), all_tls_data.slice(i+1, all_tls_data.length));
-						new_horizon_data = [].concat(horizon_data.slice(0, i), horizon_data.slice(i+1, horizon_data.length));
-					}
-				}else if(index < i){
-					var a1 = all_tls_data.slice(0, index+1);
-					var a2 = isRemove ? [] : [all_tls_data[i]];
-					var a3 = all_tls_data.slice(index + 1, i);
-					var a4 = all_tls_data.slice(i+1, all_tls_data.length);
-					new_all_tls_data = [].concat(a1, a2, a3, a4);
-					//
-					a1 = horizon_data.slice(0, index+1);
-					a2 = isRemove ? [] : [horizon_data[i]];
-					a3 = horizon_data.slice(index + 1, i);
-					a4 = horizon_data.slice(i+1, horizon_data.length);
-					new_horizon_data = [].concat(a1, a2, a3, a4);
-				}else if(index > i){
-					var a1 = all_tls_data.slice(0, i);
-					var a2 = all_tls_data.slice(i + 1, index+1);
-					var a3 = isRemove ? [] : [all_tls_data[i]];
-					var a4 = all_tls_data.slice(index+1, all_tls_data.length);
-					new_all_tls_data = [].concat(a1, a2, a3, a4);
-					//
-					a1 = horizon_data.slice(0, i);
-					a2 = horizon_data.slice(i + 1, index + 1);
-					a3 = isRemove ? [] : [horizon_data[i]];
-					a4 = horizon_data.slice(index+1, horizon_data.length);
-					new_horizon_data = [].concat(a1, a2, a3, a4);
-				}else{
-					// none
-				}
-				//
-				update_all_tls(new_all_tls_data);
-				//
-				update_horizon_bars(new_horizon_data);
-				//
-				d3.selectAll("#floor-bar-tls .tl, #floor-bar-circles .bar").style("pointer-events", null);
-			});
-		all_tls.call(drag);
+		// var drag_x = 0, drag_y = 0;
+		// var drag = d3.behavior.drag()
+			// .origin(function(d){
+				// var x = 0;
+				// var y = vertical_scale[0](_tl_key(d));
+				// return {x: 0, y: 0};
+			// }).on("dragstart", function(d) {
+				// d3.event.sourceEvent.stopPropagation();
+			// }).on("drag", function(d) {
+				// isDrag = true;
+				// d3.event.sourceEvent.stopPropagation();
+				// var x = d3.event.x, y = d3.event.y;
+				// var ox = 0 + x, oy = vertical_scale[0](_tl_key(d)) + y;
+				// d3.select(this).attr("transform", "translate("+ox+","+oy+")");
+				// drag_x = ox;
+				// drag_y = oy;
+				// //
+				// if(d.type == "floor"){
+					// $("#floor-bar-circles g.floor[floor="+d.floor+"]").attr("transform","translate("+ox+","+oy+")");
+				// }else{
+					// $("#floor-bar-circles g.ap[apid="+d.apid+"]").attr("transform","translate("+ox+","+oy+")");
+				// }
+				// //
+				// d3.selectAll("#floor-bar-tls .tl, #floor-bar-circles .bar").style("pointer-events", "none");
+			// }).on("dragend", function(d, i){
+				// if(!isDrag){
+					// return;
+				// }
+				// isDrag = false;
+				// //
+				// var new_all_tls_data = all_tls_data;
+				// var new_horizon_data = horizon_data;
+				// //
+				// var gap = vertical_scale[0].rangeBand();
+				// var index = Math.floor(drag_y / gap);
+				// var isRemove = drag_x > x_line_scale.range()[1] ? true : false;
+				// console.log("isRemove", isRemove);
+				// index = index < 0 ? -1 : index;
+				// index = index >= vertical_scale[0].domain().length ? vertical_scale[0].domain().length - 1 : index;
+				// if(index == i || index == i-1){
+					// if(isRemove){
+						// new_all_tls_data = [].concat(all_tls_data.slice(0, i), all_tls_data.slice(i+1, all_tls_data.length));
+						// new_horizon_data = [].concat(horizon_data.slice(0, i), horizon_data.slice(i+1, horizon_data.length));
+					// }
+				// }else if(index < i){
+					// var a1 = all_tls_data.slice(0, index+1);
+					// var a2 = isRemove ? [] : [all_tls_data[i]];
+					// var a3 = all_tls_data.slice(index + 1, i);
+					// var a4 = all_tls_data.slice(i+1, all_tls_data.length);
+					// new_all_tls_data = [].concat(a1, a2, a3, a4);
+					// //
+					// a1 = horizon_data.slice(0, index+1);
+					// a2 = isRemove ? [] : [horizon_data[i]];
+					// a3 = horizon_data.slice(index + 1, i);
+					// a4 = horizon_data.slice(i+1, horizon_data.length);
+					// new_horizon_data = [].concat(a1, a2, a3, a4);
+				// }else if(index > i){
+					// var a1 = all_tls_data.slice(0, i);
+					// var a2 = all_tls_data.slice(i + 1, index+1);
+					// var a3 = isRemove ? [] : [all_tls_data[i]];
+					// var a4 = all_tls_data.slice(index+1, all_tls_data.length);
+					// new_all_tls_data = [].concat(a1, a2, a3, a4);
+					// //
+					// a1 = horizon_data.slice(0, i);
+					// a2 = horizon_data.slice(i + 1, index + 1);
+					// a3 = isRemove ? [] : [horizon_data[i]];
+					// a4 = horizon_data.slice(index+1, horizon_data.length);
+					// new_horizon_data = [].concat(a1, a2, a3, a4);
+				// }else{
+					// // none
+				// }
+				// //
+				// update_all_tls(new_all_tls_data);
+				// //
+				// update_horizon_bars(new_horizon_data);
+				// //
+				// d3.selectAll("#floor-bar-tls .tl, #floor-bar-circles .bar").style("pointer-events", null);
+			// });
+		// all_tls.call(drag);
 		all_tls.each(function(d){
 			var ele = d3.select(this);
 			if(d.type == "floor"){
@@ -593,11 +627,12 @@ WFV.FloorBar = function(_time_range){
 				ele.attr("apid", d.apid);
 			}
 			var cmax = d3.max(d.tl_data, function(d){return d.count});
-			y_line_scale[0].domain([0, cmax]);
+			y_line_scale[0].domain([0, cmax * 1.2]);
 			ele.select('path').attr("d", line_generator[0](d.tl_data));
 			var dy = vertical_scale[0](_tl_key(d));
 			ele.transition().attr("transform", "translate(0,"+dy+")");
 		});
+		_change_svg_size();
 		//
 		function _tl_key(d){
 			if(d.type == "floor"){
@@ -606,6 +641,13 @@ WFV.FloorBar = function(_time_range){
 				return "ap-" + d.apid;
 			}
 		}
+	}
+	function _change_svg_size(){
+		size.height = sel_height + tls_height + 30;
+		svg.height(size.height);
+		g.select("#floor-bar-tl-x-axis")
+			.attr("transform", "translate("+tl_offset+","+(size.height - 28)+")");
+		g.select("#floor-bar-tl-x-axis").call(time_axis.scale(x_line_scale));
 	}
 	function on_floor_click(d){
 		if(d.type != "floor"){
@@ -636,105 +678,12 @@ WFV.FloorBar = function(_time_range){
 			EventManager.floorChange(floor);
 		}
 	}
-	function update_floor_tls(_data){
-		return;
-		// assume time_range.domain already been set
-		// [{floor:, tl_data:[{time:, count:}]}]
-		// if no _data, resize timelines
-		var floors = g.select("#floor-bar-tls").selectAll("g.floor");
-		//x_line_scale.range([0, size.width - per_h.h0]);
-		//y_line_scale[0].range([per_h.h0, 0]);
-		if(_data){
-			var cmax = d3.max(_data, function(d){
-				return d3.max(d.tl_data, function(d){return d.count});
-			});
-			(cmax <= 0) && (console.warn("illegal cmax", cmax));
-			y_line_scale[0].domain([0, cmax]);
-			console.log("floor bar tl scale", y_line_scale[0].domain(), y_line_scale[0].range());
-			//
-			floors = floors.data(_data, function(d){return d.floor});
-			var floor_enter = floors.enter().append("g").attr("class", "floor");
-			floor_enter.append("path");
-		}
-		floors.sort(_sort_by_floor);
-		floors.attr("floor", function(d){
-			return d.floor;
-		}).each(function(d){
-			d3.select(this).select("path").datum(function(d){return d})
-				.attr("d", function(d){return line_generator[0](d.tl_data)})
-				.style("stroke",function(d){return floor_color(d.floor)});
-		});
-		floors.transition().attr("transform", function(d,i){
-			var dy = vertical_scale[0](d.floor);
-			return "translate(0,"+dy+")";
-		});
-	}
-	function update_floor_ap_tls(_data){
-		return;
-		// [{apid, tl_data:[{time:,count:}]}]	
-		// if no _data, resize timeline
-		var aps = g.select("#floor-bar-tls").selectAll("g.ap");
-		if(_data){
-			_data.sort(function(d1, d2){// sort timeline by ap position
-				var a = d1.apid, b = d2.apid;
-				return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
-				// var ap1 = apMap.get(d1.apid),
-				// ap2 = apMap.get(d2.apid);
-				// function offset(x,y){
-				// 	return  Math.sqrt(x*x+y*y);
-				// }
-				// var a = offset(ap1.pos_x, ap1.pos_y),
-				// b = offset(ap2.pos_x, ap2.pos_y);
-				// return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
-			});
-			var cmax = d3.max(_data, function(ap){
-				return d3.max(ap.tl_data,function(d){return d.count});
-			});
-			(cmax <= 0) && (console.warn("illegal cmax", cmax));
-
-			vertical_scale[1].domain(_data.map(function(d){return d.apid}));
-			per_h.h1 = vertical_scale[1].rangeBand() || 1;
-			y_line_scale[1].domain([0,cmax]);
-			y_line_scale[1].range([per_h.h1, 0]);
-
-			aps = aps.data(_data, function(d){return d.apid});
-			var aps_enter = aps.enter().append("g").attr("class","ap");
-			aps_enter.append("path");
-			//
-			aps.exit().remove();
-			// move bar to positon of its floor
-			aps.attr("transform", function(){
-				var dy = vertical_scale[0](current_floor);
-				return "translate(0,"+dy+")";
-			});
-		}
-		aps.attr("apid", function(d){return d.apid})
-			.select("path").datum(function(d){
-				// console.log(d.tl_data);
-				// return d.tl_data;
-				return d;
-			}).attr("d", function(d){return line_generator[1](d.tl_data)})
-		.style("stroke",function(d){
-			var floor = apMap.get(d.apid).floor;
-			if(undefined === floor){
-				console.warn("no floor info");
-			}
-			return floor_color(floor);
-		});
-		aps.transition().attr("transform", function(d){
-			var dy = vertical_scale[1](d.apid);
-			return "translate(0,"+dy+")";
-		});
-	}
 	$(window).resize(function(e){
 		init_svg();
 		update_all_tls();
 		update_horizon_bars();
-		// update_floor_circle();
-		// update_ap_bars();
-		// update_floor_tls();
-		// update_floor_ap_tls();
-		// change_tl();
+		update_sel_ap_bars();
+		update_sel_ap_tls();
 	});
 	function _sort_by_floor(f1, f2){
 		var a = f1.floor, b = f2.floor;
@@ -752,6 +701,7 @@ function FloorBarTlData(){
 	this.timeRange;
 	this.step;
 	this.data = null; //[{floor:, tl_data[], aps:}]
+	this.apDataMap = d3.map();
 	this.floorStatus = d3.range(0,18).map(function(){return false});
 }
 
@@ -767,8 +717,15 @@ FloorBarTlData.prototype.init = function(range, step, cb){
 		if(f < 18){
 			db.tl_data_floor(that.timeRange[0], that.timeRange[1], step, f, function(d){
 				d.type = "floor";
-				_data.push(d);
-				next_f(f+1, _data, cb);
+				db.tl_data_aps_of_floor(that.timeRange[0], that.timeRange[1], step, f, function(apsTlData){
+					d.aps = apsTlData;
+					apsTlData.forEach(function(ap){
+						ap.type = "ap";
+						that.apDataMap.set(ap.apid, ap);
+					});
+					_data.push(d);
+					next_f(f+1, _data, cb);
+				});
 			});
 		}else{
 			cb(that);
@@ -794,6 +751,15 @@ FloorBarTlData.prototype.changeRange = function(range, step, cb){
 	}
 }
 
+FloorBarTlData.prototype.getSelData = function(apids, cb){
+	var _this = this;
+	var res = [];
+	apids.forEach(function(apid){
+		res.push(_this.apDataMap.get(apid));
+	});
+	cb && cb(res);
+}
+
 FloorBarTlData.prototype.flatFloor = function(f, cb){
 	// force to reload aps timeline
 	console.log("flatter floor", f);
@@ -803,6 +769,7 @@ FloorBarTlData.prototype.flatFloor = function(f, cb){
 		cb(that);
 		return;
 	}
+	console.warn("not here");
 	if(that.floorStatus[f]) console.warn("illegal status");
 	db.tl_data_aps_of_floor(that.timeRange[0],
 			that.timeRange[1], that.step, f, function(apsTlData){
@@ -812,7 +779,6 @@ FloorBarTlData.prototype.flatFloor = function(f, cb){
 				that.floorStatus[f] = true;
 				cb(that);
 			});
-	
 };
 
 FloorBarTlData.prototype.unflatFloor = function(f, cb){
@@ -850,12 +816,20 @@ function FloorBarBarData(){
 	this.timeRange;
 	this.data = null;
 	this.floorStatus = d3.range(0,18).map(function(){return false});
+	this.apDataMap = d3.map();
 }
 
 FloorBarBarData.prototype.init = function(range, cb){
 	var that = this;
 	that.timeRange = range;
 	db.ap_bar_data(that.timeRange[0], that.timeRange[1], function(data){
+		//
+		data.forEach(function(d){
+			d.aps.forEach(function(ap){
+				that.apDataMap.set(ap.apid, ap);
+			});
+		})
+		//
 		data.unshift([]);	
 		that.data = data;
 		cb && cb(that);
@@ -865,6 +839,15 @@ FloorBarBarData.prototype.init = function(range, cb){
 FloorBarBarData.prototype.changeRange = function(range, cb){
 	this.init(range, cb);
 }
+
+FloorBarBarData.prototype.getSelData = function(apids, cb){
+	var _this = this;
+	var res = [];
+	apids.forEach(function(apid){
+		res.push(_this.apDataMap.get(apid));
+	});
+	cb(res);
+};
 
 FloorBarBarData.prototype.flatFloor = function(f, cb){
 	this.floorStatus[f]	= true;
