@@ -293,7 +293,13 @@ WifiVis.FloorDetail = function(){
 	// TODO
 	FloorDetail.filter_path = filter_path;
 	function filter_path(from, to){
-		var fls = links.filter(function(l){return l.weight >= from && l.weight < to});
+		var fls;
+		if(arguments.length == 0){
+			fls = links;
+		}else{
+			console.log("from to", from, to);
+			fls = links.filter(function(l){return l.weight >= from && l.weight <= to});
+		}
 		update_links(fls);
 		update_histogram(fls);
 	}
@@ -334,8 +340,8 @@ WifiVis.FloorDetail = function(){
 		img.attr('height', imgSize.h);
 		gAps.select("rect.placeholder").attr("width",imgSize.w).attr("height", imgSize.h);
 		gPath.select("rect.placeholder").attr("width",imgSize.w).attr("height", imgSize.h);
-		brush.x(d3.scale.identity().domain([-60, imgSize.w+60]))
-			.y(d3.scale.identity().domain([-60, imgSize.h+60]));
+		brush.x(d3.scale.identity().domain([-60, imgSize.w+40]))
+			.y(d3.scale.identity().domain([-60, imgSize.h+10]));
 		brush.on("brushstart", brushstart)
 			.on("brush", brushed)
 			.on("brushend", brushend);
@@ -577,7 +583,19 @@ WifiVis.FloorDetail = function(){
 				.text(d.y);
 		});
 		// interaction
+		/*
+		 * d3.select("#floor-detail-histogram").on("click", function(){
+		 *   console.log("this this ");
+		 *   filter_path();
+		 * });
+		 */
 		hists.on("click", function(d){
+			/*
+			 * console.log("asdfasdfasdf");
+			 * filter_path(+d.x, d.x + d.dx);
+			 * d3.event.stopPropagation();
+			 * return;
+			 */
 			var ele = d3.select(this);
 			if(ele.attr("_selected")){
 				ele.attr("_selected", null).classed("selected", false);

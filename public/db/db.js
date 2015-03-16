@@ -373,6 +373,7 @@ WFV_DB.prototype.ap_bar_data = function(from, to, cb){
 				ap.apid = +ap.key; delete ap.key;
 				//ap.count = ap.values; delete ap.values;
 				ap.count = _.uniq(ap.values, function(d){return d.mac}).length;
+				ap.floor = f.floor;
 				macs = macs.concat(ap.values);
 			});
 			// f.count = d3.sum(f.aps, function(ap){return ap.count});
