@@ -394,7 +394,7 @@ WFV.FloorBar = function(_time_range){
 			var ele = d3.select(this);
 			ele.attr("apid", d.apid);
 			var cmax = d3.max(d.tl_data, function(d){return d.count});
-			y_line_scale[0].domain([0, cmax]);
+			y_line_scale[0].domain([0, cmax * 1.2]);
 			ele.select('path').attr("d", line_generator[0](d.tl_data));
 			var dy = per_height * i;
 			ele.transition().attr("transform", "translate(0,"+dy+")");
@@ -627,7 +627,7 @@ WFV.FloorBar = function(_time_range){
 				ele.attr("apid", d.apid);
 			}
 			var cmax = d3.max(d.tl_data, function(d){return d.count});
-			y_line_scale[0].domain([0, cmax]);
+			y_line_scale[0].domain([0, cmax * 1.2]);
 			ele.select('path').attr("d", line_generator[0](d.tl_data));
 			var dy = vertical_scale[0](_tl_key(d));
 			ele.transition().attr("transform", "translate(0,"+dy+")");
