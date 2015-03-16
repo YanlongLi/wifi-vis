@@ -13,9 +13,24 @@ body {
   stroke: #000;
   shape-rendering: crispEdges;
 }
+rect.extent {
+  fill: #000;
+  fill-opacity: .125;
+  stroke: #fff;
+}
 
 .x.axis path {
   /*display: none;*/
+}
+#ap-view-left-svg {
+  position: absolute;
+  top: 30px;
+  left: 0;
+}
+#ap-view-svg {
+  position: absolute;
+  top: 30px;
+  left: 8%;
 }
 #device-view-left-svg {
   position: absolute;

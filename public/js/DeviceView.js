@@ -118,7 +118,7 @@ WifiVis.DeviceView = function(selectedDevices){
         .attr("r", 4 / zoom.scale());
     gFloor.selectAll(".floorBtn.text")
       .style("font-size", (0.7 / zoom.scale()) + "em")
-      .attr("x", 16 / zoom.scale());
+      .attr("x", 12 / zoom.scale());
 
     //gYAxis.call(yAxis);
     gXAxis.call(xAxis);
@@ -694,7 +694,7 @@ WifiVis.DeviceView = function(selectedDevices){
           //   .style("left", mousex + "px");
           $("#device-view-login-description").html(d3.time.format("%c")(timePoint));
           $("#device-view-login-description").css({
-            "left": mousex,
+            "left": mousex + 20,
             "top": mousey
           });
           $("#device-view-login-description").show();
@@ -826,18 +826,20 @@ WifiVis.DeviceView = function(selectedDevices){
           //   .style("left", mousex + "px");
           var descStr = "Device no." + db.macid_by_mac(d.device) + "<br />" 
               + apNameMappings[d[0].apid] + "<br />"
-              + "Lasted " + (timeLasted / 60000) + " mins" + "<br />"
+              + "Lasted " + Math.round(timeLasted / 60000) + " mins" + "<br />"
               + d3.time.format("%c")(timePoint) + "<br />" ;
           console.log(descStr);
           $("#device-view-login-description").html(descStr);
           $("#device-view-login-description").css({
-            "left": mousex + 58,
+            "left": mousex + 78,
             "top": mousey
           });
           $("#device-view-login-description").show();
+
+          highlightTrace(d.device);
         })
         .on("mouseout", function(d, i){
-
+          if (!clickedp[d.device]) dehighlightTrace(d.device);
           // gRect.selectAll(".mac" + d["device"])
           //   .style("fill-opacity", 0.3);
           // gDot.selectAll(".mac" + d["device"])
@@ -1071,7 +1073,7 @@ WifiVis.DeviceView = function(selectedDevices){
               var floor = +apFloorMappings[nameAPMappings[d]].substring(1);
               return ColorScheme.floor(floor);
             })
-            .attr("x", 16)
+            .attr("x", 12 / zoom.scale())
             .attr("y", function(d) {
               if (floorCollapsed[d] === true)
                 return yFloor(d) - yFloor.rangeBand()/2;
@@ -1107,6 +1109,15 @@ WifiVis.DeviceView = function(selectedDevices){
               d3.select(this)
                 .style("fill-opacity", 0.3);
             });
+
+      for (var key in clicked) {
+        if (clicked[key]) {
+          highlightTrace(key);
+        }
+        else {
+          dehighlightTrace(key);
+        }
+      }
     }
     else {
 
@@ -1207,7 +1218,7 @@ WifiVis.DeviceView = function(selectedDevices){
                 return yFloor(d) - yFloor.rangeBand()/2 - Object.keys(floorAP[d]).length * 3.5 - 3.5;
           });
         gFloor.selectAll(".floorBtn.text")
-          .attr("x", 16)
+          .attr("x", 12 / zoom.scale())
           .style("font-size", (0.7 / zoom.scale()) + "em");
     }
 

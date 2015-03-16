@@ -1,4 +1,4 @@
-WifiVis.ApView = function(selectedDevices) {
+WifiVis.ApView = function() {
   function ApView(){}
 
   var apNameMappings = {};
@@ -16,15 +16,23 @@ WifiVis.ApView = function(selectedDevices) {
   var deviceLoginDuration = {};
 
   var deviceList = [], apList = [], apMap = {};
+  var selectedDevices = [];
 
   var checkInIntervalString = "2013-09-02 00:00:30";
   var checkInIntervalDate = new Date(checkInIntervalString);
   var checkInInterval;
 
   var size, timelineSize;
-  var svg = utils.initSVG("#ap-view-svg", [10]);
+  var svg = utils.initSVG("#ap-view-svg", [10]), leftSVG = utils.initSVG("#ap-view-left-svg", [10, 0]);
   var g = d3.select("#ap-view-g");
   var zoom = d3.behavior.zoom().scaleExtent([1, 10]).on("zoom", zoomed);
+
+  var brush = d3.svg.brush()
+      .on("brushstart", brushstart)
+      .on("brush", brush)
+      .on("brushend", brushend);
+
+
 
 
   var gXAxis = d3.select("#ap-view-x-axis-g");
@@ -33,7 +41,8 @@ WifiVis.ApView = function(selectedDevices) {
   var gRect = g.append("g").attr("class", "rects"), 
       //gDot = g.append("g").attr("class", "dots"),
       //gLine = g.append("g").attr("class", "lines"), 
-      gTag = g.append("g").attr("class", "tags"),
+      gTagLine = g.append("g").attr("class", "tags"),
+      gTagText = d3.select("#ap-view-left-svg").append("g").attr("class", "tags"),
       gSeg = g.append("g").attr("class", "logins");
   
   var parseDate = d3.time.format("%H:%M").parse;
@@ -68,16 +77,17 @@ WifiVis.ApView = function(selectedDevices) {
     //    .attr("r", 2 / Math.sqrt(zoom.scale()));
     gRect.selectAll(".deviceAPRect")
         .attr("height", 5 / Math.sqrt(zoom.scale()));
-    gRect.attr("transform", "translate(" + (50 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
+    gRect.attr("transform", "translate(" + (20 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
     //gLine.attr("transform", "translate(" + (50 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
     //gLine.selectAll("deviceVerticalLine")
     //    .style("stroke-width", (1 / zoom.scale()) + "px");  
-    gTag.attr("transform", "translate(0," + zoomY + ")scale(" + zoom.scale() + ")");
-    gTag.selectAll(".deviceTag.line")
+    gTagLine.attr("transform", "translate(0," + zoomY + ")scale(" + zoom.scale() + ")");
+    gTagLine.selectAll(".deviceTag.line")
       .style("stroke-width", (1 / zoom.scale()) + "px");
-    gTag.selectAll(".deviceTag.text")
+    gTagText.attr("transform", "translate(0," + zoomY + ")scale(" + zoom.scale() + ")");
+    gTagText.selectAll(".deviceTag.text")
       .style("font-size", (0.6 / zoom.scale()) + "em");
-    gSeg.attr("transform", "translate(" + (50 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
+    gSeg.attr("transform", "translate(" + (20 + zoomX) + "," + zoomY + ")scale(" + zoom.scale() + ")");
     gSeg.selectAll(".deviceLogin")
       .style("stroke-width", (1 / zoom.scale()) + "px");
     //gYAxis.call(yAxis);
@@ -90,12 +100,12 @@ WifiVis.ApView = function(selectedDevices) {
     //var _w = svg.width(), _h = svg.height()-5;
     var _w = svg.w, _h = svg.h - 5;
 
-    size = utils.initG(g, _w-40, _h, [0,5,20,0]);
+    size = utils.initG(g, _w-15, _h, [0,5,20,0]);
     //timelineSize = utils.initG(gXAxis, _w, 20, [0,5,20,0]);
     x.domain([timeFrom, timeTo]).range([0, size.width]);
     gXAxis
       .attr("class", "x axis")
-      .attr("transform", "translate(50," + (size.height+5) + ")")
+      .attr("transform", "translate(20," + (size.height+5) + ")")
       //.attr("transform", "translate(40," + 0 + ")")
       .call(xAxis);
 
@@ -113,12 +123,25 @@ WifiVis.ApView = function(selectedDevices) {
             .x(x)
             .on("zoom", zoomed);
     d3.select("#ap-view-svg").call(zoom).call(zoom.event);
+    gTagText.call(zoom)
+      .on("mousedown.zoom", null)
+      .on("touchstart.zoom", null)
+      .on("touchmove.zoom", null)
+      .on("touchend.zoom", null);
+
+    brush.x(d3.scale.identity().domain([0, leftSVG.w]))
+      .y(yScale);
+    gTagText
+      .call(brush);
+    // .selectAll("rect")
+    //   .attr("x", 0)
+    //   .attr("width", leftSVG.w);
 
     //gDot.attr("transform", "translate(50,0)scale(1,1)");
-    gRect.attr("transform", "translate(50,0)scale(1,1)");
+    gRect.attr("transform", "translate(20,0)scale(1,1)");
     //gLine.attr("transform", "translate(50,0)scale(1,1)");
-    gSeg.attr("transform", "translate(50,0)scale(1,1)");
-    gTag.attr("transform", "translate(0,0)scale(1,1)");
+    gSeg.attr("transform", "translate(20,0)scale(1,1)");
+    gTagLine.attr("transform", "translate(0,0)scale(1,1)");
     //gXAxis.attr("transform",  "translate(0,0)scale(1,1)");
 
     d3.select("#ap-view-reset-btn").on("click", reset);
@@ -180,6 +203,39 @@ WifiVis.ApView = function(selectedDevices) {
 
   }
 
+  function brushstart(p) {
+    if (brush.data !== p) {
+      gTagText.call(brush.clear());
+      selectedDevices = [];
+      brush.y(yScale).data = p;
+    }
+  }
+
+  function brush(p) {
+    var e = brush.extent();
+    console.log(e);
+    gTagText.selectAll(".deviceTag")
+      .classed("selected", function(d) {
+        var py = yScale(d) + yScale.rangeBand()/2.0 + 2.5;
+        if (e[0][1] <= py && py <= e[1][1]) {
+          selectedDevices.push(d);
+          return true;
+        }
+        else
+          return false;
+    });
+    console.log(selectedDevices);
+  }
+
+  // If the brush is empty, select all circles.
+  function brushend() {
+    if (brush.empty()) {
+    }
+
+    EventManager.deviceDeselect(null);
+    EventManager.deviceSelect(selectedDevices);
+  }
+
 
   $(window).resize(function(e){
     svg = utils.resizeSVG(svg);
@@ -229,27 +285,60 @@ WifiVis.ApView = function(selectedDevices) {
     // }
 
     if(message == WFV.Message.ApSelect){
-      if (!data.isAdd) return;
-      console.log(data.apid);
-      apList = data.apid;
-      apMap = {};
-      apList.forEach(function(d) {
-        apMap[d] = d;
-      });
-      apList.forEach(function(d) {
-        console.log(d);
-        db.macs_by_ap(timeFrom, timeTo, d, function(res) {
-          deviceList = [];
-          // deviceList.concat(res.map(function(p) {
-          //   return p.mac;
-          // }));
-          res.forEach(function(p) {
-            deviceList.push(p.mac);
-          })
-          console.log(deviceList);
-          ApView.update();
-        }); 
-      });
+      console.log(data);
+      if (!data.isAdd) {
+        apList = data.change;
+        console.log(apMap);
+        apList.forEach(function(d) {
+          delete apMap[d];
+        });
+        console.log(apMap);
+        if (Object.keys(apMap).length > 0) {
+          Object.keys(apMap).forEach(function(d) {
+            console.log(d);
+            db.macs_by_ap(timeFrom, timeTo, d, function(res) {
+              deviceList = [];
+              // deviceList.concat(res.map(function(p) {
+              //   return p.mac;
+              // }));
+              res.forEach(function(p) {
+                deviceList.push(p.mac);
+              })
+              console.log(deviceList);
+              ApView.update();
+            }); 
+          });  
+        }
+        else {
+          render(1);
+        }
+        return;
+      }
+      else {
+        console.log(data.apid);
+        apList = data.apid;
+        apList.forEach(function(d) {
+          apMap[d] = d;
+        });
+        console.log(apMap);
+        deviceList = [];
+        var waitData = true;
+        Object.keys(apMap).forEach(function(d) {
+          console.log(d);
+          db.macs_by_ap(timeFrom, timeTo, d, function(res) {
+            // deviceList.concat(res.map(function(p) {
+            //   return p.mac;
+            // }));
+            res.forEach(function(p) {
+              deviceList.push(p.mac);
+            })
+            waitData = false;
+          }); 
+        });
+        while (waitData);
+        ApView.update();
+        console.log(deviceList);
+      }
     }
   }
 
@@ -289,6 +378,8 @@ WifiVis.ApView = function(selectedDevices) {
     access_data = access_data.filter(function(d) {
       return d[0].lines.length > 0;
     });
+
+    zoom.x(x);
 
 
     yFloorAP = [], nameAPMappings = {};
@@ -445,7 +536,9 @@ WifiVis.ApView = function(selectedDevices) {
     console.log(deviceLoginDuration);
     
     if (needRemove === 1) {
-      gTag.selectAll("g").remove();
+      //gTag.selectAll("g").remove();
+      gTagText.selectAll(".deviceTag").remove();
+      gTagLine.selectAll(".deviceTag").remove();
       gRect.selectAll(".apDeviceRect").remove();
       //gDot.selectAll(".apDeviceDot").remove();
       gSeg.selectAll(".deviceLogin").remove();
@@ -475,8 +568,11 @@ WifiVis.ApView = function(selectedDevices) {
       d3.select("#ap-view-wrapper")
         .on("mousemove", function(){  
           var mousex = d3.mouse(this)[0] + 2, mousey = d3.mouse(this)[1];
-          if (mousex < 55) mousex = 55;
-          if (mousex > svg.w + 5) mousex = svg.w + 5;
+          if (mousex < 50 || mousex > svg.w + 5) {
+            $("#ap-view-login-description").hide();
+            vertical.style("visibility", "hidden");
+            return;
+          }
           vertical.style("left", mousex + "px" )
             .style("visibility", "visible");
           var timePoint = x.invert(mousex - 50);
@@ -486,7 +582,7 @@ WifiVis.ApView = function(selectedDevices) {
 
           $("#ap-view-login-description").html(d3.time.format("%c")(timePoint));
           $("#ap-view-login-description").css({
-            "left": mousex,
+            "left": mousex + 20,
             "top": mousey
           });
           $("#ap-view-login-description").show();
@@ -501,11 +597,11 @@ WifiVis.ApView = function(selectedDevices) {
           // vertical.style("left", mousex + "px")
         });
 
-      var gTags = gTag.selectAll(".deviceTag")
-        //.data(Object.keys(dataset))
-        .data(yScale.domain())
-        .enter()
-        .append("g")
+      // var gTags = gTag.selectAll(".deviceTag")
+      //   //.data(Object.keys(dataset))
+      //   .data(yScale.domain())
+      //   .enter()
+      //   .append("g")
       // gTags
       //   .append("rect")
       //   .attr("class", "apTag rect")
@@ -517,7 +613,11 @@ WifiVis.ApView = function(selectedDevices) {
       //   .attr("height", 5)
       //   .style("fill", "grey")
       //   .style("opacity", 0.0);
-      gTags
+      gTagLine
+        .selectAll(".deviceTag")
+        //.data(Object.keys(dataset))
+        .data(yScale.domain())
+        .enter()
         .append("line")
         .attr("class", "deviceTag line")
         .attr("transform", "translate(0,0)scale(1,1)")
@@ -533,7 +633,10 @@ WifiVis.ApView = function(selectedDevices) {
         .attr("y2", function(d) {
           return yScale(d) + yScale.rangeBand()/2.0;
         });
-      gTags
+      gTagText.selectAll(".deviceTag")
+        //.data(Object.keys(dataset))
+        .data(yScale.domain())
+        .enter()
         .append("text")
         .attr("class", "deviceTag text")
           .attr("transform", "translate(0,0)scale(1,1)")
@@ -659,18 +762,24 @@ WifiVis.ApView = function(selectedDevices) {
           });
           console.log(yDomain);
           yScale.domain(yDomain);
-          render(1);
+          reset();
         })
-        .on("mouseover", function(d, i) {
+        .on("mousemove", function(d, i) {
+          d3.event.stopPropagation();
           var mousex = d3.mouse(this)[0] + 2, mousey = d3.mouse(this)[1];
-          if (mousex < 55) mousex = 55;
-          if (mousex > svg.w + 5) mousex = svg.w + 5;
-          vertical.style("left", mousex + "px" )
+          
+          vertical.style("left", (mousex + 50) + "px" )
             .style("visibility", "visible");
-          var timePoint = x.invert(mousex - 50);
-          $("#ap-view-login-description").html("Device no." + db.macid_by_mac(d.device) + "<br />" + d3.time.format("%c")(timePoint));
+          var timePoint = x.invert(mousex);
+          var timeLasted = d.end.date_time - d.start.date_time;
+          var descStr = "Device no." + db.macid_by_mac(d.device) + "<br />" 
+              + apNameMappings[d.start.apid] + "<br />"
+              + "Lasted " + Math.round(timeLasted / 60000) + " mins" + "<br />"
+              + d3.time.format("%c")(timePoint) + "<br />" ;
+          console.log(descStr);
+          $("#ap-view-login-description").html(descStr);
           $("#ap-view-login-description").css({
-            "left": mousex,
+            "left": mousex + 70,
             "top": mousey
           });
           $("#ap-view-login-description").show();
@@ -703,7 +812,7 @@ WifiVis.ApView = function(selectedDevices) {
         });
     }
     else {
-      gTag.selectAll(".deviceTag.line")
+      gTagLine.selectAll(".deviceTag.line")
         .attr("x1", function(d) {
             return 0;
         })
@@ -716,7 +825,7 @@ WifiVis.ApView = function(selectedDevices) {
         .attr("y2", function(d) {
           return yScale(d) + yScale.rangeBand()/2.0;
         });
-      gTag.selectAll(".deviceTag.text")
+      gTagText.selectAll(".deviceTag.text")
         .attr("x", 0)
         .attr("y", function(d){
           return yScale(d) + yScale.rangeBand()/2.0 + 2.5;

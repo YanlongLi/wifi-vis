@@ -44,7 +44,7 @@ rect.placeholder{
 	border-radius: 5;
 	color: darkgoldenrod;
 	font-family: monospace;
-	font-size: 14;
+	font-size: 11;
 	font-weight: bold;
 	z-index: 100000;
 }
