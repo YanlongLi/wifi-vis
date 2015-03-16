@@ -25,25 +25,9 @@ body {
 #device-view-svg {
   position: absolute;
   top: 30px;
-  left: 5%;
+  left: 8%;
 }
 #device-view-list-svg {
-  position: absolute;
-  top: 30px;
-  left: 90%;
-}
-
-#device-view-non-linear-left-svg {
-  position: absolute;
-  top: 30px;
-  left: 0;
-}
-#device-view-non-linear-svg {
-  position: absolute;
-  top: 30px;
-  left: 5%;
-}
-#device-view-non-linear-list-svg {
   position: absolute;
   top: 30px;
   left: 90%;
@@ -99,15 +83,26 @@ body {
 .circle.floorBtn.collapsed {
   fill-opacity: 0.3;
 }
+.text.floorBtn.collapsed {
+  fill-opacity: 0.3;
+}
 .text.apTag.collapsed {
   fill-opacity: 0.3;
 }
 
 .text.deviceList {
   font-size: 0.7em;
-  fill: black;
+  fill: #666666; 
+  fill-opacity: 0.3;
+  text-anchor: end;
 }
 
+.text.deviceTag {
+  fill: #666666; 
+}
+.text.apTag{
+  fill: #666666; 
+}
 
 .brush .extent {
   stroke: #fff;
