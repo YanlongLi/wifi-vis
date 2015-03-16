@@ -127,6 +127,7 @@ WFV.FloorBar = function(_time_range){
 				});
 			}
 			// update sel ap bars and tls
+			console.log("selected aps", apids);
 			barData.getSelData(apids, update_sel_ap_bars);
 			ftlData.getSelData(apids, update_sel_ap_tls);
 			selected_aps = apids;
@@ -344,7 +345,7 @@ WFV.FloorBar = function(_time_range){
 	function update_sel_ap_bars(_data){
 		var per_height = 30;
 		var bars = g.select("#floor-bar-ap-sel-circles").selectAll("g.bar");
-		if(_data && _data.length){
+		if(_data){
 			bars = bars.data(_data, function(d){return d.apid});
 			var enter = bars.enter().append("g").attr("class", function(d){return "bar ap"});
 			enter.append("rect").append("title");
@@ -376,7 +377,7 @@ WFV.FloorBar = function(_time_range){
 	function update_sel_ap_tls(_data){
 		var per_height = 30;
 		var all_tls = g.select("#floor-bar-ap-sel-tls").selectAll("g.tl");
-		if(_data && _data.length){
+		if(_data){
 			// all_tls_data = _data;
 			y_line_scale[0].range([per_height,0]);
 			line_generator[0].y0(per_height);
