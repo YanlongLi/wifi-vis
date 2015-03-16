@@ -31,6 +31,7 @@ WifiVis.ApGraph = function(){
 		var _this = this;
 		ObserverManager.addListener(this);
 		spinner = utils.createSpinner(5, 5);
+		initArrowMarker();
 		processData();
 		var worker = new Worker("js/workers/tsneWorker.js");
 		tsneWorker = worker;
@@ -45,7 +46,6 @@ WifiVis.ApGraph = function(){
 				isShowEdge = true;
 				// console.log("XXX", dotNormalPositions)
 				repel();
-				
 			}
 			
 		}
@@ -56,6 +56,35 @@ WifiVis.ApGraph = function(){
 				EventManager.apDeselect(null, this);
 			});
 	}
+
+	function initArrowMarker() {
+		var arrowData = ["aps-graph-arrow"];
+		o.svg.append("defs")
+			.selectAll("marker")
+			.data(arrowData)
+			.enter()
+			.append("marker")
+			.attr("id",String)
+			.attr("class","pairMarker")
+			.attr("viewBox","0 0 5 5")
+			.attr("refX",4.5)
+			.attr("refY",2.5)
+			.attr("markerWidth",3)
+			.attr("markerHeight",5)
+			.attr("orient","auto")
+			.append("svg:path")
+			.attr("d","M0,0L6,2.5L0,5")
+
+			// .attr("viewBox","0 -10 20 20")
+			// .attr("refX",14.5)
+			// .attr("refY",0)
+			// .attr("markerWidth",5)
+			// .attr("markerHeight",4)
+			// .attr("orient","auto")
+			// .append("svg:path")
+			// .attr("d","M0,0L20,0L0,10")			
+	}
+
 	ApGraph.draw = function(){
 		this.update(timeRange);
 	}
@@ -68,7 +97,7 @@ WifiVis.ApGraph = function(){
 		spinner.spin($("#" + DIV_ID).get(0));
 		var from = new Date(range[0]), to = new Date(range[1]);
 		var records = db.records_by_interval(from, to)
-		console.log("records", records);
+		// console.log("records", records);
 		db.graph_info(from, to, function(_graphinfo){
 			graphinfo = _graphinfo;
 			var count = 0;
@@ -108,15 +137,15 @@ WifiVis.ApGraph = function(){
 			}).classed("temp-highlight", true);
 		}
 		if (message == WFV.Message.ApHover) {
-			if (data.isAdd == false) {
-				svg.selectAll(".dot").classed("temp-highlight", false);
-				return;
-			}
-			var apids = data.apid;
-			for (var i = 0; i < apids.length; i++) {
-				var id = apids[i];
-				svg.selectAll(".dot[apid='" + id + "']").classed("temp-highlight", true);
-			}
+			// if (data.isAdd == false) {
+			// 	svg.selectAll(".dot").classed("temp-highlight", false);
+			// 	return;
+			// }
+			// var apids = data.apid;
+			// for (var i = 0; i < apids.length; i++) {
+			// 	var id = apids[i];
+			// 	svg.selectAll(".dot[apid='" + id + "']").classed("temp-highlight", true);
+			// }
 		}				
 		if (message == WFV.Message.ApSelect) {
 			svg.selectAll(".dot").classed("highlight", false);
@@ -124,7 +153,7 @@ WifiVis.ApGraph = function(){
 			console.log("apselect", apids);
 			for (var i = 0; i < apids.length; i++) {
 				var id = apids[i];
-				console.log(".dot[apid='" + id + "']")
+				// console.log(".dot[apid='" + id + "']")
 				svg.selectAll(".dot[apid='" + id + "']").classed("highlight", true);
 			}
 		}
@@ -152,24 +181,82 @@ WifiVis.ApGraph = function(){
 			l.weight = 1;
 			links.push(l);
 		}
+		// gPath.selectAll(".route")
+		// 	.data(links)
+		// 	.enter()
+		// 	.append("line")
+		// 	.attr("class", "route")
+		// 	.attr("source-id", function(d) {
+		// 		return d.source._id; 
+		// 	})
+		// 	.attr("target-id", function(d) {
+		// 		return d.target._id;
+		// 	})
+		// 	.style("stroke-width", function(d) {
+		// 		return 2;
+		// 	})
+		// 	.attr("x1", function(d) { return d.source.x; })
+		// 	.attr("y1", function(d) { return d.source.y; })
+		// 	.attr("x2", function(d) { return d.target.x; })
+		// 	.attr("y2", function(d) { return d.target.y; }) 	
 		gPath.selectAll(".route")
 			.data(links)
 			.enter()
-			.append("line")
+			.append("path")
 			.attr("class", "route")
-			.attr("source-id", function(d) {
-				return d.source._id; 
+	        .attr("marker-end",function(d){
+	        	return "url(#aps-graph-arrow)";
+	        })
+			.attr("d",function(d){
+				var src = [d.source.x, d.source.y];
+				var dest = [d.target.x, d.target.y];
+				var srcR = 5;
+				var destR = 5;
+				var p1 = src;
+				var p2 = dest;
+		        var dx = p2[0]-p1[0];
+		        var dy = p2[1]-p1[1];
+
+				var theta = Math.atan(dy/dx);
+				var theta1 = theta + Math.PI/6.0;
+				var theta2 = theta - Math.PI/6.0;
+				var directionX = dx>=0?1:-1;
+				var directionY = dy>0?1:-1;
+
+				if(dx<0){
+					theta+=Math.PI;
+					if(dy<0){
+					//	directionY*=-1;						
+					}
+				}
+				if((dx<=0&&dy>0) || (dx>=0&&dy<0)){
+					directionY*=-1;
+				}
+				// var newX0 = p1[0] + directionX*srcR*Math.abs(Math.cos(theta1));
+				// var newY0 = p1[1] + directionY*srcR*Math.abs(Math.sin(theta1));
+
+				// var newX1 = p2[0] - directionX*destR*Math.abs(Math.cos(theta2));
+				// var newY1 = p2[1] - directionY*destR*Math.abs(Math.sin(theta2));
+				var newX0 = p1[0] + directionX*srcR*(Math.cos(theta1));
+				var newY0 = p1[1] + directionY*srcR*(Math.sin(theta1));
+
+				var newX1 = p2[0] - directionX*destR*(Math.cos(theta2));
+				var newY1 = p2[1] - directionY*destR*(Math.sin(theta2));
+
+//		        var dr = Math.sqrt(dx*dx+dy*dy);
+				// var parameterD = d3.max([(1-0.2*d.dupIndex),0]);
+				var parameterD = 1;
+		        var dr = Math.sqrt(dx*dx+dy*dy)*parameterD;
+
+				// var newX0 = p1[0];
+				// var newY0 = p1[1];
+				// var newX1 = p2[0];
+				// var newY1 = p2[1];
+				str = "M"+ newX0 + "," + newY0 + "A" + dr + "," + dr + " 0 0,0 " + newX1 + "," + newY1;
+
+				return str;
 			})
-			.attr("target-id", function(d) {
-				return d.target._id;
-			})
-			.style("stroke-width", function(d) {
-				return 2;
-			})
-			.attr("x1", function(d) { return d.source.x; })
-			.attr("y1", function(d) { return d.source.y; })
-			.attr("x2", function(d) { return d.target.x; })
-			.attr("y2", function(d) { return d.target.y; }) 			
+
 	}
 
 	function createElements() {
@@ -194,19 +281,35 @@ WifiVis.ApGraph = function(){
 				// return gColorScale(topicID);
 			})
 			.on('mouseover', function(d, index) {
-				d3.select(this).classed("temp-highlight", true);
-				var ap = aps[index];
-				svg.selectAll(".link[source-id='" + ap._id + "']").classed("temp-highlight", true);
-				svg.selectAll(".link[target-id='" + ap._id + "']").classed("temp-highlight", true);
+				gNode.selectAll(".dot").classed("temp-dark", true);
+				gNode.selectAll(".link-highlight").classed("link-highlight", false);
 
-				//tip
+				d3.select(this).classed("temp-highlight", true);
+
+				var ap = aps[index];
+				var neighbours = [];
+				svg.selectAll(".link[source-id='" + ap._id + "']")
+					.classed("temp-highlight", true)
+					.each(function(d) {
+						// neighbours.push(d.target.apid)
+						gNode.select(".dot[apid='" + d.target.apid + "']")
+							.classed("link-highlight", true);
+					})
+
+				svg.selectAll(".link[target-id='" + ap._id + "']").classed("temp-highlight", true)
+					.each(function(d) {
+						gNode.select(".dot[apid='" + d.source.apid + "']")
+							.classed("link-highlight", true);
+					})
+
+
+				//tiph
 				var dx = $(this).offset().left - $("#"+DIV_ID).offset().left;
 				var dy = $(this).offset().top - $("#"+DIV_ID).offset().top;
 
 				var desc = "ap id: " + ap.apid + "</br>"
 					+ "ap name: " + ap.name + "</br>"
-					+ "ap floor: " + ap.floor + "</br>";
-				console.log(desc);
+					+ "ap floor: " + ap.floor + "</br>"; 
 				$("#ap-graph-description").html(desc);
 				$("#ap-graph-description").css({
 					"left": dx + 15,
@@ -216,6 +319,8 @@ WifiVis.ApGraph = function(){
 			})
 			.on('mouseout', function(d, index) {
 				d3.select(this).classed("temp-highlight", false);
+				gNode.selectAll(".link-highlight").classed("link-highlight", false);
+				gNode.selectAll(".dot").classed("temp-dark", false);
 				svg.selectAll(".link").classed("temp-highlight", false);
 				//tip
 				$("#ap-graph-description").hide();
@@ -315,7 +420,7 @@ WifiVis.ApGraph = function(){
 	function repel() {
 		var radius = [], delta = [];
 		dotPositions = dotNormalPositions;
-		console.log("dotNormalPositions", dotNormalPositions);
+		// console.log("dotNormalPositions", dotNormalPositions);
 		
 		for (var i = 0; i < dotPositions.length; i++) {
 			radius[i] = 5;
