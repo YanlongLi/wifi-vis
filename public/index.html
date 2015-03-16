@@ -49,21 +49,25 @@
 
 	<div id="main-view">
 		<div id="main-view-wrapper">
-			<div class="dragbox" id="floor-bar-wrapper">
+			<div class="dragbox" id="floor-bar-wrapper-wrapper">
 				<h3 class="header special"></h3>
 				<div class="dragbox-content">
 					<div id="floor-bar-tip" class="wfv-tip-wrapper floor-bar-tip-wrapper"></div>
 				</div>
-				<svg class="dragbox-content">
+				<div id="floor-bar-wrapper" class="dragbox-content" style="overflow:auto;width:95%;height:95%;">
+				<svg>
 					<g id="floor-bar">
 						<g id="floor-bar-btn-wrapper" style="display:none"></g>
 						<g id="floor-bar-circles"></g>
-						<g id="floor-bar-tls" style="visibility:visible"></g>
-						<g id="floor-bar-ap-tls" style="visibility:visible"></g>
-						<g id="floor-bar-aps" style="visibility:hidden"></g>
+						<g id="floor-bar-ap-sel-circles"></g>
+						<g id="floor-bar-tls"></g>
+						<g id="floor-bar-ap-sel-tls"></g>
+						<g id="floor-bar-ap-tls" style="visibility:visible"></g> <!--unused-->
+						<g id="floor-bar-aps" style="visibility:hidden"></g> <!--unused-->
 						<g id="floor-bar-tl-x-axis"></g>
 					</g>
 				</svg>
+				</div>
 			</div>
 			<div class="dragbox" id="floor-detail-wrapper">
 				<h3 class="header"></h3>
