@@ -346,7 +346,7 @@ WFV.FloorBar = function(_time_range){
 		var bars = g.select("#floor-bar-ap-sel-circles").selectAll("g.bar");
 		if(_data && _data.length){
 			bars = bars.data(_data, function(d){return d.apid});
-			var enter = bars.enter().append("g").attr("class", function(d){return "bar "+d.type});
+			var enter = bars.enter().append("g").attr("class", function(d){return "bar ap"});
 			enter.append("rect").append("title");
 			enter.append("text");
 			bars.exit().remove();
