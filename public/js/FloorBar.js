@@ -275,6 +275,25 @@ WFV.FloorBar = function(_time_range){
 		$(document).on("mouseleave", "#floor-bar-btn-tl, #floor-bar-btn-bar", function(e){
 			d3.select(this).style("stroke", null);
 		});
+		//
+		g.on("mousemove", function(){
+			var pos = d3.mouse(this);
+			var x = pos[0] - 3;
+			if(x < tl_offset || x > x_line_scale.range()[1] + tl_offset){
+				return;
+			}
+			var time = x_line_scale.invert(x - tl_offset);
+			// console.log(x, time.to_time_str());
+			d3.select("#floor-bar-time-thread").attr("x1", x).attr("x2", x)
+				.attr("y1", 0).attr("y2", size.height);
+			//
+			$("#floor-bar-tip-time").css({
+				left: pos[0] + 40,
+				top: pos[1] + 40
+			}).html(time.to_time_str()).show();
+		}).on("mouseout", function(){
+			$("#floor-bar-tip-time").hide();
+		});
 	}
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
@@ -674,7 +693,7 @@ WFV.FloorBar = function(_time_range){
 				});
 			}
 		}else{
-			EventManager.apDeselect(null);
+			// EventManager.apDeselect(null);
 			EventManager.floorChange(floor);
 		}
 	}
