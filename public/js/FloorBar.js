@@ -289,7 +289,7 @@ WFV.FloorBar = function(_time_range){
 			//
 			$("#floor-bar-tip-time").css({
 				left: pos[0] + 40,
-				top: pos[1] + 40
+				top: pos[1] + 60
 			}).html(time.to_time_str()).show();
 		}).on("mouseout", function(){
 			$("#floor-bar-tip-time").hide();
@@ -368,7 +368,8 @@ WFV.FloorBar = function(_time_range){
 			bars = bars.data(_data, function(d){return d.apid});
 			var enter = bars.enter().append("g").attr("class", function(d){return "bar ap"});
 			enter.append("rect").append("title");
-			enter.append("text");
+			enter.append("text").attr("class", "label");
+			enter.append("text").attr("class", "value");
 			bars.exit().remove();
 			//
 			console.log("yOff", per_height, _data.length);
@@ -384,8 +385,10 @@ WFV.FloorBar = function(_time_range){
 			ele.select("rect").select("title").text(function(){
 				return "persons(occur): " + d.count;
 			});
-			ele.select("text").text(_name.join("-"))
+			ele.select("text.label").text(_name.join("-"))
 				.attr("x", -6).attr("y", vertical_scale[0].rangeBand()/2).attr("dy", 5);
+			ele.select("text.value").text(d.count)
+				.attr("x", circle_scale(d.count)).attr("y", vertical_scale[0].rangeBand()/2).attr("dy", 5);
 			var dy = per_height * i;
 			ele.select("rect").attr("height", vertical_scale[0].rangeBand() - 2)
 				.attr("width", circle_scale(d.count));
@@ -491,7 +494,8 @@ WFV.FloorBar = function(_time_range){
 					return "translate(0,"+dy+")";
 				});
 			enter.append("rect").append("title");
-			enter.append("text");
+			enter.append("text").attr("class", "label");
+			enter.append("text").attr("class", "value");
 			bars.exit().remove();
 		}
 		bars.order();
@@ -503,7 +507,7 @@ WFV.FloorBar = function(_time_range){
 					.select("title").text(function(){
 						return "persons(occur): " + d.count;
 					});
-				ele.select("text").text("'"+d.floor+"")
+				ele.select("text.label").text("'"+d.floor+"")
 					.attr("x", -6).attr("y", vertical_scale[0].rangeBand()/2).attr("dy", 5);
 			}else{
 				ele.attr("apid", d.apid);
@@ -512,9 +516,11 @@ WFV.FloorBar = function(_time_range){
 				ele.select("rect").select("title").text(function(){
 						return "persons(occur): " + d.count;
 					});
-				ele.select("text").text(_name.join("-"))
+				ele.select("text.label").text(_name.join("-"))
 					.attr("x", -6).attr("y", vertical_scale[0].rangeBand()/2).attr("dy", 5);
 			}
+			ele.select("text.value").text(d.count)
+				.attr("x", circle_scale(d.count)).attr("y", vertical_scale[0].rangeBand()/2).attr("dy", 5);
 			var dy = vertical_scale[0](_tl_key(d));
 			ele.select("rect").attr("height", vertical_scale[0].rangeBand() - 2)
 				.attr("width", circle_scale(d.count));
