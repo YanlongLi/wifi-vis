@@ -14,6 +14,11 @@
 	background: none;
 }
 
+#floor-bar-ap-sel-circles .bar text.value,
+#floor-bar-circles .bar text.value{
+	text-anchor: start;
+}
+
 #floor-bar-circles .floor text{
 	text-anchor: end;
 	stroke: #666666; 
