@@ -177,7 +177,7 @@ WifiVis.DeviceView = function(selectedDevices){
     yFloor.rangeBands([size.height, 0], .1);
     gXAxis
       .attr("class", "x axis")
-      .attr("transform", "translate(30," + (size.height+5) + ")");
+      .attr("transform", "translate(30," + (size.height+15) + ")");
       //.attr("transform", "translate(40," + 0 + ")")
       //.call(xAxis);
     zoom = d3.behavior.zoom()

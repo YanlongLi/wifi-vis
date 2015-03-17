@@ -24,6 +24,7 @@ WifiVis.ApView = function() {
 
   var size, timelineSize;
   var svg = utils.initSVG("#ap-view-svg", [10]), leftSVG = utils.initSVG("#ap-view-left-svg", [10, 0]);
+  //var svg = $("#ap-view-svg");
   var g = d3.select("#ap-view-g");
   var zoom = d3.behavior.zoom().scaleExtent([1, 10]).on("zoom", zoomed);
 
@@ -99,13 +100,14 @@ WifiVis.ApView = function() {
   function initSvg(){
     //var _w = svg.width(), _h = svg.height()-5;
     var _w = svg.w, _h = svg.h - 5;
+    //var _w = $(svg.sel).width() - 10, _h = $(svg.sel).height() - 15;
 
     size = utils.initG(g, _w-15, _h, [0,5,20,0]);
     //timelineSize = utils.initG(gXAxis, _w, 20, [0,5,20,0]);
     x.domain([timeFrom, timeTo]).range([0, size.width]);
     gXAxis
       .attr("class", "x axis")
-      .attr("transform", "translate(20," + (size.height+5) + ")")
+      .attr("transform", "translate(20," + (size.height+15) + ")")
       //.attr("transform", "translate(40," + 0 + ")")
       .call(xAxis);
 
@@ -206,7 +208,6 @@ WifiVis.ApView = function() {
   function brushstart(p) {
     if (brush.data !== p) {
       gTagText.call(brush.clear());
-      selectedDevices = [];
       brush.y(yScale).data = p;
     }
   }
@@ -214,6 +215,7 @@ WifiVis.ApView = function() {
   function brush(p) {
     var e = brush.extent();
     console.log(e);
+    selectedDevices = [];
     gTagText.selectAll(".deviceTag")
       .classed("selected", function(d) {
         var py = yScale(d) + yScale.rangeBand()/2.0 + 2.5;
@@ -235,16 +237,6 @@ WifiVis.ApView = function() {
     //EventManager.deviceDeselect(null);
     EventManager.deviceSelect(selectedDevices);
   }
-
-
-  $(window).resize(function(e){
-    svg = utils.resizeSVG(svg);
-    initSvg();
-    // var deviceList = ["3990015a90", "603ccf71d3", "8379e95b56", "b3366559ca", "b0f34cb2ff",
-    //                   "ed1bd9acf3", "8e8e9157ca", "d56cd93ff1", "cab06cd66c", "2f3d995c92"];
-    // DeviceView.update(deviceList)
-    render(0);
-  });
 
   function get_access_data(mac, dates){
     var access_data = [];
@@ -864,6 +856,11 @@ WifiVis.ApView = function() {
     }
 
   }
+  $(window).resize(function(e){
+    svg = utils.resizeSVG(svg);
+    initSvg();
+    render(0);
+  });
     
   return ApView;
 }
