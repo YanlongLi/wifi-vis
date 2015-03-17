@@ -693,7 +693,7 @@ WFV.FloorBar = function(_time_range){
 				});
 			}
 		}else{
-			EventManager.apDeselect(null);
+			// EventManager.apDeselect(null);
 			EventManager.floorChange(floor);
 		}
 	}
