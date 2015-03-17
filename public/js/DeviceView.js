@@ -16,6 +16,7 @@ WifiVis.DeviceView = function(selectedDevices){
   var loginRecords;
   var isNLScale = false;
 
+  var deviceMap = {};
 
   var checkInIntervalString = "2013-09-02 00:00:30";
   var checkInInterval;
@@ -195,10 +196,10 @@ WifiVis.DeviceView = function(selectedDevices){
         zoom.x(nlX);
         gXAxis.call(xAxis); 
       }
-      else {
-        zoom.x(x);
-        gXAxis.call(xAxis);  
-      }
+    }
+    else {
+      zoom.x(x);
+      gXAxis.call(xAxis);  
     }
     
 
@@ -318,6 +319,7 @@ WifiVis.DeviceView = function(selectedDevices){
                           .rangeBands([0, yHeight * Object.keys(floorAP[floor]).length / Object.keys(floorDomain).length], .1);
       yFloorAP[floor].domain(Object.keys(floorAP[floor]));
     }
+    setY();
   }
 
   $(window).resize(function(e){
@@ -371,10 +373,29 @@ WifiVis.DeviceView = function(selectedDevices){
   ObserverManager.addListener(DeviceView);
   DeviceView.OMListen = function(message, data){
     if(message == WFV.Message.DeviceSelect){
-      if (!data.isAdd) return;
-      console.log(data.device);
-      deviceList = data.device;
-      DeviceView.update();
+      if (!data.isAdd) {
+        console.log(deviceMap);
+        if (Object.keys(deviceMap).length > 0) {
+          data.change.forEach(function(d) {
+            delete deviceMap[d];
+          });
+          console.log(deviceMap);
+
+          deviceList = Object.keys(deviceMap);
+          DeviceView.update();
+        }
+        else {
+          render(1);
+        }
+      }
+      else {
+        console.log(data.device);
+        data.device.forEach(function(d) {
+          deviceMap[d] = d;
+        });
+        deviceList = Object.keys(deviceMap);
+        DeviceView.update();  
+      }
     }
   }
 
@@ -839,7 +860,7 @@ WifiVis.DeviceView = function(selectedDevices){
           highlightTrace(d.device);
         })
         .on("mouseout", function(d, i){
-          if (!clickedp[d.device]) dehighlightTrace(d.device);
+          if (!clicked[d.device]) dehighlightTrace(d.device);
           // gRect.selectAll(".mac" + d["device"])
           //   .style("fill-opacity", 0.3);
           // gDot.selectAll(".mac" + d["device"])

@@ -231,8 +231,8 @@ WifiVis.ApView = function() {
   function brushend() {
     if (brush.empty()) {
     }
-
-    EventManager.deviceDeselect(null);
+    console.log(selectedDevices);
+    //EventManager.deviceDeselect(null);
     EventManager.deviceSelect(selectedDevices);
   }
 
@@ -283,8 +283,12 @@ WifiVis.ApView = function() {
     //   deviceList = data.device;
     //   ApView.update();
     // }
+    if(message === WFV.Message.DeviceSelect){
+      if (!data.isAdd) {selectedDevices = []; }
+      return;
+    }
 
-    if(message == WFV.Message.ApSelect){
+    if(message === WFV.Message.ApSelect){
       console.log(data);
       if (!data.isAdd) {
         apList = data.change;
@@ -294,10 +298,12 @@ WifiVis.ApView = function() {
         });
         console.log(apMap);
         if (Object.keys(apMap).length > 0) {
+          deviceList = [];
+          var waitData = Object.keys(apMap).length;
           Object.keys(apMap).forEach(function(d) {
             console.log(d);
             db.macs_by_ap(timeFrom, timeTo, d, function(res) {
-              deviceList = [];
+              
               // deviceList.concat(res.map(function(p) {
               //   return p.mac;
               // }));
@@ -305,9 +311,12 @@ WifiVis.ApView = function() {
                 deviceList.push(p.mac);
               })
               console.log(deviceList);
-              ApView.update();
+              waitData --;
             }); 
-          });  
+          }); 
+
+          while (waitData > 0) {};
+          ApView.update(); 
         }
         else {
           render(1);
@@ -335,7 +344,7 @@ WifiVis.ApView = function() {
             waitData = false;
           }); 
         });
-        while (waitData);
+        while (waitData) {};
         ApView.update();
         console.log(deviceList);
       }
@@ -525,6 +534,10 @@ WifiVis.ApView = function() {
       gRect.selectAll(".apDeviceRect")
         .style("fill-opacity", 1);   
     }
+  }
+
+  function durationSimilarity(a, b) {
+    return Math.abs(a.start.date_time - b.start.date_time) + Math.abs(a.end.date_time - b.end.date_time);
   }
 
   function render(needRemove) {
@@ -734,22 +747,26 @@ WifiVis.ApView = function() {
             var i1 = -1;
             for (var k = 0; k < deviceLoginDuration[p].length; k++) {
               var q = deviceLoginDuration[p][k];
-              if (q.start.date_time <= timePoint && q.end.date_time >= timePoint) {
+              if (q.start.date_time <= timePoint && q.end.date_time >= timePoint && q.start.apid === d.start.apid) {
                 i1 = k;
                 break;
               }
             }
             if (i1 !== -1) {
-              curDuration[p] = deviceLoginDuration[p][i1].end.date_time - deviceLoginDuration[p][i1].start.date_time;
+              //curDuration[p] = deviceLoginDuration[p][i1].end.date_time - deviceLoginDuration[p][i1].start.date_time;
+              curDuration[p] = deviceLoginDuration[p][i1];
             }
           });
-          curDuration[d.device] = Number.MAX_VALUE;
+          //curDuration[d.device] = Number.MAX_VALUE;
+          curDuration[d.device] = d;
           console.log(curDuration);
+          var maxDuration = (timeTo - timeFrom) * 100;
           //var bisect = d3.bisector(function(p) { return p.start.date_time; }).right;
           var yDomain = yScale.domain().sort(function(a, b) {
             //var i1 = bisect(deviceLoginDuration[a], timePoint), i2 = bisect(deviceLoginDuration[b], timePoint);
             if (a in curDuration && b in curDuration) {
-              return curDuration[a] - curDuration[b];
+              //return curDuration[a] - curDuration[b];
+              return durationSimilarity(curDuration[b], d) - durationSimilarity(curDuration[a], d);
             }
             else {
               if (a in curDuration)
