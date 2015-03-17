@@ -105,6 +105,14 @@
 	z-index: 200;
 }
 
+#floor-bar-tip-time{
+	max-width: 120px;
+	min-width: 100px;
+	z-index: 200;
+	
+	color: black;
+	border: 1px solid black;
+}
 /*******/
 
 #floor-bar-btn-wrapper .btn.btn-tl{
