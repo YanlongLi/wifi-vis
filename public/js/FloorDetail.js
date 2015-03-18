@@ -7,6 +7,10 @@ var floor_image_size = WFV.FLOOR_IMG_SIZE;
 
 WifiVis.FloorDetail = function(){
 	function FloorDetail(){}
+	//
+	var apMap = tracer.apMap;
+	var apLst = tracer.aps;
+	//
 	var floor_color = ColorScheme.floor;
 	var opacity_by_stay_time = d3.scale.linear().range([1,0.3]).domain([60,120]).clamp(true);
 	var svg = $("#floor-detail-svg");
@@ -726,7 +730,7 @@ WifiVis.FloorDetail = function(){
 					return "translate("+dx+","+dy+")";
 				}).transition().duration(80).remove()
 		}
-		gDevice.classed("hilight", function(d){
+		gDevice.classed("selected", function(d){
 			return d.device.selected;
 		}).attr("mac",function(d){return d.mac});
 		gDevice.transition().duration(80).ease("quard").attr("transform", function(d){
@@ -737,7 +741,7 @@ WifiVis.FloorDetail = function(){
 		gDevice.select("rect").datum(function(d){return d})
 			.attr("width", 6).attr("height", 6)
 			.style("fill-opacity", function(d){
-				var stay_time_minute = Math.round(d.device.stayTime(tracer.cur)/(1000*60));
+				var stay_time_minute = Math.round(d.device.stayTime(time_point)/(1000*60));
 				return opacity_by_stay_time(stay_time_minute);
 			});
 		// event listener
