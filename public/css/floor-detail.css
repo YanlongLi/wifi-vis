@@ -148,6 +148,11 @@
 #floor-detail-histogram g.hist text::selection{
 	background: none;
 }
+
+
+.floor-detail-histogram .x.axis text{
+	font-size: 8px;
+}
 /*
  * ap description
  */

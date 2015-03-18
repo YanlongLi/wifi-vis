@@ -4,9 +4,7 @@ body {
 }
 
 rect.placeholder{
-	visibility: hidden;
-	fill: none;
-	opacity: 0.4;
+	opacity: 0;
 }
 
 /*

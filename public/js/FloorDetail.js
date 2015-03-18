@@ -48,7 +48,7 @@ WifiVis.FloorDetail = function(){
 	//
 	var h_hist = 60;
 	var y_hist = d3.scale.linear().range([h_hist, 0]);
-	var x_hist = d3.scale.linear();
+	var x_hist = d3.scale.ordinal();
 	var x_axis_hist = d3.svg.axis().scale(x_hist).orient("bottom");
 	 // g.select("#floor-detail-histogram").append("g").attr("class", "x axis");
 	//
@@ -90,7 +90,7 @@ WifiVis.FloorDetail = function(){
 		var _w = svg.width(), _h = svg.height();
 		size = utils.initG(g, _w, _h, [40,10,0,40]);
 		size.height = size.height - 2 * h_hist - 20 - 20;
-		x_hist.range([0, size.width]);
+		x_hist.rangeRoundBands([0, size.width], 0.1);
 		d3.select("#floor-detail-ap-histogram").attr("transform", "translate(0, -30)");
 		d3.select("#floor-detail-histogram").attr("transform", "translate(0,"+(size.height + h_hist)+")");
 		// repostion_histgram();
@@ -289,6 +289,9 @@ WifiVis.FloorDetail = function(){
 		update_histogram();
 		update_aps();
 		update_device();
+		d3.select("#floor-detail-histogram").select("g.x.axis")
+			.attr("transform", "translate(0,"+h_hist+")")
+			.call(x_axis_hist.scale(x_hist));
 	});
 	// TODO
 	FloorDetail.filter_path = filter_path;
@@ -550,17 +553,30 @@ WifiVis.FloorDetail = function(){
 			$("#aps-wrapper g.ap[apid="+d.apid+"]").removeClass("hover");
 		});
 	}
+	function _compute_hist_data(_data, step){
+		return d3.nest().key(function(d){
+			return +Math.floor(d.weight / step) * step;
+		}).rollup(function(d){return d}).entries(_data)
+		.map(function(d){
+			return {
+				from: +d.key,
+				to: +d.key + step -1,
+				values: d.values,
+				count: +d.values.length
+			};
+		});
+	}
 	function update_histogram(_data){
 		// [{sid:, tid:, weight:}]
 		// if no _data, resize
-		var hists = d3.select("#floor-detail-histogram").selectAll("g.hist")
-		if(_data){
+		var hists = d3.select("#floor-detail-histogram").selectAll("g.hist");
+		if(_data && !_data.length) return;
+		if(_data && _data.length){
 			var max = d3.max(_data, function(d){return d.weight});
-			x_hist.domain([0, max]);
-			var data = d3.layout.histogram()
-				.bins(x_hist.ticks(20)).value(function(d){return +d.weight})(_data);
-			y_hist.domain([0, d3.max(data,function(d){return d.y})]);
-			hists = hists.data(data);
+			var data = _compute_hist_data(_data, 10);
+			x_hist.domain(data.map(_key_f));
+			y_hist.domain([0, d3.max(data,function(d){return d.count})]);
+			hists = hists.data(data,_key_f);
 			var enter = hists.enter().append("g").attr("class", "hist");
 			enter.append("rect");
 			enter.append("text");
@@ -568,20 +584,24 @@ WifiVis.FloorDetail = function(){
 			//
 			d3.select("#floor-detail-histogram").select("g.x.axis")
 				.attr("transform", "translate(0,"+h_hist+")")
-				.call(x_axis_hist.ticks(20));
+				.call(x_axis_hist.scale(x_hist));
 		}
+		x_hist.rangeRoundBands([0, size.width], 0.1);
 		hists.attr("transform", function(d){
-			return "translate("+x_hist(d.x)+","+y_hist(d.y)+")"
+			return "translate("+x_hist(_key_f(d))+","+y_hist(d.count)+")"
 		}).each(function(d){
 			var ele = d3.select(this);
 			ele.select("rect").attr("x", 1)
-				.attr("width", function(){return x_hist(d.dx) - 1})
-				.attr("height", function(){return h_hist - y_hist(d.y)});
+				.attr("width", function(){return x_hist.rangeBand()})
+				.attr("height", function(){return h_hist - y_hist(d.count)});
 			ele.select("text").attr("y", -3)
-				.attr("x", x_hist(d.dx) / 2)
+				.attr("x", x_hist.rangeBand() / 2)
 				.attr("text-anchor", "middle")
-				.text(d.y);
+				.text(d.count);
 		});
+		function _key_f(d){
+			return d.from + "-" + d.to;
+		}
 		// interaction
 		/*
 		 * d3.select("#floor-detail-histogram").on("click", function(){
@@ -599,7 +619,7 @@ WifiVis.FloorDetail = function(){
 			var ele = d3.select(this);
 			if(ele.attr("_selected")){
 				ele.attr("_selected", null).classed("selected", false);
-				d.forEach(function(l){
+				d.values.forEach(function(l){
 					_select_path(l.sid, l.tid, false);
 					$("#aps-wrapper g.ap[apid="+l.sid+"]").removeClass("selected");
 					$("#aps-wrapper g.ap[apid="+l.tid+"]").removeClass("selected");
@@ -611,7 +631,7 @@ WifiVis.FloorDetail = function(){
 			}else{
 				d3.select("#path-wrapper").selectAll("g.link").classed("fading", true);
 				ele.attr("_selected", true).classed("selected", true);
-				d.forEach(function(l){
+				d.values.forEach(function(l){
 					_select_path(l.sid, l.tid, true);
 					$("#aps-wrapper g.ap[apid="+l.sid+"]").addClass("selected");
 					$("#aps-wrapper g.ap[apid="+l.tid+"]").addClass("selected");
