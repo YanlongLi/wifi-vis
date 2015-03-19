@@ -177,7 +177,7 @@ WifiVis.DeviceView = function(selectedDevices){
     yFloor.rangeBands([size.height, 0], .1);
     gXAxis
       .attr("class", "x axis")
-      .attr("transform", "translate(30," + (size.height+5) + ")");
+      .attr("transform", "translate(30," + (size.height+15) + ")");
       //.attr("transform", "translate(40," + 0 + ")")
       //.call(xAxis);
     zoom = d3.behavior.zoom()
@@ -338,7 +338,8 @@ WifiVis.DeviceView = function(selectedDevices){
     //                   "7fadbfffa4", "3f6205cf9c", "1e5adefd95", "df6990d1d6", "dacccbc087"];
     
 
-    deviceList = ["3990015a90", "603ccf71d3", "8379e95b56", "b3366559ca"];
+    //deviceList = ["3990015a90", "603ccf71d3", "8379e95b56", "b3366559ca"];
+    deviceList = ["dcf2534b21"];
     this.update();
   }
 
@@ -494,9 +495,9 @@ WifiVis.DeviceView = function(selectedDevices){
         loginRecords.push(p);
       });
     });
-    access_data = access_data.filter(function(d) {
-      return d[0].lines.length > 0;
-    });
+    // access_data = access_data.filter(function(d) {
+    //   return d[0].lines.length > 0;
+    // });
 
     loginRecords = loginRecords.sort(function(a, b) {
       return a.date_time - b.date_time;

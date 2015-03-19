@@ -24,6 +24,7 @@ WifiVis.ApView = function() {
 
   var size, timelineSize;
   var svg = utils.initSVG("#ap-view-svg", [10]), leftSVG = utils.initSVG("#ap-view-left-svg", [10, 0]);
+  //var svg = $("#ap-view-svg");
   var g = d3.select("#ap-view-g");
   var zoom = d3.behavior.zoom().scaleExtent([1, 10]).on("zoom", zoomed);
 
@@ -99,13 +100,14 @@ WifiVis.ApView = function() {
   function initSvg(){
     //var _w = svg.width(), _h = svg.height()-5;
     var _w = svg.w, _h = svg.h - 5;
+    //var _w = $(svg.sel).width() - 10, _h = $(svg.sel).height() - 15;
 
     size = utils.initG(g, _w-15, _h, [0,5,20,0]);
     //timelineSize = utils.initG(gXAxis, _w, 20, [0,5,20,0]);
     x.domain([timeFrom, timeTo]).range([0, size.width]);
     gXAxis
       .attr("class", "x axis")
-      .attr("transform", "translate(20," + (size.height+5) + ")")
+      .attr("transform", "translate(20," + (size.height+15) + ")")
       //.attr("transform", "translate(40," + 0 + ")")
       .call(xAxis);
 
@@ -206,7 +208,6 @@ WifiVis.ApView = function() {
   function brushstart(p) {
     if (brush.data !== p) {
       gTagText.call(brush.clear());
-      selectedDevices = [];
       brush.y(yScale).data = p;
     }
   }
@@ -214,6 +215,7 @@ WifiVis.ApView = function() {
   function brush(p) {
     var e = brush.extent();
     console.log(e);
+    selectedDevices = [];
     gTagText.selectAll(".deviceTag")
       .classed("selected", function(d) {
         var py = yScale(d) + yScale.rangeBand()/2.0 + 2.5;
@@ -235,16 +237,6 @@ WifiVis.ApView = function() {
     //EventManager.deviceDeselect(null);
     EventManager.deviceSelect(selectedDevices);
   }
-
-
-  $(window).resize(function(e){
-    svg = utils.resizeSVG(svg);
-    initSvg();
-    // var deviceList = ["3990015a90", "603ccf71d3", "8379e95b56", "b3366559ca", "b0f34cb2ff",
-    //                   "ed1bd9acf3", "8e8e9157ca", "d56cd93ff1", "cab06cd66c", "2f3d995c92"];
-    // DeviceView.update(deviceList)
-    render(0);
-  });
 
   function get_access_data(mac, dates){
     var access_data = [];
@@ -331,7 +323,7 @@ WifiVis.ApView = function() {
         });
         console.log(apMap);
         deviceList = [];
-        var waitData = true;
+        var waitData = Object.keys(apMap).length;
         Object.keys(apMap).forEach(function(d) {
           console.log(d);
           db.macs_by_ap(timeFrom, timeTo, d, function(res) {
@@ -341,10 +333,10 @@ WifiVis.ApView = function() {
             res.forEach(function(p) {
               deviceList.push(p.mac);
             })
-            waitData = false;
+            waitData--;
           }); 
         });
-        while (waitData) {};
+        while (waitData > 0) {};
         ApView.update();
         console.log(deviceList);
       }
@@ -384,9 +376,9 @@ WifiVis.ApView = function() {
         loginRecords.push(p);
       });
     });
-    access_data = access_data.filter(function(d) {
-      return d[0].lines.length > 0;
-    });
+    // access_data = access_data.filter(function(d) {
+    //   return d[0].lines.length > 0;
+    // });
 
     zoom.x(x);
 
@@ -426,6 +418,7 @@ WifiVis.ApView = function() {
     for (var device = 0; device < access_data.length; device ++) {
     //for (var device = 2; device < 4; device ++) {
       tempDataset = access_data[device][0].lines;
+      if (tempDataset.length === 0) continue;
       // for (var i = 0; i< tempDataset.length; i++)
       //     tempDataset[i]["device"] = deviceList[device];
       //dataset[deviceList[device]] = [];
@@ -582,7 +575,7 @@ WifiVis.ApView = function() {
         .on("mousemove", function(){  
           var mousex = d3.mouse(this)[0] + 2, mousey = d3.mouse(this)[1];
           if (mousex < 50 || mousex > svg.w + 5) {
-            $("#ap-view-login-description").hide();
+            $("#ap-view-curtime-tip").hide();
             vertical.style("visibility", "hidden");
             return;
           }
@@ -593,15 +586,15 @@ WifiVis.ApView = function() {
           // tooltip.style("top", mousey + "px")
           //   .style("left", mousex + "px");
 
-          $("#ap-view-login-description").html(d3.time.format("%c")(timePoint));
-          $("#ap-view-login-description").css({
+          $("#ap-view-curtime-tip").html(d3.time.format("%c")(timePoint));
+          $("#ap-view-curtime-tip").css({
             "left": mousex + 20,
-            "top": mousey
+            "top": size.height
           });
-          $("#ap-view-login-description").show();
+          $("#ap-view-curtime-tip").show();
         })
         .on("mouseout", function(){  
-          $("#ap-view-login-description").hide();
+          $("#ap-view-curtime-tip").hide();
           vertical.style("visibility", "hidden");
           // mousex = d3.mouse(this);
           // mousex = mousex[0] + 5;
@@ -706,6 +699,10 @@ WifiVis.ApView = function() {
       //   });
       // //
 
+
+      console.log(dataset.filter(function(d){
+          return d.device === "dcf2534b21" && d.start.apid in apMap;
+        }));
       gRect.selectAll(".apDeviceRect")
         .data(dataset.filter(function(d){
           return d.start.apid in apMap;
@@ -790,9 +787,10 @@ WifiVis.ApView = function() {
           var timePoint = x.invert(mousex);
           var timeLasted = d.end.date_time - d.start.date_time;
           var descStr = "Device no." + db.macid_by_mac(d.device) + "<br />" 
+              + "Mac " + d.device + "<br />" 
               + apNameMappings[d.start.apid] + "<br />"
-              + "Lasted " + Math.round(timeLasted / 60000) + " mins" + "<br />"
-              + d3.time.format("%c")(timePoint) + "<br />" ;
+              + "Started at" + d3.time.format("%c")(d.start.date_time) + "<br />"
+              + "Lasted " + Math.round(timeLasted / 60000) + " mins" + "<br />";
           console.log(descStr);
           $("#ap-view-login-description").html(descStr);
           $("#ap-view-login-description").css({
@@ -800,9 +798,17 @@ WifiVis.ApView = function() {
             "top": mousey
           });
           $("#ap-view-login-description").show();
+
+          $("#ap-view-curtime-tip").html(d3.time.format("%c")(timePoint));
+          $("#ap-view-curtime-tip").css({
+            "left": mousex + 70,
+            "top": size.height
+          });
+          $("#ap-view-curtime-tip").show();
         })
         .on("mouseout", function(){  
           $("#ap-view-login-description").hide();
+          $("#ap-view-curtime-tip").hide();
           vertical.style("visibility", "hidden");
 
         });
@@ -864,6 +870,11 @@ WifiVis.ApView = function() {
     }
 
   }
+  $(window).resize(function(e){
+    svg = utils.resizeSVG(svg);
+    initSvg();
+    render(0);
+  });
     
   return ApView;
 }
