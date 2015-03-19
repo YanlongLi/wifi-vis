@@ -152,16 +152,15 @@ WFV_DB.prototype.init = function(cb){
 				});
 			}else{
 				_compute_path();
-				_init_macid();
+				_init_macid(cb);
 				// TODO
 				// _compute_records_of_floor();
 				console.log("init records done");
-				cb && cb(that);
 			}
 		})(0);
 	}
 
-	function _init_macid(){
+	function _init_macid(cb){
 		console.log("GET macs:")
 		d3.csv(WFV.MAC_FILE_PATH(), function(err, macs){
 			if(err){
@@ -172,6 +171,8 @@ WFV_DB.prototype.init = function(cb){
 				macs.forEach(function(m){
 					that.macIdByMac.set(m.mac, m.macid);
 				});
+				cb && cb(that);
+				console.log("init macid done");
 			}
 		});
 	}
@@ -395,8 +396,10 @@ WFV_DB.prototype.ap_bar_data = function(from, to, cb){
  * }
  */
 WFV_DB.prototype.graph_info = function(from, to, cb){
+	console.time("compute graph_info");
 	var paths = this.path_all(from, to);
 	var links = paths_to_links(paths);
+	console.timeEnd("compute graph_info");
 	if(cb){
 		cb(links);
 	}else{
@@ -528,4 +531,139 @@ function generate_tl_data(records, start, end, step){
 			values : data.values[i]
 		}
 	});
+}
+
+/*
+ * WFV_TL_DATA
+ */
+
+function WFV_TL_DATA(){
+	this.tracer = null;
+	this.dateFrom = null;
+	this.dateTo = null;
+	//
+	this.ap_tl_data = null;
+	this.floor_tl_data = null;
+}
+
+WFV_TL_DATA.prototype.init = function(dateFrom, dateTo, tracer){
+	console.time("compute timeline data");
+	//
+	this.tracer = tracer;
+	this.dateFrom = dateFrom;
+	this.dateTo = dateTo;
+	//
+	var that = this;
+	var slot = [];
+	var slot_floor = [];
+	var time = new Date(timeFrom);
+	(function next(time){
+		if(time - timeTo < 0){
+			tracer.gotoTime(time, function(){
+				//
+				var s = tracer.aps.map(function(ap){
+					var r = {
+						time: new Date(time),
+						count: ap.cluster.count(time),
+						values: ap.cluster.deviceLst(time),
+					}
+					r.apid = ap.apid;
+					r.floor = ap.floor;
+					return r;
+				});
+				var s_floor = d3.nest().key(function(d){return d.floor})
+					.entries(s).map(function(d){
+						var f = +d.key;
+						var count = d3.sum(d.values, function(d){return d.count});
+						var values = Array.prototype.concat.apply([], d.values.map(function(d){return d.values}));
+						return {time: new Date(time), count: count, values: values};
+					});
+				slot.push(s);
+				slot_floor.push(s_floor);
+				//
+				time.setMinutes(time.getMinutes() + 20);
+				next(time);
+			});
+		}else{
+			var tls = _.zip.apply(_, slot);
+			var tls_floor = _.zip.apply(_, slot_floor);
+			that.ap_tl_data = tracer.aps.map(function(ap, i){
+				return {
+					apid:ap.apid,
+					type:"ap",
+					floor: ap.floor,
+					tl_data:tls[i]
+				};
+			});
+			that.floor_tl_data = d3.range(1,18).map(function(f, i){
+				return {
+					floor: f,
+					type: "floor",
+					tl_data: tls_floor[i]
+				}
+			});
+			console.timeEnd("compute timeline data");
+		}
+	})(time);
+}
+WFV_TL_DATA.prototype.tlDataFloor = function(from, to, step, floor, cb){
+	var data = this.floor_tl_data[floor-1];
+	var i = 0;
+	var j = data.tl_data.length;
+	for(var t = 0; t < data.tl_data.length; t++)	{
+		if(data.tl_data[t].time - from == 0){
+			i = t;
+		}
+		if(data.tl_data[t].time - to == 0){
+			j = t + 1;
+		}
+	}
+	var tl_data = data.tl_data.slice(i, j);
+	cb({floor:floor, type:"floor", tl_data: tl_data});
+}
+
+WFV_TL_DATA.prototype.tlDataAp = function(from, to, step, apid, cb){
+	var index = _.findIndex(this.ap_tl_data, {apid:+apid});
+	if(index == -1){
+		console.warn("unknow ap");
+		return;
+	}
+	var data = this.ap_tl_data[index]
+	var i = 0;
+	var j = data.tl_data.length;
+	for(var t = 0; t < data.tl_data.length; t++)	{
+		if(data.tl_data[t].time - from == 0){
+			i = t;
+		}
+		if(data.tl_data[t].time - to == 0){
+			j = t + 1;
+		}
+	}
+	var tl_data = data.tl_data.slice(i, j);
+	cb({apid:apid, type:"ap", floor:data.floor, tl_data: tl_data});
+}
+
+WFV_TL_DATA.prototype.tlDataApsOfFloor = function(from, to, step, floor, cb){
+	var data = this.ap_tl_data.filter(function(d){
+		// TODO
+		return d.floor == floor && d3.sum(d.tl_data, function(d){return +d.count});
+	}).map(function(data){
+		var i = 0;
+		var j = data.tl_data.length;
+		for(var t = 0; t < data.tl_data.length; t++)	{
+			if(data.tl_data[t].time - from == 0){
+				i = t;
+			}
+			if(data.tl_data[t].time - to == 0){
+				j = t + 1;
+			}
+		}
+		var tl_data = data.tl_data.slice(i, j);
+		return {apid:data.apid, type:"ap", floor:data.floor, tl_data: tl_data};
+	});
+	if(!data || data.length == 0){
+		console.warn("couldn't find ap on floor", floor);
+		return;
+	}
+	cb(data);
 }
