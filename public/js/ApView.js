@@ -16,7 +16,7 @@ WifiVis.ApView = function() {
   var deviceLoginDuration = {};
 
   var deviceList = [], deviceMap = {}, apList = [], apMap = {};
-  var selectedDevices = [];
+  var brushedDevices = [], lastBrushedDevices = [];
 
   var checkInIntervalString = "2013-09-02 00:00:30";
   var checkInIntervalDate = new Date(checkInIntervalString);
@@ -44,6 +44,7 @@ WifiVis.ApView = function() {
       //gLine = g.append("g").attr("class", "lines"), 
       gTagLine = g.append("g").attr("class", "tags"),
       gTagText = d3.select("#ap-view-left-svg").append("g").attr("class", "tags"),
+      gTagBrush = d3.select("#ap-view-left-svg").append("g").attr("class", "tags-brush"),
       gSeg = g.append("g").attr("class", "logins");
   
   var parseDate = d3.time.format("%H:%M").parse;
@@ -111,6 +112,11 @@ WifiVis.ApView = function() {
       //.attr("transform", "translate(40," + 0 + ")")
       .call(xAxis);
 
+    gTagBrush.append("rect")
+      .attr("class", "brush")
+      .attr("width", leftSVG.w)
+      .attr("height", leftSVG.h)
+      .style("fill", "none");
      // gYAxis
      //  .attr("class", "y axis")
      //  .attr("transform", "translate(0,0)")
@@ -125,15 +131,16 @@ WifiVis.ApView = function() {
             .x(x)
             .on("zoom", zoomed);
     d3.select("#ap-view-svg").call(zoom).call(zoom.event);
-    gTagText.call(zoom)
-      .on("mousedown.zoom", null)
-      .on("touchstart.zoom", null)
-      .on("touchmove.zoom", null)
-      .on("touchend.zoom", null);
+    // gTagText.call(zoom)
+    //   .on("mousedown.zoom", null)
+    //   .on("touchstart.zoom", null)
+    //   .on("touchmove.zoom", null)
+    //   .on("touchend.zoom", null);
 
     brush.x(d3.scale.identity().domain([0, leftSVG.w]))
       .y(yScale);
-    gTagText
+    //gTagText
+    gTagBrush
       .call(brush);
     // .selectAll("rect")
     //   .attr("x", 0)
@@ -210,32 +217,35 @@ WifiVis.ApView = function() {
       gTagText.call(brush.clear());
       brush.y(yScale).data = p;
     }
+    lastBrushedDevices = brushedDevices;
   }
 
   function brush(p) {
     var e = brush.extent();
     console.log(e);
-    selectedDevices = [];
+    brushedDevices = [];
     gTagText.selectAll(".deviceTag")
       .classed("selected", function(d) {
         var py = yScale(d) + yScale.rangeBand()/2.0 + 2.5;
         if (e[0][1] <= py && py <= e[1][1]) {
-          selectedDevices.push(d);
+          brushedDevices.push(d);
           return true;
         }
         else
           return false;
     });
-    console.log(selectedDevices);
+    console.log(brushedDevices);
   }
 
   // If the brush is empty, select all circles.
   function brushend() {
     if (brush.empty()) {
+      return;
     }
-    console.log(selectedDevices);
-    //EventManager.deviceDeselect(null);
-    EventManager.deviceSelect(selectedDevices);
+    console.log(lastBrushedDevices);
+    EventManager.deviceDeselect(lastBrushedDevices);
+    console.log(brushedDevices);
+    EventManager.deviceSelect(brushedDevices);
   }
 
   function get_access_data(mac, dates){
@@ -276,7 +286,7 @@ WifiVis.ApView = function() {
     //   ApView.update();
     // }
     if(message === WFV.Message.DeviceSelect){
-      if (!data.isAdd) {selectedDevices = []; }
+      //if (!data.isAdd) {brushedDevices = []; }
       return;
     }
 

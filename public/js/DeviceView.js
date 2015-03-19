@@ -386,7 +386,8 @@ WifiVis.DeviceView = function(selectedDevices){
           DeviceView.update();
         }
         else {
-          render(1);
+          if (data.change.length > 0)
+            render(1);
         }
       }
       else {
@@ -859,9 +860,14 @@ WifiVis.DeviceView = function(selectedDevices){
           $("#device-view-login-description").show();
 
           highlightTrace(d.device);
+          gDevice.selectAll(".mac" + d.device)
+            .style("fill-opacity", 1.0);
         })
         .on("mouseout", function(d, i){
+          $("#device-view-login-description").hide();
           if (!clicked[d.device]) dehighlightTrace(d.device);
+          gDevice.selectAll(".mac" + d.device)
+            .style("fill-opacity", 0.3);
           // gRect.selectAll(".mac" + d["device"])
           //   .style("fill-opacity", 0.3);
           // gDot.selectAll(".mac" + d["device"])
