@@ -46,7 +46,6 @@ WifiVis.DeviceGraph = function(){
         var drag = initDragPolygon();
         o.svg.call(drag)
             .on("click", function(){
-                console.log("svg click");
                 EventManager.apDeselect(null, this);
             });
 
@@ -84,60 +83,18 @@ WifiVis.DeviceGraph = function(){
     }
 
     DeviceGraph.OMListen = function(message, data){
-        // if(message == WFV.Message.FloorChange){
-        //     var currentFloor = data.floor;
-        //     unhighlight();
-        //     svg.selectAll(".dot").filter(function(d) {
-        //         if (svg.select(this).attr("floor") == currentFloor)
-        //             return true;
-        //         return false;
-        //     }).classed("highlight", true);
-        // }
-        // if (message == WFV.Message.FloorHover) {
-        //     var floorList = data.floor;
-        //     console.log(floorList);
-        //     svg.selectAll(".dot.temp-highlight").classed("temp-highlight", false);
-        //     svg.selectAll(".dot").filter(function(d) {
-        //         if (floorList.indexOf(+svg.select(this).attr("floor")) >= 0)
-        //             return true;
-        //         return false;
-        //     }).classed("temp-highlight", true);
-        // }
-        // if (message == WFV.Message.ApHover) {
-        //     if (data.isAdd == false) {
-        //         svg.selectAll(".dot").classed("temp-highlight", false);
-        //         return;
-        //     }
-        //     var apids = data.apid;
-        //     for (var i = 0; i < apids.length; i++) {
-        //         var id = apids[i];
-        //         svg.selectAll(".dot[apid='" + id + "']").classed("temp-highlight", true);
-        //     }
-        // }               
-        // if (message == WFV.Message.ApSelect) {
-        //     svg.selectAll(".dot").classed("highlight", false);
-        //     var apids = data.apid;
-        //     console.log("apselect", apids);
-        //     for (var i = 0; i < apids.length; i++) {
-        //         var id = apids[i];
-        //         console.log(".dot[apid='" + id + "']")
-        //         svg.selectAll(".dot[apid='" + id + "']").classed("highlight", true);
-        //     }
-        // }      
-
-// ==========
-
-        // if (message == WFV.Message.DeviceSelect) {
-        //     spinner.spin($("#" + DIV_ID).get(0));
-        //     deviceList = data.device;
-        //     devices = [];
-        //     for (var i = 0; i < deviceList.length; i++)
-        //         devices.push({id:deviceList[i]});
-        //     processData(devices);
-        //     gNode.html("");
-        //     gLink.html("");
-        //     tsneWorker.postMessage({"cmd":"init", "distance":disMatrix, "iter":devices.length * 2}); 
-        // } 
+        if (message == WFV.Message.DeviceSelect) {
+            spinner.spin($("#" + DIV_ID).get(0));
+            deviceList = data.device;
+            devices = [];
+            for (var i = 0; i < deviceList.length; i++)
+                devices.push({id:deviceList[i]});
+            processData(devices);
+            gNode.html("");
+            gLink.html("");
+            console.log("dismatrix", disMatrix);
+            tsneWorker.postMessage({"cmd":"init", "distance":disMatrix, "iter":devices.length * 2}); 
+        } 
     }   
 
     function createElements() {

@@ -173,32 +173,17 @@ WifiVis.ApGraph = function(){
 
 	function drawDevicePath(path) {
 		gPath.selectAll(".route").remove();
+		gNode.selectAll(".route-highlight").classed("route-highlight", false);
 		var links = [];
 		for (var i = 0; i < path.length-1; i++) {
 			var l = {};
 			l.source = _.findWhere(aps, {apid:path[i]})
 			l.target = _.findWhere(aps, {apid:path[i+1]})
+			gNode.select(".dot[apid='" + path[i] + "']").classed("route-highlight", true);
+			gNode.select(".dot[apid='" + path[i+1] + "']").classed("route-highlight", true);
 			l.weight = 1;
 			links.push(l);
 		}
-		// gPath.selectAll(".route")
-		// 	.data(links)
-		// 	.enter()
-		// 	.append("line")
-		// 	.attr("class", "route")
-		// 	.attr("source-id", function(d) {
-		// 		return d.source._id; 
-		// 	})
-		// 	.attr("target-id", function(d) {
-		// 		return d.target._id;
-		// 	})
-		// 	.style("stroke-width", function(d) {
-		// 		return 2;
-		// 	})
-		// 	.attr("x1", function(d) { return d.source.x; })
-		// 	.attr("y1", function(d) { return d.source.y; })
-		// 	.attr("x2", function(d) { return d.target.x; })
-		// 	.attr("y2", function(d) { return d.target.y; }) 	
 		gPath.selectAll(".route")
 			.data(links)
 			.enter()

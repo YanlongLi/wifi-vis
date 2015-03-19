@@ -6,7 +6,7 @@ var db = new WFV_DB(timeFrom, timeTo);
 var apLst = [], apMap = d3.map(), macMap;
 var records = [];
 
-var tracer;
+var tracer = new RecordTracer();
 
 var floor_bar = WFV.FloorBar([timeFrom, timeTo]);
 
@@ -47,7 +47,7 @@ db.init(function(){
   apMap = db.apMap;
 	macMap = db.macIdByMac;
   records = db.records;
-  init_aplst_records();
+  // init_aplst_records();
   loading_tip.add_tip("done");
   setTimeout(function(){
     $("#mask").css("visibility", "hidden");
@@ -70,7 +70,8 @@ db.init(function(){
  
 
 function init(){
-	tracer = RecordTracer.CreateTracer();
+	tracer.init(records, apLst);
+	//
 	floorDetail = WFV.FloorDetail();
 	timeline = WFV.Timeline([timeFrom, timeTo]);
 	//EventManager.timeRangeChanged([new Date(2013,08,02,12), new Date(2013,08,02,16)]);

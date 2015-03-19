@@ -8,7 +8,7 @@
 }
 
 .dot {
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 .dot[class~=highlight], .dot[class~=temp-highlight] {
@@ -18,8 +18,14 @@
     stroke-opacity: 0.8;
 }
 
-.dot[class~=link-highlight] {
+.dot[class~=link-highlight]  {
     opacity: 1 !important;
+}
+.dot[class~=route-highlight] {
+    opacity: 1 !important;   
+    stroke: gray;
+    stroke-opaticy: 0.5;
+    stroke-width: 1px;
 }
 
 .dot[class~=dark], .dot[class~=temp-dark], .dot[class~=link-dark]{
@@ -40,7 +46,7 @@ line.link[class~=highlight], .link[class~=temp-highlight] {
 }
 
 path.route {
-    opacity: 0.7;
+    opacity: 0.5;
     stroke: gray;
     fill: none; 
     stroke-width: 2px;    
