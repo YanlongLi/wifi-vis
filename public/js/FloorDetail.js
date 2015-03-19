@@ -766,7 +766,7 @@ WifiVis.FloorDetail = function(){
 			// var dx = e.pageX - $("#floor-detail-svg").offset().left;
 			// var dy = e.pageY - $("#floor-detail-svg").offset().top;
 			var desc = d.mac + "</br>";
-			var stay_time_minute = Math.round(d.device.stayTime(tracer.cur)/(1000*60));
+			var stay_time_minute = Math.round(d.device.stayTime(time_point)/(1000*60));
 			desc = desc + "stay time: " + stay_time_minute + " minutes</br>";
 			var f = d3.time.format("20%y-%m-%d %H:%M:%S");
 			desc = desc + "cur time: " + f(time_point) +"</br>";
@@ -834,7 +834,7 @@ WifiVis.FloorDetail = function(){
 			return d.selected;
 		}).map(function(d){return d.mac});
 		// first unselect
-		EventManager.deviceDeselect(null);
+		// EventManager.deviceDeselect(null);
 		console.log("on brush end, device selected", selected_device.length);
 		EventManager.deviceSelect(selected_device);
 		d3.event.sourceEvent.stopPropagation();

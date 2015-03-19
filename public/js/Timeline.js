@@ -67,8 +67,19 @@ WFV.Timeline = function(_time_range){
 		var step = TIME_STEP[step_by] * step_count;
 		if(brush.empty() || range[1] - range[0] < step){
 			range = all_time_range;
+		}else{
+			var from = range[0];
+			from.setMinutes(from.getMinutes() - (from.getMinutes() % 20));
+			from.setSeconds(0);
+			from.setMilliseconds(0);
+			var to = range[1];
+			to.setMinutes(to.getMinutes() + 20);
+			to.setMinutes(to.getMinutes() - (to.getMinutes() % 20));
+			to.setSeconds(0);
+			to.setMilliseconds(0);
 		}
 		time_range = range;
+		console.log(range[0].to_time_str(), range[1].to_time_str());
 		EventManager.timeRangeChanged(time_range);
 	}
 	//
@@ -410,14 +421,16 @@ WFV.Timeline = function(_time_range){
 			ys[1].domain([0, d3.max(floor_max_count.values())]).nice();
 			//
 			var tl = d3.select(".floor-"+_data.floor).datum(_data);
-			tl.select("path").datum(function(d){return d.tl_data})
-				.attr("d", line).style("stroke", function(d){return floor_color(d.floor)});
+			tl.select("path").datum(function(d){return d})
+				.attr("d", function(d){
+					return line(d.tl_data);
+				}).style("stroke", function(d){return floor_color(d.floor)});
 			//
 			floor_data_status[_data.floor] = true;
 			g.select("#y-axis").call(yAxis);
 		}else{
 			var tl = d3.select("#timeline-floor").selectAll("g.line");
-			var lines = tl.selectAll("path").attr("d", line)
+			var lines = tl.selectAll("path").attr("d",function(d){return line(d.tl_data)})
 				.style("stroke",function(d){return floor_color(d.floor)});
 		}
 	}
@@ -433,10 +446,12 @@ WFV.Timeline = function(_time_range){
 			db.tl_data_all(from, to, step, cb);	
 		}else if(type == TIMELINE_TYPE.floor){
 			var floor     = id;
-			db.tl_data_floor(from, to, step, floor, cb);
+			// db.tl_data_floor(from, to, step, floor, cb);
+			db_tl.tlDataFloor(from, to, step, floor, cb);
 		}else if(type == TIMELINE_TYPE.ap){
 			var apid = id;
-			db.tl_data_ap(from, to, step, apid, cb);
+			// db.tl_data_ap(from, to, step, apid, cb);
+			db_tl.tlDataAp(from, to, step, apid, cb);
 		}else{
 			console.warn("unkonw timeline type");
 		}

@@ -170,7 +170,8 @@ WFV.FloorBar = function(_time_range){
 			// floor tl data
 			(function next_f(f, _data, cb){
 				if(f < 18){
-					db.tl_data_floor(time_range[0], time_range[1], step, f, function(d){
+					//db.tl_data_floor(time_range[0], time_range[1], step, f, function(d){
+					db_tl.tlDataFloor(time_range[0], time_range[1], step, f, function(d){
 						_data.push(d);
 						next_f(f+1, _data, cb);
 					});
@@ -182,7 +183,8 @@ WFV.FloorBar = function(_time_range){
 				}
 			})(1, [], update_floor_tls);
 			// ap timeline of floor
-			db.tl_data_aps_of_floor(time_range[0],
+			// db.tl_data_aps_of_floor(time_range[0],
+			db_tl.tlDataApsOfFloor(time_range[0],
 					time_range[1],
 					step, current_floor,
 					update_floor_ap_tls);
@@ -740,9 +742,11 @@ FloorBarTlData.prototype.init = function(range, step, cb){
 	that.data.push([]);
 	(function next_f(f, _data, cb){
 		if(f < 18){
-			db.tl_data_floor(that.timeRange[0], that.timeRange[1], step, f, function(d){
+			// db.tl_data_floor(that.timeRange[0], that.timeRange[1], step, f, function(d){
+			db_tl.tlDataFloor(that.timeRange[0], that.timeRange[1], step, f, function(d){
 				d.type = "floor";
-				db.tl_data_aps_of_floor(that.timeRange[0], that.timeRange[1], step, f, function(apsTlData){
+				// db.tl_data_aps_of_floor(that.timeRange[0], that.timeRange[1], step, f, function(apsTlData){
+				db_tl.tlDataApsOfFloor(that.timeRange[0], that.timeRange[1], step, f, function(apsTlData){
 					d.aps = apsTlData;
 					apsTlData.forEach(function(ap){
 						ap.type = "ap";
@@ -796,7 +800,8 @@ FloorBarTlData.prototype.flatFloor = function(f, cb){
 	}
 	console.warn("not here");
 	if(that.floorStatus[f]) console.warn("illegal status");
-	db.tl_data_aps_of_floor(that.timeRange[0],
+	// db.tl_data_aps_of_floor(that.timeRange[0],
+	db_tl.tlDataApsOfFloor(that.timeRange[0],
 			that.timeRange[1], that.step, f, function(apsTlData){
 				// TODO sort?
 				apsTlData.forEach(function(d){d.type = "ap"});
