@@ -88,7 +88,8 @@ function init(){
 
 	
 	//nlDeviceView = WFV.NlDeviceView();
-	deviceView.draw();
+	//deviceView.draw();
+
 	// floorDetail.addFloorChangeListener(apGraph);
 	// floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, apGraph);
 	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_ENTER, apGraph);
