@@ -15,7 +15,7 @@ WifiVis.ApView = function() {
   var deviceTotalLoginDuration = {};
   var deviceLoginDuration = {};
 
-  var deviceList = [], apList = [], apMap = {};
+  var deviceList = [], deviceMap = {}, apList = [], apMap = {};
   var selectedDevices = [];
 
   var checkInIntervalString = "2013-09-02 00:00:30";
@@ -289,8 +289,9 @@ WifiVis.ApView = function() {
           delete apMap[d];
         });
         console.log(apMap);
+        deviceList = [];
+        deviceMap = {};
         if (Object.keys(apMap).length > 0) {
-          deviceList = [];
           var waitData = Object.keys(apMap).length;
           Object.keys(apMap).forEach(function(d) {
             console.log(d);
@@ -300,8 +301,11 @@ WifiVis.ApView = function() {
               //   return p.mac;
               // }));
               res.forEach(function(p) {
-                deviceList.push(p.mac);
-              })
+                if (!(p.mac in deviceMap)) {
+                  deviceMap[p.mac] = deviceList.length;
+                  deviceList.push(p.mac);
+                }
+              });
               console.log(deviceList);
               waitData --;
             }); 
@@ -311,6 +315,8 @@ WifiVis.ApView = function() {
           ApView.update(); 
         }
         else {
+          console.log(deviceList);
+          deviceList = [];
           render(1);
         }
         return;
@@ -322,16 +328,19 @@ WifiVis.ApView = function() {
           apMap[d] = d;
         });
         console.log(apMap);
-        deviceList = [];
-        var waitData = Object.keys(apMap).length;
-        Object.keys(apMap).forEach(function(d) {
+        //deviceList = [];
+        var waitData = apList.length;
+        apList.forEach(function(d) {
           console.log(d);
           db.macs_by_ap(timeFrom, timeTo, d, function(res) {
             // deviceList.concat(res.map(function(p) {
             //   return p.mac;
             // }));
             res.forEach(function(p) {
-              deviceList.push(p.mac);
+              if (!(p.mac in deviceMap)) {
+                deviceMap[p.mac] = deviceList.length;
+                deviceList.push(p.mac);
+              }
             })
             waitData--;
           }); 
@@ -483,20 +492,6 @@ WifiVis.ApView = function() {
       //yHeight = deviceList.length * 8;
     //}
 
-    var yHeight = deviceList.length * 8;
-
-    for (var ap in floorDomain) {
-      apNumMappings[ap] = apNum++;
-    }
-
-  
-    console.log(deviceList);
-    var yDomain = deviceList.sort(function(a, b){
-                    return deviceTotalLoginDuration[a] - deviceTotalLoginDuration[b];
-                  });
-    console.log(yDomain);
-    yScale.domain(yDomain)
-          .rangeBands([yHeight, 0], 0.1);
     //gYAxis.call(yAxis);
 
     render(1);
@@ -535,11 +530,21 @@ WifiVis.ApView = function() {
 
   function render(needRemove) {
 
-    //svg.selectAll(".rect")
-    console.log(yScale.range());
-    console.log(yScale.domain());
-    console.log(deviceTotalLoginDuration);
-    console.log(deviceLoginDuration);
+    var yHeight = deviceList.length * 8;
+
+    for (var ap in floorDomain) {
+      apNumMappings[ap] = apNum++;
+    }
+
+  
+    console.log(deviceList);
+    // var yDomain = deviceList.sort(function(a, b){
+    //                 return deviceTotalLoginDuration[a] - deviceTotalLoginDuration[b];
+    //               });
+    var yDomain = deviceList;
+    console.log(yDomain);
+    yScale.domain(yDomain)
+          .rangeBands([0, yHeight], 0.1);
     
     if (needRemove === 1) {
       //gTag.selectAll("g").remove();
@@ -740,40 +745,50 @@ WifiVis.ApView = function() {
           var timePoint = x.invert(mousex);
           console.log(timePoint);
           var curDuration = {};
-          yScale.domain().forEach(function(p) {
+          deviceList.forEach(function(p) {
             var i1 = -1;
+            var minDist = Number.MAX_VALUE;
             for (var k = 0; k < deviceLoginDuration[p].length; k++) {
               var q = deviceLoginDuration[p][k];
-              if (q.start.date_time <= timePoint && q.end.date_time >= timePoint && q.start.apid === d.start.apid) {
+              var val = durationSimilarity(d, q);
+              if (minDist > val) {
+                minDist = val;
                 i1 = k;
-                break;
               }
+              // if (q.start.date_time <= timePoint && q.end.date_time >= timePoint && q.start.apid === d.start.apid) {
+              //   i1 = k;
+              //   break;
+              // }
             }
             if (i1 !== -1) {
+              console.log(p);
               //curDuration[p] = deviceLoginDuration[p][i1].end.date_time - deviceLoginDuration[p][i1].start.date_time;
-              curDuration[p] = deviceLoginDuration[p][i1];
+              //curDuration[p] = deviceLoginDuration[p][i1];
+              curDuration[p] = minDist;
             }
           });
           //curDuration[d.device] = Number.MAX_VALUE;
-          curDuration[d.device] = d;
+          //curDuration[d.device] = d;
+          curDuration[d.device] = 0;
           console.log(curDuration);
           var maxDuration = (timeTo - timeFrom) * 100;
           //var bisect = d3.bisector(function(p) { return p.start.date_time; }).right;
-          var yDomain = yScale.domain().sort(function(a, b) {
+          deviceList = deviceList.sort(function(b, a) {
             //var i1 = bisect(deviceLoginDuration[a], timePoint), i2 = bisect(deviceLoginDuration[b], timePoint);
-            if (a in curDuration && b in curDuration) {
-              //return curDuration[a] - curDuration[b];
-              return durationSimilarity(curDuration[b], d) - durationSimilarity(curDuration[a], d);
-            }
-            else {
-              if (a in curDuration)
-                return 1;
-              else
-                if (b in curDuration)
-                  return -1;
-                else return 0;
-            }
+            //if (a in curDuration && b in curDuration) {
+              return curDuration[b] - curDuration[a];
+              //return durationSimilarity(curDuration[b], d) - durationSimilarity(curDuration[a], d);
+            //}
+            // else {
+            //   if (a in curDuration)
+            //     return 1;
+            //   else
+            //     if (b in curDuration)
+            //       return -1;
+            //     else return 0;
+            // }
           });
+          var yDomain = deviceList;
           console.log(yDomain);
           yScale.domain(yDomain);
           reset();
