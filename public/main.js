@@ -6,7 +6,7 @@ var db = new WFV_DB(timeFrom, timeTo);
 var apLst = [], apMap = d3.map(), macMap;
 var records = [];
 
-var tracer = new RecordTracer();
+var tracer;
 
 var floor_bar = WFV.FloorBar([timeFrom, timeTo]);
 
@@ -47,7 +47,7 @@ db.init(function(){
   apMap = db.apMap;
 	macMap = db.macIdByMac;
   records = db.records;
-  // init_aplst_records();
+  init_aplst_records();
   loading_tip.add_tip("done");
   setTimeout(function(){
     $("#mask").css("visibility", "hidden");
@@ -70,8 +70,7 @@ db.init(function(){
  
 
 function init(){
-	tracer.init(records, apLst);
-	//
+	tracer = RecordTracer.CreateTracer();
 	floorDetail = WFV.FloorDetail();
 	timeline = WFV.Timeline([timeFrom, timeTo]);
 	//EventManager.timeRangeChanged([new Date(2013,08,02,12), new Date(2013,08,02,16)]);
@@ -80,16 +79,14 @@ function init(){
 	// apGraph
 	apGraph = WifiVis.ApGraph();
 	apGraph.init();
-	apView = WFV.ApView();
-	deviceView = WFV.DeviceView();
 	// deviceGrpah
 	deviceGraph = WifiVis.DeviceGraph();
 	deviceGraph.init();
 
-	
+	deviceView = WFV.DeviceView();
 	//nlDeviceView = WFV.NlDeviceView();
 	//deviceView.draw();
-
+	apView = WFV.ApView();
 	// floorDetail.addFloorChangeListener(apGraph);
 	// floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, apGraph);
 	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_ENTER, apGraph);
