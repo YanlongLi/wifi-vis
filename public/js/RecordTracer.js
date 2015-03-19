@@ -157,7 +157,7 @@ function DeviceCluster(apid){
 	this.positions = square(this.r, this.level);
 	this.posFlag = this.positions.map(function(){return false});
 	this.deviceMap = d3.map();
-	this.count = 0;
+	this.device_count = 0;
 	//
 	function square(r, level) {
 		var toReturn = [];
@@ -210,7 +210,7 @@ DeviceCluster.prototype.addDevice = function(device){
 		this.posFlag[i] = true;
 		this.positions[i].device = device;
 		this.deviceMap.set(device.mac, i);
-		this.count ++;
+		this.device_count ++;
 		//console.log("add device to cluster end");
 		////console.log("cluster positions:", this.positions);
 		// update device position info
@@ -235,13 +235,26 @@ DeviceCluster.prototype.removeDevice = function(device){
 	this.posFlag[pos] = false;
 	delete this.positions[pos].device;
 	this.deviceMap.remove(device.mac);
-	this.count --;
+	this.device_count --;
 	//console.log("remove device from cluster end");
 }
 
-DeviceCluster.prototype.deviceLst = function(){
-	return this.positions.filter(function(p, i){
+DeviceCluster.prototype.count = function(time_point){
+	if(!time_point){
+		return this.device_count;
+	}
+	return this.deviceLst(time_point).length;
+}
+
+DeviceCluster.prototype.deviceLst = function(time_point){
+	var res = this.positions.filter(function(p, i){
 		return p.device != null && p.device != undefined;
 		// return this.posFlag[i] === true;
 	});	
+	if(time_point){
+		res = res.filter(function(p, i){
+			return p.device.stayTime(time_point) / (1000 * 60) < 120;
+		});
+	}
+	return res;
 }

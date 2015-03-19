@@ -564,8 +564,8 @@ WFV_TL_DATA.prototype.init = function(dateFrom, dateTo, tracer){
 				var s = tracer.aps.map(function(ap){
 					var r = {
 						time: new Date(time),
-						count: ap.cluster.count,
-						values: ap.cluster.deviceLst(),
+						count: ap.cluster.count(time),
+						values: ap.cluster.deviceLst(time),
 					}
 					r.apid = ap.apid;
 					r.floor = ap.floor;
