@@ -92,8 +92,8 @@ WifiVis.DeviceGraph = function(){
             processData(devices);
             gNode.html("");
             gLink.html("");
-            console.log("dismatrix", disMatrix);
-            tsneWorker.postMessage({"cmd":"init", "distance":disMatrix, "iter":devices.length * 2}); 
+            if (devices.length > 0)
+                tsneWorker.postMessage({"cmd":"init", "distance":disMatrix, "iter":devices.length * 5}); 
         } 
     }   
 
@@ -110,41 +110,6 @@ WifiVis.DeviceGraph = function(){
             .attr("fill", function(d, index) {
                 return "#999";
             })
-            // .on('mouseover', function(d, index) {
-            //     svg.select(this).classed("temp-highlight", true);
-            //     var ap = aps[index];
-            //     svg.selectAll(".link[source-id='" + ap._id + "']").classed("temp-highlight", true);
-            //     svg.selectAll(".link[target-id='" + ap._id + "']").classed("temp-highlight", true);
-            // })
-            // .on('mouseout', function(d, index) {
-            //     svg.select(this).classed("temp-highlight", false);
-            //     svg.selectAll(".link").classed("temp-highlight", false);
-            // })
-            // .on("click", function(d,index) {
-            //     console.log("click")
-            //     d3.event.stopPropagation()
-            //     svg.select(this).classed("highlight", true);
-            //     var ap = aps[index];
-            //     var list = [ap.apid];
-            //     EventManager.apSelect(list);
-            // })
-
-        // gLink.selectAll(".link")
-        //     .data(links)
-        //     .enter()
-        //     .append("line")
-        //     .attr("class", "link")
-        //     .attr("source-id", function(d) {
-        //         return d.source._id; 
-        //     })
-        //     .attr("target-id", function(d) {
-        //         return d.target._id;
-        //     })
-        //     .style("stroke-width", function(d) {
-        //         var scale = d3.scale.log().base(6);
-        //         return scale(d.weight+1) * 1.5; 
-        //     })
-        //     .style("display", "none");  
     }
 
     function render() {
@@ -174,19 +139,6 @@ WifiVis.DeviceGraph = function(){
                 y = mapping(d[1], minY, maxY, 0, height);
                 return y;
             })
-        
-        // if (isShowEdge) {
-        //     gLink.selectAll(".link")
-        //         .data(links)
-        //         .attr("x1", function(d) { return d.source.x; })
-        //         .attr("y1", function(d) { return d.source.y; })
-        //         .attr("x2", function(d) { return d.target.x; })
-        //         .attr("y2", function(d) { return d.target.y; })            
-        //         .style("display", "block");
-        // } else {
-        //     gLink.selectAll(".link").style("display", "none");
-        // }
-
      
     }
 
@@ -221,7 +173,6 @@ WifiVis.DeviceGraph = function(){
                 //由于svgGroup做了居中处理，与svg的坐标系不一致，所以要纠正偏移
                 var offsetX = Number(gOffset[0]),
                     offsetY = Number(gOffset[1]);
-                console.log("offset:", offsetX, offsetY);
                 // var offsetX = 0, offsetY = 0;
                 var selected = [];
                 svg.selectAll(".dot").each(function(d, i) {
@@ -292,17 +243,25 @@ WifiVis.DeviceGraph = function(){
 
     function processData(devices) {
         disMatrix = [];
+        var paths = [];
+        for (var i  = 0; i < devices.length; i++) {
+            var path = db.path_by_mac(devices[i].id);
+            paths[i] = [];
+            for (var j = 0; j < path.length; j++) {
+                paths[i].push(path[j].apid);
+            }            
+        }
         var defaultValue = getDistance(0);
-        console.log("devices.length", devices.length);
         for (var i = 0; i < devices.length; i++) {
             disMatrix[i] = [];
             for (var j = 0; j < devices.length; j++) {
                 if (i == j)
                     disMatrix[i][j] = 0;
                 else
-                    disMatrix[i][j] = defaultValue;
+                    disMatrix[i][j] = 1 / _.intersection(paths[i], paths[j]).length * 10;
             }
         }
+        // console.log("distance", disMatrix);
     }
 
     function getDistance(weight) {
