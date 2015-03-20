@@ -1,112 +1,154 @@
 
 /*
- * timeFrom = new Date(2013,8,1),
- * timeTo   = new Date(2013,8,2);
- * apLst    = [], apMap = d3.map();
- * records  = []; // records are sorted and dup are removed
- *
- * using RecordTracer.CreateTracer
  *
  */
-
-WifiVis.RecordTracer = RecordTracer.CreateTracer;
-
-function Device(mac, index){
+function Device(mac, path){
 	this.mac = mac;
-	this.deviceRoute = [];
+	this.path = path;
+	this.curAp = null;
 	this.cur = -1;
-	if(index){
-		this.moveForward(index);
-	}
 }
 
-Device.prototype.recordIn = function(){
-	var index = this.curRecordIndex();
-	return records[index];
-}
-
-Device.prototype.curRecordIndex = function(){
-	if(this.cur == -1){
-		console.log("current device not in");
-		return null;
+Device.prototype.moveForward = function(){
+	if(this.cur == this.path.length -1){
+		console.warn("move to the exceed");
+		return;
 	}
-	return this.deviceRoute[this.cur];
-}
-
-Device.prototype.stayTime = function(rIndex){
-	var index = this.curRecordIndex();
-	if(rIndex < index){
-		console.warn("current time is before device's login time");
-	}
-	var r = records[rIndex],
-			cur = records[index];
-	return new Date(r.date_time) - new Date(cur.date_time);
-}
-
-Device.prototype.previousRecord = function(){
-	if(this.cur == -1){
-		console.warn("no previous ap");
-		return null;
-	}
-	if(this.cur == 0){
-		return null;
-	}
-	return records[this.deviceRoute[this.cur - 1]];
-}
-
-Device.prototype.nextRecord = function(){
-	if(this.cur >= this.deviceRoute.length - 1){
-		console.warn("no next ap");
-		return null;
-	}
-	return records[this.deviceRoute[this.cur + 1]];
-}
-
-Device.prototype.deviceStatus = function(rIndex){
-	if(!arguments.length){
-		console.log("no current record index");
-		return null;
-	}
-	var stayTime = this.stayTime();
-	var arr = [60*2,]
-}
-
-/*
- * mvoe forward to the index record
- */
-Device.prototype.moveForward = function(index){
 	if(this.cur != -1){
-		var r = records[this.deviceRoute[this.cur]];
-		apMap.get(r.apid).cluster.removeDevice(this);
+		this.path[this.cur].ap.removeDevice(this);
 	}
 	this.cur ++;
-	if(this.cur === this.deviceRoute.length){
-		this.deviceRoute.push(index);
-	}
-	var record = records[index];
-	var cluster = apMap.get(record.apid).cluster;
-	cluster.addDevice(this);
-};
+	this.path[this.cur].ap.addDevice(this);
+}
 
-/*
- * move backward from the index record
- */
-Device.prototype.moveBackward = function(index){
-	if(index == -1){
+Device.prototype.moveBackward = function(){
+	if(this.cur == -1){
+		console.warn("move back exceed");
 		return;
 	}
-	if(records[index].mac != this.mac){
-		console.warn("current record not corresponding to device");
-		return;
-	}
-	var r = records[this.deviceRoute[this.cur]];
-	apMap.get(r.apid).cluster.removeDevice(this);
+	this.path[this.cur].ap.removeDevice(this);
 	this.cur --;
 	if(this.cur != -1){
-		r = records[this.deviceRoute[this.cur]];
-		cluster = apMap.get(r.apid).cluster.addDevice(this);
+		this.path[this.cur].ap.addDevice(this);
 	}
 }
+
+Device.prototype.stayTime = function(time){
+	if(this.cur == -1){
+		console.warn("device not login");
+		return 0;
+	}
+	return time - this.path[this.cur].date_time;
+}
+
+/*
+ * AccessPoint
+ */
+function AccessPoint(ap){
+	this.apid = +ap.apid;
+	this.name = ap.name;
+	this.floor = +ap.floor;
+	this.pos_x = +ap.pos_x;
+	this.pos_y = +ap.pos_y;
+	this.cluster = new DeviceCluster(this.apid);
+}
+
+AccessPoint.prototype.addDevice = function(device){
+	this.cluster.addDevice(device);
+}
+
+AccessPoint.prototype.removeDevice = function(device){
+	this.cluster.removeDevice(device);
+}
+
+AccessPoint.prototype.displayName = function(){
+	var name = ap.name.split(/ap|f/);
+	name.shift();
+	return name.join("-");
+}
+
+// records:[{time, mac, apid}], aps:[{apid, pos_x, pos_y, floor}]
+function RecordTracer(records, aps){
+	this.records = null;
+	this.aps = null;
+	this.apMap = d3.map();
+	this.devices = null;
+	this.deviceMap = d3.map();
+	this.cur = -1;
+}
+RecordTracer.prototype.init = function(records, aps){
+	var that = this;
+	that.records = records.map(function(r){
+		return {date_time:r.date_time,
+			mac: r.mac,
+			apid: r.apid};
+	});
+	//
+	that.aps = aps.map(function(ap){
+		var a = new AccessPoint(ap);
+		that.apMap.set(+a.apid, a);
+		return a;
+	});
+	that.devices = d3.nest().key(function(d){return d.mac})
+		.entries(that.records).map(function(d){
+			var device = new Device(d.key, d.values);
+			d.values.forEach(function(r){
+				r.device = device;
+				r.ap = that.apMap.get(+r.apid);
+			});
+			that.deviceMap.set(d.key, device);
+			return device;
+		});
+}
+
+RecordTracer.prototype.moveOn = function(){
+	if(this.cur == this.records.length - 1){
+		console.warn("tracer at the end");
+		return false;
+	}
+	this.cur ++;
+	this.records[this.cur].device.moveForward();
+	return true;
+}
+RecordTracer.prototype.moveBack = function(){
+	if(this.cur == -1){
+		console.warn("tracer at the begin");
+		return false;
+	}
+	this.records[this.cur].device.moveBackward();
+	this.cur --;
+	return true;
+}
+RecordTracer.prototype.gotoTime = function(time, cb){
+	var to = 0;
+	if(time - this.records[0].date_time < 0){
+		to = -1;
+		while(this.cur != to){
+			this.moveBack();
+		}
+	}else if(time - this.records[this.records.length - 1].date_time >= 0){
+		to = this.records.length - 1;
+		while(this.cur != to){
+			this.moveOn();
+		}
+	}else{
+		this.moveOn();
+		var curTime = this.records[this.cur].date_time;
+		if(time - curTime > 0){
+			while(this.records[this.cur + 1].date_time - time<= 0){
+				this.moveOn();
+			}
+		}else if(time - curTime < 0){
+			while(this.records[this.cur].date_time - time > 0){
+				this.moveBack();
+			}	
+		}else{}
+	}
+	cb && cb();
+}
+/*
+ *
+ */
 
 function DeviceCluster(apid){
 	this.apid = apid;
@@ -115,7 +157,42 @@ function DeviceCluster(apid){
 	this.positions = square(this.r, this.level);
 	this.posFlag = this.positions.map(function(){return false});
 	this.deviceMap = d3.map();
-	this.count = 0;
+	this.device_count = 0;
+	//
+	function square(r, level) {
+		var toReturn = [];
+		toReturn.push({
+			x: 0,
+			y: 0
+		});
+		for (var i = 1; i < level; ++i) {
+			for (var j = i; j > - i; --j) {
+				toReturn.push({
+					x: 2 * j * r,
+					y: 2 * i * r
+				});
+			}
+			for (j = i; j > - i; --j) {
+				toReturn.push({
+					x: - 2 * i * r,
+					y: 2 * j * r
+				});
+			}
+			for (j = - i; j < i; ++j) {
+				toReturn.push({
+					x: 2 * j * r,
+					y: - 2 * i * r
+				});
+			}
+			for (j = - 1; j < i; ++j) {
+				toReturn.push({
+					x: 2 * i * r,
+					y: 2 * j * r
+				});
+			}
+		}
+		return toReturn;
+	}
 }
 DeviceCluster.prototype.addDevice = function(device){
 	if(this.deviceMap.has(device.mac)){
@@ -133,7 +210,7 @@ DeviceCluster.prototype.addDevice = function(device){
 		this.posFlag[i] = true;
 		this.positions[i].device = device;
 		this.deviceMap.set(device.mac, i);
-		this.count ++;
+		this.device_count ++;
 		//console.log("add device to cluster end");
 		////console.log("cluster positions:", this.positions);
 		// update device position info
@@ -158,170 +235,26 @@ DeviceCluster.prototype.removeDevice = function(device){
 	this.posFlag[pos] = false;
 	delete this.positions[pos].device;
 	this.deviceMap.remove(device.mac);
-	this.count --;
+	this.device_count --;
 	//console.log("remove device from cluster end");
 }
 
-DeviceCluster.prototype.deviceLst = function(){
-	return this.positions.filter(function(p, i){
+DeviceCluster.prototype.count = function(time_point){
+	if(!time_point){
+		return this.device_count;
+	}
+	return this.deviceLst(time_point).length;
+}
+
+DeviceCluster.prototype.deviceLst = function(time_point){
+	var res = this.positions.filter(function(p, i){
 		return p.device != null && p.device != undefined;
 		// return this.posFlag[i] === true;
 	});	
-}
-
-function RecordTracer(){
-	this.deviceLst = [];
-	this.deviceMap = d3.map();// key: mac, value:Device
-	this.cur = -1;
-};
-
-RecordTracer.CreateTracer = function(){
-	if(apLst.length == 0 || records.length == 0){
-		//console.log(apLst.length, records.length);
-		console.error("apLst or records is empty");
-		return;
+	if(time_point){
+		res = res.filter(function(p, i){
+			return p.device.stayTime(time_point) / (1000 * 60) < 120;
+		});
 	}
-	if(!timeFrom || !timeTo){
-		console.eror("no timeFrom and timeTo variable");
-		return;
-	}
-	apLst.forEach(function(ap){
-		ap.cluster = new DeviceCluster(ap.apid);
-		apMap.set(ap.apid, ap);
-	});
-	////console.log("apMap:", apMap);
-	records.forEach(function(r,i){r.index = i});
-	var tracer = new RecordTracer();
-	return tracer;
-}
-RecordTracer.prototype.gotoTime = function(_time, cb){
-	if(_time - timeFrom < 0 || _time > timeTo){
-		//console.log(new Date(_time));
-		console.warn("go to time out of range");
-		return;
-	}
-	var t =
-		this.cur == -1 ? new Date(timeFrom) : new Date(records[this.cur].date_time);
-	var len = records.length;
-	while(t - _time > 0){
-		this.moveBack();
-		if(this.cur == -1){
-			break;
-		}
-		t = new Date(records[this.cur].date_time);
-	}
-	while(t - _time < 0){
-		if(this.cur == len -1){
-			break;
-		}
-		this.moveOn();
-		t = new Date(records[this.cur].date_time);
-	}
-	if(cb){
-		cb(this.cur);
-	}
-	if(this.cur == len){
-		//console.log("reach end");
-		return;
-	}
-}
-
-RecordTracer.prototype.moveOn = function(){
-	if(this.cur == records.length - 1){
-		//console.log("reach to the end");
-		return;
-	}
-	//console.log("record tracer, move on begin, cur:", this.cur);
-	this.cur ++;
-	if(this.cur >= records.length){
-		this.cur = records.length;
-		return;
-	}
-	var r = records[this.cur];
-	if(!this.deviceMap.has(r.mac)){
-		this.deviceMap.set(r.mac, this.deviceLst.length);
-		this.deviceLst.push(new Device(r.mac));
-	}
-	var device = this.deviceLst[this.deviceMap.get(r.mac)];
-	////console.log("device", device);
-	device.moveForward(this.cur);
-	//console.log("record tracer, move on end, cur:", this.cur);
-}
-
-RecordTracer.prototype.moveBack = function(){
-	//console.log("record tracer, move back begin, cur:", this.cur);
-	if(this.cur == -1){
-		return;
-	}
-	var r = records[this.cur];
-	var device = this.deviceLst[this.deviceMap.get(r.mac)];
-	device.moveBackward(this.cur);
-	this.cur -- ;
-	//console.log("record tracer, move back end, cur:", this.cur);
-}
-
-function removeDup(records){
-	return records.map(function(r,i){
-		if(i == 0 || r.apid != records[i-1].apid){
-			return r;
-		}
-		return null;
-	}).filter(function(r){return r != null});
-}
-
-/*
- * compute dot positions in circular style
- */
-function square(r, level) {
-	var toReturn = [];
-	toReturn.push({
-		x: 0,
-		y: 0
-	});
-	for (var i = 1; i < level; ++i) {
-		for (var j = i; j > - i; --j) {
-			toReturn.push({
-				x: 2 * j * r,
-				y: 2 * i * r
-			});
-		}
-		for (j = i; j > - i; --j) {
-			toReturn.push({
-				x: - 2 * i * r,
-				y: 2 * j * r
-			});
-		}
-		for (j = - i; j < i; ++j) {
-			toReturn.push({
-				x: 2 * j * r,
-				y: - 2 * i * r
-			});
-		}
-		for (j = - 1; j < i; ++j) {
-			toReturn.push({
-				x: 2 * i * r,
-				y: 2 * j * r
-			});
-		}
-	}
-	return toReturn;
-}
-
-/*
- *
- */
-function getPoint(p0, p1, tant){
-	if(typeof tan == 'undefine') tan = 0.3;
-	if(p0.x == p1.x && p0.y == p1.y) return {x:"",y:""};
-	var l = Math.sqrt(tant*tant+1);
-	var cosy = 1/l, siny = tant/l;
-	var ux = p1.x - p0.x, uy = p1.y - p0.y;
-	var len = Math.sqrt(ux*ux + uy*uy);
-	var cosx = ux/len, sinx = uy/len;
-	var cosr = cosx*cosy - sinx*siny;
-	var sinr = cosx*siny + cosy*sinx;
-	var ll = len/(2*cosy);
-	var dx = ll*cosr, dy = ll*sinr;
-	////console.log("cosx:", cosx, "sinx:", sinx, "dx:", dx, "dy:", dy);
-	return {x:p0.x+dx, y:p0.y+dy, name:"mid"}
+	return res;
 }

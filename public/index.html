@@ -49,28 +49,24 @@
 
 	<div id="main-view">
 		<div id="main-view-wrapper">
-			<div class="dragbox" id="floor-bar-wrapper-wrapper">
+			<div class="dragbox" id="floor-bar-wrapper">
 				<h3 class="header special"></h3>
 				<div class="dragbox-content">
 					<div id="floor-bar-tip" class="wfv-tip-wrapper floor-bar-tip-wrapper"></div>
 					<div id="floor-bar-tip-time" class="wfv-tip-wrapper"></div>
 				</div>
-				<div id="floor-bar-wrapper" class="dragbox-content" style="overflow:auto;width:95%;height:95%;">
-				<svg>
+				<svg class="dragbox-content">
 					<g id="floor-bar">
 						<rect class="placeholder" width="100%" height="100%"></rect>
 						<g id="floor-bar-btn-wrapper" style="display:none"></g>
 						<g id="floor-bar-circles"></g>
-						<g id="floor-bar-ap-sel-circles"></g>
-						<g id="floor-bar-tls"></g>
-						<g id="floor-bar-ap-sel-tls"></g>
-						<g id="floor-bar-ap-tls" style="visibility:visible"></g> <!--unused-->
-						<g id="floor-bar-aps" style="visibility:hidden"></g> <!--unused-->
+						<g id="floor-bar-tls" style="visibility:visible"></g>
+						<g id="floor-bar-ap-tls" style="visibility:visible"></g>
+						<g id="floor-bar-aps" style="visibility:hidden"></g>
 						<g id="floor-bar-tl-x-axis"></g>
 						<line id="floor-bar-time-thread" style="stroke:#333333;stroke-width:1"></line>
 					</g>
 				</svg>
-				</div>
 			</div>
 			<div class="dragbox" id="floor-detail-wrapper">
 				<h3 class="header"></h3>
@@ -155,13 +151,13 @@
   					<button type="button" id="device-view-non-linear-scale-btn" class="btn btn-default btn-xs">non-linear</button>
 				</div>
 				<div id="device-view-login-description" class="wfv-tip-wrapper"></div>
-				<svg class="dragbox-content" id="device-view-left-svg" width="8%" height="95%"></svg>
-				<svg class="dragbox-content" id="device-view-svg" width="82%" height="95%">
+				<svg class="dragbox-content" id="device-view-left-svg" width="8%" height="90%"></svg>
+				<svg class="dragbox-content" id="device-view-svg" width="82%" height="90%">
 					<g id="device-view-g">
 						<g id="device-view-y-axis-g"></g>
 						<g id="device-view-x-axis-g"></g>
 				</svg>
-				<svg class="dragbox-content" id="device-view-list-svg" width="10%" height="95%"></svg>
+				<svg class="dragbox-content" id="device-view-list-svg" width="10%" height="90%"></svg>
 			</div>	
 			<!-- <div class="dragbox" id="device-view-non-linear-wrapper">
 				<h3 class="header"></h3>
@@ -186,8 +182,9 @@
 					<button type="button" id="ap-view-zoom-out-btn" class="btn btn-default btn-xs dragbox-content">-</button>
 				</div>
 				<div id="ap-view-login-description" class="wfv-tip-wrapper"></div>
-				<svg class="dragbox-content" id="ap-view-left-svg" width="8%" height="95%"></svg>
-				<svg class="dragbox-content" id="ap-view-svg" width="92%" height="95%">
+				<div id="ap-view-curtime-tip" class="wfv-tip-wrapper"></div>
+				<svg class="dragbox-content" id="ap-view-left-svg" width="8%" height="90%"></svg>
+				<svg class="dragbox-content" id="ap-view-svg" width="92%" height="90%">
 					<g id="ap-view-g">
 						<g id="ap-view-y-axis-g"></g>
 						<g id="ap-view-x-axis-g"></g>
@@ -217,6 +214,7 @@
 	<script type="text/javascript" src="WFV.js"></script>
 	<script type="text/javascript" src="db/db.js"></script>
 	<script type="text/javascript" src="js/RecordTracer.js"></script>
+	<script type="text/javascript" src="/DeviceFeature.js"></script>
 	<script type="text/javascript" src="js/FloorBar.js"></script>
 	<script type="text/javascript" src="js/Timeline.js"></script>
 	<script type="text/javascript" src="js/FloorDetail.js"></script>

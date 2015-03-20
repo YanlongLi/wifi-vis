@@ -113,9 +113,11 @@ rect.extent {
 }
 
 .text.deviceTag {
+  pointer-events: none;
   fill: #666666; 
 }
 .text.apTag{
+  pointer-events: none;
   fill: #666666; 
 }
 

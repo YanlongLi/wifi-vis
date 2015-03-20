@@ -6,7 +6,8 @@ var db = new WFV_DB(timeFrom, timeTo);
 var apLst = [], apMap = d3.map(), macMap;
 var records = [];
 
-var tracer;
+var tracer = new RecordTracer();
+var db_tl = new WFV_TL_DATA();
 
 var floor_bar = WFV.FloorBar([timeFrom, timeTo]);
 
@@ -70,7 +71,9 @@ db.init(function(){
  
 
 function init(){
-	tracer = RecordTracer.CreateTracer();
+	tracer.init(records, apLst);
+	db_tl.init(db.dateFrom, db.dateTo, tracer, 10);
+	
 	floorDetail = WFV.FloorDetail();
 	timeline = WFV.Timeline([timeFrom, timeTo]);
 	//EventManager.timeRangeChanged([new Date(2013,08,02,12), new Date(2013,08,02,16)]);
