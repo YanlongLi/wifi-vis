@@ -268,11 +268,3 @@ utils.lastIndexOfLess = function(array, V, _valueFunction){
 	console.warn("some thing wrong");
 	return maxIndex + 1;
 }
-
-Array.prototype.firstIndexOfGreater = function(V, value){
-	return utils.firstIndexOfGreater(this, V, value);
-}
-Array.prototype.lastIndexOfLess = function(V, value){
-	return utils.lastIndexOfLess(this, V, value);
-}
-

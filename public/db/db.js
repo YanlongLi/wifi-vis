@@ -250,7 +250,7 @@ WFV_DB.prototype._records_by_interval = function(_from, _to){
 		dateRecords = this.recordsByDate.get(curDate.toDateString());
 		if(!dateRecords || !dateRecords.length) continue;
 		if(curDate.toDateString() == from.toDateString()){
-			var f = dateRecords.lastIndexOfLess(from.getTime(), function(r){
+			var f = utils.lastIndexOfLess(dateRecords, from.getTime(), function(r){
 				return r.date_time.getTime();
 			});
 			dateRecords = dateRecords.slice(f+1);
@@ -260,7 +260,7 @@ WFV_DB.prototype._records_by_interval = function(_from, _to){
 		// console.log("cur", curDate.toDateString());
 		// console.log("to", to.toDateString());
 		if(curDate.toDateString() == to.toDateString()){
-			var t = dateRecords.firstIndexOfGreater(to.getTime(), function(r){return r.date_time.getTime()});
+			var t = utils.firstIndexOfGreater(dateRecords, to.getTime(), function(r){return r.date_time.getTime()});
 			// console.log("t", t);
 			dateRecords = dateRecords.slice(0,t);
 			res = res.concat(dateRecords);
@@ -546,7 +546,7 @@ function WFV_TL_DATA(){
 	this.floor_tl_data = null;
 }
 
-WFV_TL_DATA.prototype.init = function(dateFrom, dateTo, tracer){
+WFV_TL_DATA.prototype.init = function(dateFrom, dateTo, tracer, stepInMinutes){
 	console.time("compute timeline data");
 	//
 	this.tracer = tracer;
@@ -581,7 +581,7 @@ WFV_TL_DATA.prototype.init = function(dateFrom, dateTo, tracer){
 				slot.push(s);
 				slot_floor.push(s_floor);
 				//
-				time.setMinutes(time.getMinutes() + 20);
+				time.setMinutes(time.getMinutes() + stepInMinutes);
 				next(time);
 			});
 		}else{
@@ -608,17 +608,7 @@ WFV_TL_DATA.prototype.init = function(dateFrom, dateTo, tracer){
 }
 WFV_TL_DATA.prototype.tlDataFloor = function(from, to, step, floor, cb){
 	var data = this.floor_tl_data[floor-1];
-	var i = 0;
-	var j = data.tl_data.length;
-	for(var t = 0; t < data.tl_data.length; t++)	{
-		if(data.tl_data[t].time - from == 0){
-			i = t;
-		}
-		if(data.tl_data[t].time - to == 0){
-			j = t + 1;
-		}
-	}
-	var tl_data = data.tl_data.slice(i, j);
+	var tl_data = this._slice_tl_array(from, to, data);
 	cb({floor:floor, type:"floor", tl_data: tl_data});
 }
 
@@ -629,6 +619,30 @@ WFV_TL_DATA.prototype.tlDataAp = function(from, to, step, apid, cb){
 		return;
 	}
 	var data = this.ap_tl_data[index]
+	var tl_data = this._slice_tl_array(from, to, data);
+	cb({apid:apid, type:"ap", floor:data.floor, tl_data: tl_data});
+}
+
+WFV_TL_DATA.prototype.tlDataApsOfFloor = function(from, to, step, floor, cb){
+	var that = this;
+	var data = this.ap_tl_data.filter(function(d){
+		// TODO
+		return d.floor == floor && d3.sum(d.tl_data, function(d){return +d.count});
+	}).map(function(data){
+		var tl_data = that._slice_tl_array(from, to, data);
+		return {apid:data.apid, type:"ap", floor:data.floor, tl_data: tl_data};
+	});
+	if(!data || data.length == 0){
+		console.warn("couldn't find ap on floor", floor);
+		return;
+	}
+	cb(data);
+}
+
+/*
+ * help function
+ */
+WFV_TL_DATA.prototype._slice_tl_array = function(from, to, data){
 	var i = 0;
 	var j = data.tl_data.length;
 	for(var t = 0; t < data.tl_data.length; t++)	{
@@ -639,31 +653,71 @@ WFV_TL_DATA.prototype.tlDataAp = function(from, to, step, apid, cb){
 			j = t + 1;
 		}
 	}
-	var tl_data = data.tl_data.slice(i, j);
-	cb({apid:apid, type:"ap", floor:data.floor, tl_data: tl_data});
+	return data.tl_data.slice(i, j);
 }
+/*
+ *
+ */
 
-WFV_TL_DATA.prototype.tlDataApsOfFloor = function(from, to, step, floor, cb){
-	var data = this.ap_tl_data.filter(function(d){
-		// TODO
-		return d.floor == floor && d3.sum(d.tl_data, function(d){return +d.count});
-	}).map(function(data){
-		var i = 0;
-		var j = data.tl_data.length;
-		for(var t = 0; t < data.tl_data.length; t++)	{
-			if(data.tl_data[t].time - from == 0){
-				i = t;
-			}
-			if(data.tl_data[t].time - to == 0){
-				j = t + 1;
-			}
+WFV_TL_DATA.prototype.similarityMatrix = function(from, to , _apids, cb){
+	var apids = _apids.map(function(d){return d});
+	var that = this;
+	apids.sort(function(a,b){return a - b});
+	apids = _.uniq(apids);
+	//
+	var times = this.ap_tl_data[0].tl_data.map(function(d){return d.time});
+	var i = 0;
+	var j = times.length;
+	for(var t = 0; t < times.length; t++)	{
+		if(times[t] - from == 0){
+			i = t;
 		}
-		var tl_data = data.tl_data.slice(i, j);
-		return {apid:data.apid, type:"ap", floor:data.floor, tl_data: tl_data};
-	});
-	if(!data || data.length == 0){
-		console.warn("couldn't find ap on floor", floor);
-		return;
+		if(times[t]- to == 0){
+			j = t + 1;
+		}
 	}
-	cb(data);
+	//
+	var tl_array = [];
+	var t = 0;
+	this.ap_tl_data.forEach(function(ap){
+		if(t < apids.length && ap.apid == apids[t]){
+			t++;
+			var arr =ap.tl_data.slice(i, j).map(function(d){return d.count});
+			tl_array.push(arr);
+		}
+	});
+	tl_array.forEach(function(arr){
+		var max = d3.sum(arr) || 1;
+		arr.forEach(function(d,i){arr[i] = d/max});
+	});
+	var matrix = _.range(0, apids.length).map(function(){
+		return _.range(0, apids.length).map(function(d){return 0});
+	});
+	for(i = 0; i < apids.length; i++){
+		for(j = 0; j < apids.length; j++){
+			if(i <= j){
+				continue;
+			}
+			var zip = _.zip(tl_array[i], tl_array[j]);
+			matrix[i][j] = d3.sum(zip, function(d){
+				return Math.pow(d[0]-d[1], 2);
+			})/apids.length;
+			matrix[j][i] = matrix[i][j] = Math.sqrt(matrix[i][j]);
+		}
+	}
+	var m = {};
+	apids.forEach(function(apid){
+		m[apid] = {};
+	});
+	for(i = 0; i < apids.length; i++){
+		for(j = 0; j < apids.length; j++){
+			if(i < j){
+				continue;
+			}
+			m[apids[i]][apids[j]] = m[apids[j]][apids[i]] = matrix[i][j];
+		}
+	}
+	matrix = null;
+	//cb && cb({apids:apids, matrix:m});
+	cb && cb(m);
 }
