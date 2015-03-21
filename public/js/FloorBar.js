@@ -108,6 +108,15 @@ WFV.FloorBar = function(_time_range){
 			if(isAdd){// select ap, TODO: add labels
 				if(!change) return;
 				change.forEach(function(apid){
+					var f = apMap.get(apid).floor;
+					if(!ftlData.floorStatus[f]){
+						ftlData.flatFloor(f, function(){
+							ftlData.getFlattedData(update_all_tls);
+						});
+						barData.flatFloor(f, function(){
+							barData.getFlattedData(update_horizon_bars);
+						});
+					}
 					// ap time line
 					$("#floor-bar-aps .floor .bar[apid="+apid+"]")
 						.addClass("selected").attr("_selected", true);
@@ -127,9 +136,9 @@ WFV.FloorBar = function(_time_range){
 				});
 			}
 			// update sel ap bars and tls
-			console.log("selected aps", apids);
-			barData.getSelData(apids, update_sel_ap_bars);
-			ftlData.getSelData(apids, update_sel_ap_tls);
+			// console.log("selected aps", apids);
+			// barData.getSelData(apids, update_sel_ap_bars);
+			// ftlData.getSelData(apids, update_sel_ap_tls);
 			selected_aps = apids;
 		}
 		if(message == WFV.Message.ApHover){// isAdd true or false

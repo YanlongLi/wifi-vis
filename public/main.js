@@ -72,7 +72,7 @@ db.init(function(){
 
 function init(){
 	tracer.init(records, apLst);
-	db_tl.init(db.dateFrom, db.dateTo, tracer);
+	db_tl.init(db.dateFrom, db.dateTo, tracer, 10);
 	
 	floorDetail = WFV.FloorDetail();
 	timeline = WFV.Timeline([timeFrom, timeTo]);

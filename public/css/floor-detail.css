@@ -13,6 +13,12 @@
 	opacity: 0.2;
 }
 
+#aps-wrapper .ap text{
+	stroke: #17BECF;
+	font-size: 10px;
+	pointer-events: none;
+}
+
 #aps-wrapper .ap.fading circle{
 	fill: #E0E0E0;
 	opacity: 0.2;
@@ -119,6 +125,13 @@
 #floor-detail-ap-histogram g.hist rect,
 #floor-detail-histogram g.hist rect{
 	fill: #98DF8A;
+}
+
+#floor-detail-ap-histogram g.exchange rect.in{
+	fill: #8C564B;
+}
+#floor-detail-ap-histogram g.exchange rect.out{
+	fill: #FF7F0E;
 }
 
 #floor-detail-ap-histogram g.hover rect,

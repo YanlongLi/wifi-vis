@@ -61,7 +61,8 @@ AccessPoint.prototype.removeDevice = function(device){
 	this.cluster.removeDevice(device);
 }
 
-AccessPoint.prototype.displayName = function(){
+AccessPoint.prototype.displayName = function(_ap){
+	var ap = _ap ? _ap : this;
 	var name = ap.name.split(/ap|f/);
 	name.shift();
 	return name.join("-");
