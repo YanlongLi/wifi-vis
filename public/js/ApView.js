@@ -224,9 +224,11 @@ WifiVis.ApView = function() {
     var e = brush.extent();
     console.log(e);
     brushedDevices = [];
+    var offset = d3.transform(gTagText.attr("transform")).translate[1];
     gTagText.selectAll(".deviceTag")
       .classed("selected", function(d) {
-        var py = yScale(d) + yScale.rangeBand()/2.0 + 2.5;
+        var py = yScale(d) + yScale.rangeBand()/2.0 + 2.5 + offset;
+        console.log(py);
         if (e[0][1] <= py && py <= e[1][1]) {
           brushedDevices.push(d);
           return true;
