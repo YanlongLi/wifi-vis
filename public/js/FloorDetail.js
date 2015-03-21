@@ -378,21 +378,25 @@ WifiVis.FloorDetail = function(){
 			gAps = gAps.data(_data, function(d){return d.apid});
 			var ap_enter = gAps.enter().append("g").attr("class", "ap");
 			ap_enter.append("circle");
+			ap_enter.append("text");
 			gAps.exit().remove();
 		}
-		gAps.attr("apid", function(d){return d.apid})
-		gAps.select("circle").datum(function(d){return d})
-			.attr("cx", function(d){return x(d.pos_x)})
-			.attr("cy", function(d){return y(d.pos_y)})
-			.attr("r", function(d){
-				var r = r_scale(d.cluster.count(time_point));
-				if(isNaN(r)){
-					console.log(r_scale.domain(), r_scale.range(), d.cluster);
-					console.warn("illegal r", r);
-				}
-				return r;
-			}).style("fill", floor_color(current_floor));
-		console.log(floor_color(current_floor));
+		gAps.attr("apid", function(d){return d.apid});
+		gAps.each(function(d){
+			var ele = d3.select(this);
+			var dx = x(d.pos_x);
+			var dy = y(d.pos_y);
+			var r = r_scale(d.cluster.count(time_point));
+			if(isNaN(r)){
+				console.log(r_scale.domain(), r_scale.range(), d.cluster);
+				console.warn("illegal r", r);
+			}
+			ele.select("circle").attr("cx", dx)
+				.attr("cy", dy)
+				.attr("r", r).style("fill", floor_color(current_floor));
+			ele.select("text").text(d.displayName())
+				.attr("x", dx + r).attr("y", dy + r);
+		});	
 		return;
 		// update device
 		gAps.each(function(ap){
@@ -485,16 +489,21 @@ WifiVis.FloorDetail = function(){
 			var aps = d3.map();
 			_data.forEach(function(l){
 				if(!aps.has(+l.sid)){
-					aps.set(+l.sid, {in:0, out:0});
+					aps.set(+l.sid, {in:0, out:0, in_links:[], out_links:[]});
 				}
 				if(!aps.has(l.tid)){
-					aps.set(+l.tid, {in:0, out:0});
+					aps.set(+l.tid, {in:0, out:0, in_links:[], out_links:[]});
 				}
 				aps.get(+l.sid).out += l.weight;
+				aps.get(+l.sid).out_links.push(l);
 				aps.get(+l.tid).in += l.weight;
+				aps.get(+l.tid).in_links.push(l);
 			});
 			var data = aps.entries().map(function(d){
-				return {apid: +d.key, in: +d.value.in, out: +d.value.out};
+				return {
+					apid: +d.key, in: +d.value.in, out: +d.value.out,
+					in_links: d.value.in_links, out_links: d.value.out_links
+				};
 			}).sort(function(a,b){
 				return b.in - a.in;
 			});
@@ -533,6 +542,9 @@ WifiVis.FloorDetail = function(){
 				.attr("y", y_ap_hist(d.in))
 				.on("mouseover", function(){
 					$("#path-wrapper g.link[tid="+d.apid+"]").addClass("hover");
+					// show device exchange number in other bars
+					var in_links = d.in_links;
+					update_exchange_hist(in_links, true);
 				}).on("mouseleave", function(){
 					$("#path-wrapper g.link[tid="+d.apid+"]").removeClass("hover");
 				});
@@ -544,6 +556,9 @@ WifiVis.FloorDetail = function(){
 				.attr("x", band/2).attr("y", y_ap_hist(d.out))
 				.on("mouseover", function(){
 					$("#path-wrapper g.link[sid="+d.apid+"]").addClass("hover");
+					// show device exchange number in other bars
+					var out_links = d.out_links;
+					update_exchange_hist(out_links, false);
 				}).on("mouseleave", function(){
 					$("#path-wrapper g.link[sid="+d.apid+"]").removeClass("hover");
 				});
@@ -555,6 +570,41 @@ WifiVis.FloorDetail = function(){
 		}).on("mouseleave", function(d){
 			EventManager.apDehover([d.apid]);
 			$("#aps-wrapper g.ap[apid="+d.apid+"]").removeClass("hover");
+			//
+			// hide device exchange number in other bars
+		});
+	}
+	function update_exchange_hist(links, isIn){
+		var hists = d3.select("#floor-detail-ap-histogram").selectAll("g.exchange");
+		if(links){
+			console.log(links);
+			hists = hists.data(links, function(d){return isIn ? d.sid : d.tid});
+			var enter = hists.enter().append("g").attr("class", "exchange")
+				.each(function(d){
+					var ele = d3.select(this);
+					ele.append("rect").attr("class", "in");
+					ele.append("rect").attr("class", "out");
+				});
+			hists.exit().remove();
+		}
+		hists.attr("transform", function(d){
+			var ap = apMap.get(isIn ? d.sid : d.tid);
+			var arr = ap.name.split(/f|ap/);
+			arr.shift();
+			var name = arr.join("-");
+			var dx = x_ap_hist(name);
+			return "translate("+dx+")";
+		}).each(function(d){
+			var ele = d3.select(this);
+			var band = x_ap_hist.rangeBand();
+			var clss = isIn ? "in" : "out";
+			var hcls = isIn ? "out" : "in";
+			var dx = isIn ? 0 : band / 2;
+			ele.select("rect." + clss).attr("x", dx)
+				.attr("y", y_ap_hist(d.weight))
+				.attr("width", band/2).attr("height", h_hist - y_ap_hist(d.weight))
+				.style("opacity", 1);
+			ele.select("rect."+hcls).style("opacity", 0);
 		});
 	}
 	function _compute_hist_data(_data, step){
