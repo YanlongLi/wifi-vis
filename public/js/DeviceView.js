@@ -508,7 +508,18 @@ WifiVis.DeviceView = function(selectedDevices){
     var nlDomain = [timeFrom].concat(loginRecords.map(function(d) {
           return new Date(d.date_time);
         }));
-    
+    var temp = nlDomain.sort();
+    nlDomain = [];
+    var i = 0;
+    while (i < temp.length) {
+      nlDomain.push(temp[i]);
+      var j = i + 1;
+      while (j < temp.length && parseTime(temp[i]) === parseTime(temp[j])) {
+        j ++;
+      }
+      i = j;
+    }
+
     nlX.domain(nlDomain);
     var nlDomainLen = nlX.domain().length;
     nlX.range(nlDomain.map(function(d, i) {
@@ -1190,7 +1201,10 @@ WifiVis.DeviceView = function(selectedDevices){
           return y(d[0].apid) - yFloor.rangeBand()/2.0 - 2.5;
         })
         .attr("width", function(d){
-          return x(d[1].date_time) - x(d[0].date_time);
+          if (isNLScale)
+            return nlX(d[1].date_time) - nlX(d[0].date_time);
+          else
+            return x(d[1].date_time) - x(d[0].date_time);
         });
 
     //svg.selectAll(".dot")

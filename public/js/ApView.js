@@ -22,6 +22,8 @@ WifiVis.ApView = function() {
   var checkInIntervalDate = new Date(checkInIntervalString);
   var checkInInterval;
 
+  var isNLScale = false;
+
   var size, timelineSize;
   var svg = utils.initSVG("#ap-view-svg", [10]), leftSVG = utils.initSVG("#ap-view-left-svg", [10, 0]);
   //var svg = $("#ap-view-svg");
@@ -54,6 +56,7 @@ WifiVis.ApView = function() {
 
   var x = d3.time.scale()
             .domain([timeFrom, timeTo]);
+  var nlX = d3.time.scale();
             
   var xAxis = d3.svg.axis()
       .scale(x)
@@ -128,8 +131,22 @@ WifiVis.ApView = function() {
     zoom = d3.behavior.zoom()
             .center([0, 0])
             .scaleExtent([1, 10])
-            .x(x)
             .on("zoom", zoomed);
+    if (isNLScale) {
+      var nlDomainLen = nlX.domain().length;
+      if (nlDomainLen > 0) {
+        nlX.range(nlX.domain().map(function(d, i) {
+          return 0.5 * (x(d) + size.width * (i + 1) / (nlDomainLen + 1));
+        }));
+        zoom.x(nlX);
+        gXAxis.call(xAxis); 
+      }
+    }
+    else {
+      zoom.x(x);
+      gXAxis.call(xAxis);  
+    }
+    
     d3.select("#ap-view-svg").call(zoom).call(zoom.event);
     // gTagText.call(zoom)
     //   .on("mousedown.zoom", null)
@@ -156,6 +173,22 @@ WifiVis.ApView = function() {
     d3.select("#ap-view-reset-btn").on("click", reset);
     d3.select("#ap-view-zoom-in-btn").on("click", zoomIn);
     d3.select("#ap-view-zoom-out-btn").on("click", zoomOut);
+    d3.select("#ap-view-non-linear-scale-btn").on("click", function() {
+      if (nlX.domain().length > 0) {
+        xAxis.scale(nlX);
+        zoom.x(nlX);
+        gXAxis.call(xAxis);
+        isNLScale = true;
+        render(1);
+      }
+    });
+    d3.select("#ap-view-linear-scale-btn").on("click", function() {
+      xAxis.scale(x);
+      zoom.x(x);
+      gXAxis.call(xAxis);
+      isNLScale = false;
+      render(1);
+    });
     //console.log(size);
   }
 
@@ -401,8 +434,13 @@ WifiVis.ApView = function() {
     //   return d[0].lines.length > 0;
     // });
 
-    zoom.x(x);
+    var nlDomain = [timeFrom].concat(loginRecords.map(function(d) {
+          return new Date(d.date_time);
+        }));
 
+    if (isNLScale) zoom.x(nlX);
+      else zoom.x(x);
+    gXAxis.call(xAxis);
 
     yFloorAP = [], nameAPMappings = {};
     for (var ap in apNameMappings) {
@@ -470,12 +508,40 @@ WifiVis.ApView = function() {
     dataset.forEach(function(d) {
       if (d.start.apid in apMap){
         deviceTotalLoginDuration[d.device] += x(d.end.date_time) - x(d.start.date_time);
+        nlDomain.push(new Date(d.end.date_time));
         deviceLoginDuration[d.device].push(d);
       }
     });
-    console.log(dataset);
-
     
+
+
+    var temp = nlDomain.sort();
+    nlDomain = [];
+    var i = 0;
+    while (i < temp.length) {
+      nlDomain.push(temp[i]);
+      var j = i + 1;
+      while (j < temp.length && parseTime(temp[i]) === parseTime(temp[j])) {
+        j ++;
+      }
+      i = j;
+    }
+    nlX.domain(nlDomain);
+    console.log(nlDomain);
+    var nlDomainLen = nlX.domain().length;
+    nlX.range(nlDomain.map(function(d, i) {
+      return 0.5 * (x(d) + size.width * (i + 1) / (nlDomainLen + 1));
+    }));
+    console.log(nlX.range());
+
+    dataset.forEach(function(d) {
+      if (d.start.apid in apMap){
+        if (nlX(d.end.date_time) - nlX(d.start.date_time) < 0) {
+            console.log(d);
+        }
+      }
+    });
+
     // apConnCnt = {};
     // dataset.forEach(function(d, i) {
     //   if (!(d[0].apid in apConnCnt)) {
@@ -598,10 +664,14 @@ WifiVis.ApView = function() {
           }
           vertical.style("left", mousex + "px" )
             .style("visibility", "visible");
-          var timePoint = x.invert(mousex - 50);
+          var timePoint;
           // tooltip.html( "<p>" + d3.time.format("%c")(timePoint) + "</p>" ).style("visibility", "visible");
           // tooltip.style("top", mousey + "px")
           //   .style("left", mousex + "px");
+          if (isNLScale)
+            timePoint = nlX.invert(mousex - 50);
+          else
+            timePoint = x.invert(mousex - 50);
 
           $("#ap-view-curtime-tip").html(d3.time.format("%c")(timePoint));
           $("#ap-view-curtime-tip").css({
@@ -735,13 +805,19 @@ WifiVis.ApView = function() {
           return ColorScheme.floor(floor);
         })
         .attr("x", function(d){
+          if (isNLScale)
+            return nlX(d.start.date_time);
+          else
             return x(d.start.date_time);
-          })
+        })
         .attr("y", function(d){
           return yScale(d.device) + yScale.rangeBand()/2.0 - 2.5;
         })
         .attr("width", function(d){
-          return x(d.end.date_time) - x(d.start.date_time);
+          if (isNLScale)
+            return nlX(d.end.date_time) - nlX(d.start.date_time);
+          else
+            return x(d.end.date_time) - x(d.start.date_time);
         })
         .attr("height", 5)
         .on("click", function(d, i) {
@@ -754,8 +830,11 @@ WifiVis.ApView = function() {
           //   highlightTrace(d.start.apid);
           // }
           var mousex = d3.mouse(this)[0] + 2;
-          var timePoint = x.invert(mousex);
-          console.log(timePoint);
+          var timePoint;
+          if (isNLScale)
+            timePoint = nlX.invert(mousex);
+          else
+            timePoint = x.invert(mousex);
           var curDuration = {};
           deviceList.forEach(function(p) {
             var i1 = -1;
@@ -811,7 +890,11 @@ WifiVis.ApView = function() {
           
           vertical.style("left", (mousex + 50) + "px" )
             .style("visibility", "visible");
-          var timePoint = x.invert(mousex);
+          var timePoint;
+          if (isNLScale)
+            timePoint = nlX.invert(mousex);
+          else
+            timePoint = x.invert(mousex);
           var timeLasted = d.end.date_time - d.start.date_time;
           var descStr = "Device no." + db.macid_by_mac(d.device) + "<br />" 
               + "Mac " + d.device + "<br />" 
@@ -849,10 +932,16 @@ WifiVis.ApView = function() {
         .append("line")
         .attr("class", "deviceLogin line")
         .attr("x1", function(d) {
-          return x(d.date_time);
+          if (isNLScale) 
+            return nlX(d.date_time);
+          else
+            return x(d.date_time);
         })
         .attr("x2", function(d) {
-          return x(d.date_time);
+          if (isNLScale) 
+            return nlX(d.date_time);
+          else
+            return x(d.date_time);
         })
         .attr("y1", function(d) {
           return yScale(d.mac) + yScale.rangeBand()/2.0 - 3.5;
@@ -884,13 +973,22 @@ WifiVis.ApView = function() {
 
       gRect.selectAll(".apDeviceRect")
         .attr("x", function(d){
+          if (isNLScale) 
+            return nlX(d.start.date_time);
+          else
             return x(d.start.date_time);
           })
         .attr("y", function(d){
           return yScale(d.device) + yScale.rangeBand()/2.0 - 2.5;
         })
         .attr("width", function(d){
-          return x(d.end.date_time) - x(d.start.date_time);
+          if (nlX(d.end.date_time) - nlX(d.start.date_time) < 0) {
+            console.log(d);
+          }
+          if (isNLScale)
+            return nlX(d.end.date_time) - nlX(d.start.date_time);
+          else
+            return x(d.end.date_time) - x(d.start.date_time);
         })
         .attr("height", 5 / Math.sqrt(zoom.scale()));
        
