@@ -29,6 +29,11 @@ WifiVis.FloorDetail = function(){
 	//
 	var deviceLst = [];
 	//
+	var h_hist = 60;
+	var x_ap_hist = d3.scale.ordinal();
+	var y_ap_hist = d3.scale.linear();
+	var ap_hist_axis = d3.svg.axis().scale(x_ap_hist).orient("bottom");
+	//
 	var tip = d3.tip().attr('class', 'd3-tip')
 		.offset([-10, 0]).html(function(ap){
 			var name = ap.displayName();
@@ -109,6 +114,10 @@ WifiVis.FloorDetail = function(){
 	var force = d3.layout.force().charge(-100)
 		.linkDistance(function(l){return Math.pow(l.weight, 2)})
 		.on("tick", function tick(){
+			if(force.alpha() < 0.02){
+				force.stop();
+				return;
+			}
 			nodes.attr("transform", function(d){
 				var dx = d.x, dy = d.y;
 				var r = r_scale(d.cluster.count(timePoint));
@@ -134,13 +143,60 @@ WifiVis.FloorDetail = function(){
 			// force.stop();
 		});
 	//
+	g.select("#brush-select").attr("class", 'brush');
+	var brush = d3.svg.brush();
+	brush.on("brushstart", brushstart)
+		.on("brush", brushed)
+		.on("brushend", brushend);
+	function brushstart(){
+		deviceLst.forEach(function(d){
+			d.selected = null;
+		});
+		EventManager.deviceDeselect(deviceLst.map(function(d){return d.mac}), FloorDetail);
+		d3.event.sourceEvent.stopPropagation();
+	}
+	function brushed(){
+		var extent = brush.extent();
+		deviceLst= [];
+		g.selectAll("#device-wrapper").selectAll("g.device")
+			.attr("selected", null).classed("selected", false);
+		g.select("#device-wrapper").selectAll("g.device")
+			.classed("selected", function(d){
+				var px = d.x + d.dx;
+				var py = d.y + d.dy;
+				if(extent[0][0] <= px && px < extent[1][0]
+						&& extent[0][1] <= py && py < extent[1][1]){
+					deviceLst.push(d.device);
+					d3.select(this).attr("selected", true);
+					return true;
+				}
+				return false;
+			});
+		d3.event.sourceEvent.stopPropagation();
+	}
+	function brushend(){
+		d3.event.target.clear();
+		d3.select(this).call(d3.event.target);
+		deviceLst.forEach(function(d){d.selected = true});
+		//
+		var macs = deviceLst.map(function(d){return d.mac});
+		EventManager.deviceSelect(macs, FloorDetail);
+		d3.event.sourceEvent.stopPropagation();
+	}
 	//
 	init_svg();
 	init_interaction();
 
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
-		size = utils.initG(g, _w, _h, [40,10,0,20]);
+		size = utils.initG(g, _w, _h, [20,10,70,20]);
+		h_hist = 60;
+		d3.select("#floor-detail-ap-histogram").attr("transform", "translate(20,"+(size.height + 10)+")");
+		y_ap_hist.range([h_hist, 0]);
+		//
+		brush.x(d3.scale.identity().domain([0, size.width]))
+			.y(d3.scale.identity().domain([0, size.height]));
+		g.select("#brush-select").call(brush);
 	}
 	ObserverManager.addListener(FloorDetail);
 	FloorDetail.OMListen = function(message, data, sender){
@@ -151,13 +207,14 @@ WifiVis.FloorDetail = function(){
 			aps = apLst.filter(function(d){return d.floor == currentFloor});
 			load_links_data(function(){
 				update_aps(aps);
+				update_histogram_in_out(links);
 			});
 		}
 		if(message == WFV.Message.ApHover){
 			if(sender == FloorDetail) return;
 			var apids = data.apid, change = data.change, isAdd = data.isAdd;
 			g.select("#aps-wrapper").selectAll("g.ap").filter(function(d){
-				return change.indexOf(d.apid) != -1;
+				return change.indexOf(""+d.apid) != -1;
 			}).each(function(d){
 				var ele = d3.select(this);
 				ele.classed("hover", isAdd);
@@ -167,13 +224,22 @@ WifiVis.FloorDetail = function(){
 			if(sender == FloorDetail) return;
 			var apids = data.apid, change = data.change, isAdd = data.isAdd;
 			g.select("#aps-wrapper").selectAll("g.ap").filter(function(d){
-				return change.indexOf(d.apid) != -1;
+				return change.indexOf(""+d.apid) != -1;
 			}).each(function(d){
 				var ele = d3.select(this);
 				ele.attr("selected", isAdd ? true : null).classed("selected", isAdd);
 			});
 		}
 		if(message == WFV.Message.DeviceSelect){
+			if(sender == FloorDetail) return;
+			var devs = data.device, change = data.change, isAdd = data.isAdd;
+			d3.select("#device-wrapper").selectAll("g.device").filter(function(d){
+				return chagne.indexOf(d.mac) != -1;
+			}).each(function(d){
+				var ele = d3.select(this);
+				ele.attr("selected", isAdd).classed("selected", isAdd);
+				d.device.selected = isAdd ? true : null;
+			});
 		}
 		if(message == WFV.Message.DeviceHover){
 		}
@@ -224,6 +290,7 @@ WifiVis.FloorDetail = function(){
 			nodes = nodes.data(aps);
 			var enter = nodes.enter().append("g").attr("class", "ap");
 			enter.append("circle");
+			enter.append("text");
 			nodes.exit().remove();
 		}
 		//
@@ -231,6 +298,9 @@ WifiVis.FloorDetail = function(){
 			var ele = d3.select(this);
 			var r = r_scale(d.cluster.count(timePoint));
 			ele.select("circle").attr("r", r).style("fill", floorColor(currentFloor));
+			//	
+			ele.select("text").text(d.displayName())
+				.attr("x", r).attr("y", r);
 		}).on("mousemove", function(d){
 			d3.select(this).classed("hover", true);
 			tip.show(d);
@@ -347,6 +417,21 @@ WifiVis.FloorDetail = function(){
 		}).on("mouseout", function(d){
 			d3.select(this).classed("hover", false);
 			tip_device.hide(d);
+		}).on("click", function(d){
+			var ele = d3.select(this);
+			if(ele.attr("selected")){
+				ele.attr("selected", null).classed("selected", false);
+				d.device.selected = null;
+				//
+				deviceLst = _.difference(deviceLst, [d.mac]);
+				EventManager.deviceSelect([d.mac], FloorDetail);
+			}else{
+				ele.attr("selected", true).classed("selected", true);
+				d.device.selected = true;
+				//
+				deviceLst = _.union(deviceLst, [d.mac]);
+				EventManager.deviceDeselect([d.mac], FloorDetail);
+			}
 		});
 		gDevice.transition().duration(80).ease("quard").attr("transform", function(d){
 			var dx = d.x + d.dx;
@@ -354,7 +439,131 @@ WifiVis.FloorDetail = function(){
 			return "translate("+dx+","+dy+")";
 		});
 	}
+	function update_histogram_in_out(_data){
+		var hists = d3.select("#floor-detail-ap-histogram").selectAll("g.hist");
+		if(_data){
+			if(!_data.length) return;
+			var aps = d3.map();
+			_data.forEach(function(l){
+				if(!aps.has(+l.sid)){
+					aps.set(+l.sid, {in:0, out:0, in_links:[], out_links:[]});
+				}
+				if(!aps.has(l.tid)){
+					aps.set(+l.tid, {in:0, out:0, in_links:[], out_links:[]});
+				}
+				aps.get(+l.sid).out += l.weight;
+				aps.get(+l.sid).out_links.push(l);
+				aps.get(+l.tid).in += l.weight;
+				aps.get(+l.tid).in_links.push(l);
+			});
+			var data = aps.entries().map(function(d){
+				return {
+					apid: +d.key, in: +d.value.in, out: +d.value.out,
+					in_links: d.value.in_links, out_links: d.value.out_links
+				};
+			}).sort(function(a,b){
+				return b.in - a.in;
+			});
+			x_ap_hist.domain(data.map(function(d){
+				var ap = apMap.get(d.apid);
+				d.ap = ap;
+				var arr = ap.name.split(/f|ap/);
+				arr.shift();
+				return arr.join("-");
+			})).rangeRoundBands([0, size.width], 0.1);
+			y_ap_hist.domain([0,d3.max(data,function(d){return d.out > d.in ? d.out : d.in})])
+				.range([h_hist, 0]);
+			//
+			hists = hists.data(data);
+			var enter = hists.enter().append("g").attr("class", "hist");
+			enter.append("rect").attr("class", "in");
+			enter.append("rect").attr("class", "out");
+			enter.append("text").attr("class", "in");
+			enter.append("text").attr("class", "out");
+			hists.exit().remove();
+		}
+		//
+		d3.select("#floor-detail-ap-histogram").select(".x.axis")
+			.attr("transform", "translate(0,"+h_hist+")").call(ap_hist_axis);
+		hists.attr("apid", function(d){return d.apid}).attr("transform", function(d){
+			var arr = d.ap.name.split(/f|ap/);
+			arr.shift();
+			var dx = x_ap_hist(arr.join("-"));
+			return "translate("+dx+",0)";
+		});
+		hists.each(function(d){
+			var ele = d3.select(this);
+			var band = x_ap_hist.rangeBand();
+			ele.select("rect.in").attr("width", band/2 - 1)
+				.attr("height", h_hist - y_ap_hist(d.in))
+				.attr("y", y_ap_hist(d.in))
+				.on("mouseover", function(){
+					$("#path-wrapper g.link[tid="+d.apid+"]").addClass("hover");
+					// show device exchange number in other bars
+					var in_links = d.in_links;
+					update_exchange_hist(in_links, true);
+				}).on("mouseleave", function(){
+					$("#path-wrapper g.link[tid="+d.apid+"]").removeClass("hover");
+				});
+			ele.select("text.in").attr("x", band/4)
+				.attr("y", y_ap_hist(d.in)).text(d.in)
+				.attr("dy", -3);
+			ele.select("rect.out").attr("width", band/2 - 1)
+				.attr("height", h_hist - y_ap_hist(d.out))
+				.attr("x", band/2).attr("y", y_ap_hist(d.out))
+				.on("mouseover", function(){
+					$("#path-wrapper g.link[sid="+d.apid+"]").addClass("hover");
+					// show device exchange number in other bars
+					var out_links = d.out_links;
+					update_exchange_hist(out_links, false);
+				}).on("mouseleave", function(){
+					$("#path-wrapper g.link[sid="+d.apid+"]").removeClass("hover");
+				});
+			ele.select("text.out").attr("x", band*3/4)
+				.attr("y", y_ap_hist(d.out)).text(d.out)
+				.attr("dy", -3);
+		}).on("mouseover", function(d){
+			$("#aps-wrapper g.ap[apid="+d.apid+"]").addClass("hover");
+		}).on("mouseleave", function(d){
+			EventManager.apDehover([d.apid]);
+			$("#aps-wrapper g.ap[apid="+d.apid+"]").removeClass("hover");
+			//
+			// hide device exchange number in other bars
+		});
+	}
+	function update_exchange_hist(links, isIn){
+		var hists = d3.select("#floor-detail-ap-histogram").selectAll("g.exchange");
+		if(links){
+			hists = hists.data(links, function(d){return isIn ? d.sid : d.tid});
+			var enter = hists.enter().append("g").attr("class", "exchange")
+				.each(function(d){
+					var ele = d3.select(this);
+					ele.append("rect").attr("class", "in");
+					ele.append("rect").attr("class", "out");
+				});
+			hists.exit().remove();
+		}
+		hists.attr("transform", function(d){
+			var ap = apMap.get(isIn ? d.sid : d.tid);
+			var arr = ap.name.split(/f|ap/);
+			arr.shift();
+			var name = arr.join("-");
+			var dx = x_ap_hist(name);
+			return "translate("+dx+")";
+		}).each(function(d){
+			var ele = d3.select(this);
+			var band = x_ap_hist.rangeBand();
+			var clss = isIn ? "in" : "out";
+			var hcls = isIn ? "out" : "in";
+			var dx = isIn ? 0 : band / 2;
+			ele.select("rect." + clss).attr("x", dx)
+				.attr("y", y_ap_hist(d.weight))
+				.attr("width", band/2).attr("height", h_hist - y_ap_hist(d.weight))
+				.style("opacity", 1);
+			ele.select("rect."+hcls).style("opacity", 0);
+		});
+	}
 	//
 	return FloorDetail;
-};
+}
 
