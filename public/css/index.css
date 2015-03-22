@@ -44,12 +44,12 @@
 	 * min-height: 400px; */
 }
 
-#floor-detail-wrapper{
+#floor-detail-wrapper-wrapper{
 	position: absolute;
 	top: 0;
 	left: 15%;
-	width: 55%;
-	height: 85%;
+	width: 35%;
+	height: 45%;
 }
 
 #aps-graph-wrapper{
