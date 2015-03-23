@@ -183,3 +183,18 @@
 	stroke-width: 4;
 	marker-end: url("#path-arrow-device");
 }
+/*
+ * slider
+ */
+
+#path-weight-slider{
+	height: 250px;
+	pointer-events: all;
+}
+#path-weight-label{
+	border:0;
+	color:#f6931f;
+	font-weight:bold;
+	pointer-events: none;
+	background-color: rgba(0,0,0,0);
+}
