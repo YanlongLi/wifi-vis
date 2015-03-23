@@ -1,5 +1,8 @@
 node_modules/
-public/data/
+public/data/APS_BACKUP.csv
+public/data/macid.csv
+public/data/floors/
+public/data/September/
 *.log
 test.*
 *.swp
