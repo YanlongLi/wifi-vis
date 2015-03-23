@@ -48,7 +48,8 @@ WifiVis.FloorDetail = function(){
 	});
 	//
 	var tip = d3.tip().attr('class', 'd3-tip')
-		.offset([-10, 0]).html(function(ap){
+		.direction("w")
+		.offset([0, -10]).html(function(ap){
 			var name = ap.displayName();
 			var desc = "ap: " + name + "</br>";
 			desc = desc + "apid: " + ap.apid  + "</br>"
@@ -61,7 +62,8 @@ WifiVis.FloorDetail = function(){
 	d3.select("#floor-detail-svg").call(tip);
 
 	var tip_device = d3.tip().attr('class', 'd3-tip')
-		.offset([-10, 0]).html(function(d){
+		.direction('w')
+		.offset([0, -10]).html(function(d){
 			var desc = "_id: "+ macMap.get(d.mac) + "</br>";
 			var stay_time_minute = Math.round(d.device.stayTime(timePoint)/(1000*60));
 			desc = desc + "stay time: " + stay_time_minute + " minutes</br>";
