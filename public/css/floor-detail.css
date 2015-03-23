@@ -86,7 +86,7 @@
 #path-wrapper .link path{
 	fill: none;
 	stroke: #8B8B8B;
-	opacity: 0.1;
+	opacity: 0.5;
 	marker-end: url("#path-arrow-normal");
 }
 

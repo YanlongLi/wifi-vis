@@ -25,7 +25,7 @@ WifiVis.FloorDetail = function(){
 	var currentFloor, aps, nodes;
 	var timePoint, timeRange = [timeFrom, timeTo];
 	//
-	var all_links, links, link_scale = d3.scale.linear().range([2, 10]);
+	var graphInfo, links, link_scale = d3.scale.linear().range([2, 10]);
 	//
 	var deviceLst = [];
 	//
@@ -34,13 +34,24 @@ WifiVis.FloorDetail = function(){
 	var y_ap_hist = d3.scale.linear();
 	var ap_hist_axis = d3.svg.axis().scale(x_ap_hist).orient("bottom");
 	//
+	$("#path-weight-slider").slider({
+		orientation: "vertical",
+		range: true,
+		values: [0,100],
+		slide: function(event, ui){
+			var v1 = ui.values[0], v2 = ui.values[1];
+			$("#path-weight-label").val(v1 + "-" + v2);
+			filter_links(v1, v2);
+		}
+	});
+	//
 	var tip = d3.tip().attr('class', 'd3-tip')
 		.offset([-10, 0]).html(function(ap){
 			var name = ap.displayName();
 			var desc = "ap: " + name + "</br>";
 			desc = desc + "apid: " + ap.apid  + "</br>"
 			//
-			var devs = ap.cluster.deviceLst();
+			var devs = ap.cluster.deviceLst(timePoint);
 			desc = desc + "persons: " +devs.length + "</br>";
 			var f = d3.time.format("20%y-%m-%d %H:%M:%S");
 			return desc + f(timePoint) +"</br>";
@@ -152,7 +163,8 @@ WifiVis.FloorDetail = function(){
 		deviceLst.forEach(function(d){
 			d.selected = null;
 		});
-		EventManager.deviceDeselect(deviceLst.map(function(d){return d.mac}), FloorDetail);
+		// EventManager.deviceDeselect(deviceLst.map(function(d){return d.mac}), FloorDetail);
+		EventManager.deviceDeselect(null, FloorDetail);
 		d3.event.sourceEvent.stopPropagation();
 	}
 	function brushed(){
@@ -194,6 +206,9 @@ WifiVis.FloorDetail = function(){
 		d3.select("#floor-detail-ap-histogram").attr("transform", "translate(20,"+(size.height + 10)+")");
 		y_ap_hist.range([h_hist, 0]);
 		//
+		// var sliderHeight = size.height - 60;
+		// $("#path-weight-slider").height( sliderHeight < 0 ?  60 : sliderHeight);
+		//
 		brush.x(d3.scale.identity().domain([0, size.width]))
 			.y(d3.scale.identity().domain([0, size.height]));
 		g.select("#brush-select").call(brush);
@@ -205,10 +220,12 @@ WifiVis.FloorDetail = function(){
 			if(!currentFloor) return;
 			$("#floor-detail-floor-label").text("F" + currentFloor);
 			aps = apLst.filter(function(d){return d.floor == currentFloor});
-			load_links_data(function(){
-				update_aps(aps);
-				update_histogram_in_out(links);
-			});
+			//
+			if(graphInfo){
+				_reset();
+			}else{
+				load_links_data(_reset);
+			}
 		}
 		if(message == WFV.Message.ApHover){
 			if(sender == FloorDetail) return;
@@ -254,9 +271,22 @@ WifiVis.FloorDetail = function(){
 		if(message == WFV.Message.TimeRangeChanged){
 			timeRange = data.range;
 			d3.select("#path-wrapper").selectAll(".device-path").remove();
-			load_links_data(function(){
-				update_links(links);
+			graphInfo = null;
+			load_links_data(_reset);
+		}
+		function _reset(){
+			// reset slider
+			links = graphInfo.filter(function(link){
+				return link.sap.floor == currentFloor && link.tap.floor == currentFloor;
 			});
+			var max = d3.max(links, function(d){return d.weight});
+			$("#path-weight-slider").slider("option", "max", max)
+				.slider("option", "min", 0)
+				.slider("option", "values", [0, max]);
+			update_aps(aps); // links will update after aps update
+			update_histogram_in_out(links);
+			$("#path-weight-label").val($( "#path-weight-slider" ).slider( "values", 0 )
+					+ $( "#path-weight-slider" ).slider( "values", 1 ));
 		}
 	}
 	function init_interaction(){
@@ -322,15 +352,14 @@ WifiVis.FloorDetail = function(){
 		var range = timeRange;
 		var from = range[0], to = range[1];
 		db.graph_info(from, to, function(_graphinfo){
-			all_links = _graphinfo;
-			links = all_links.filter(function(link){
+			graphInfo = _graphinfo;
+			graphInfo.forEach(function(link){
 				link.sid = link.source;
 				link.tid = link.target;
 				var from = apMap.get(link.source),
 				to = apMap.get(link.target);
 				link.sap = from;
 				link.tap = to;
-				return from.floor == currentFloor && to.floor == currentFloor;
 			});
 			cb();
 		});
@@ -523,12 +552,15 @@ WifiVis.FloorDetail = function(){
 				.attr("y", y_ap_hist(d.out)).text(d.out)
 				.attr("dy", -3);
 		}).on("mouseover", function(d){
-			$("#aps-wrapper g.ap[apid="+d.apid+"]").addClass("hover");
+			d3.select("#aps-wrapper").selectAll("g.ap").filter(function(a){
+				return a.apid == d.apid;
+			}).classed("hover", true);
+			EventManager.apHover([d.apid], FloorDetail);
 		}).on("mouseleave", function(d){
-			EventManager.apDehover([d.apid]);
-			$("#aps-wrapper g.ap[apid="+d.apid+"]").removeClass("hover");
-			//
-			// hide device exchange number in other bars
+			d3.select("#aps-wrapper").selectAll("g.ap").filter(function(a){
+				return a.apid == d.apid;
+			}).classed("hover", false);
+			EventManager.apDehover([d.apid], FloorDetail);
 		});
 	}
 	function update_exchange_hist(links, isIn){
@@ -561,6 +593,17 @@ WifiVis.FloorDetail = function(){
 				.attr("width", band/2).attr("height", h_hist - y_ap_hist(d.weight))
 				.style("opacity", 1);
 			ele.select("rect."+hcls).style("opacity", 0);
+		});
+	}
+	function filter_links(v1, v2){
+		console.log("filter path", v1, v2);
+		g.select("#path-wrapper").selectAll("g.link").style("display", function(d){
+			console.log("weight", d.weight);
+			if(+d.weight >= +v1 && +d.weight <= +v2){
+				return "block";
+			}else{
+				return "none";
+			}
 		});
 	}
 	//
