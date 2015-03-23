@@ -151,6 +151,7 @@ WifiVis.FloorDetail = function(){
 		h_hist = 60;
 		d3.select("#floor-detail-ap-histogram").attr("transform", "translate(20,"+(40 + size.height + 10)+")");
 		y_ap_hist.range([h_hist, 0]);
+		x_ap_hist.rangeRoundBands([0, size.width + 80], 0.1);
 		//
 		var sliderHeight = size.height - 80;
 		$("#path-weight-slider").height(sliderHeight);
@@ -443,7 +444,7 @@ WifiVis.FloorDetail = function(){
 				var arr = ap.name.split(/f|ap/);
 				arr.shift();
 				return arr.join("-");
-			})).rangeRoundBands([0, size.width], 0.1);
+			}));
 			y_ap_hist.domain([0,d3.max(data,function(d){return d.out > d.in ? d.out : d.in})])
 				.range([h_hist, 0]);
 			//

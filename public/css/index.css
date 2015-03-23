@@ -50,6 +50,8 @@
 	left: 15%;
 	width: 55%;
 	height: 85%;
+	min-width: 400px;
+	min-height: 400px;
 }
 
 #aps-graph-wrapper{

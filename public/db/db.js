@@ -26,7 +26,7 @@ var WFV = WFV || {};
 
 WFV.DATA_PATH = WFV.DATA_PATH || function(){return "data/"};
 
-WFV.AP_FILE_PATH = function(){return WFV.DATA_PATH() + "APS_.csv"};
+WFV.AP_FILE_PATH = function(){return WFV.DATA_PATH() + "APS.csv"};
 WFV.MAC_FILE_PATH = function(){return WFV.DATA_PATH() + "macid.csv"};
 
 WFV.date_format = d3.time.format("%Y-%m-%d");
