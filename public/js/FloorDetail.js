@@ -352,6 +352,7 @@ WifiVis.FloorDetail = function(){
 					.text(d.weight);
 		});
 	}
+	var timeSpeed = 10;
 	function update_device(){
 		var gDevice = g.select("#device-wrapper").selectAll("g.device");
 		deviceLst = [];
@@ -375,6 +376,19 @@ WifiVis.FloorDetail = function(){
 		device_enter.append("rect").attr("width", 6).attr("height", 6);
 		//
 		device_enter.each(function(d){
+			var f = +d.ap.floor;
+			var dx = 0, dy = 0;
+			switch(f){
+				case 1:
+				case 2:
+				case 3:
+				case 16:
+					dy = y(floorImgSize(currentFloor)[1] / 2);
+					break;
+				default:
+					dy = 0;
+			}
+			d3.select(this).attr("cx", dx).attr("cy", dy);
 		});
 		//
 		gDevice.exit().remove();
@@ -409,10 +423,39 @@ WifiVis.FloorDetail = function(){
 				EventManager.deviceDeselect([d.mac], FloorDetail);
 			}
 		});
-		gDevice.transition().duration(80).ease("quard").attr("transform", function(d){
+		gDevice.transition().duration(800).ease("linear").attr("transform", function(d){
 			var dx = x(d.x) + d.dx;
 			var dy = y(d.y) + d.dy;
 			return "translate("+dx+","+dy+")";
+		}).each('start', function(d){
+			var x1 = d3.select(this).attr('cx') || 0, y1 = d3.select(this).attr('cy') || 0;
+			var apid = d3.select(this).attr("apid");
+			if(apid == d.ap.apid) return;
+			var x2 = x(d.x) + d.dx, y2 = y(d.y) + d.dy;
+			d3.select(this).attr("cx", x2).attr("cy", y2).attr("apid", d.ap.apid);
+			d3.select("#aps-wrapper").append("line")
+				.attr('stroke-width', 3)
+				.attr('stroke', '#000000')
+				.attr('stroke-opacity', 0.3)
+				.attr('x1', x1).attr('y1', y1)
+				.attr('x2', x1).attr('y2', y1)
+				.transition()
+				.duration(700)
+				.ease('linear')
+				.attr('x2', x2)
+				.attr('y2', y2)
+				.each('end', function() {
+					var tThis = d3.select(this);
+					tThis
+						.transition()
+						.duration(800)
+						.ease('linear')
+						.attr('x1', tThis.attr('x2'))
+						.attr('y1', tThis.attr('y2'))
+						.each('end', function() {
+							this.remove();
+						});
+				});
 		});
 	}
 	function update_histogram_in_out(_data){
