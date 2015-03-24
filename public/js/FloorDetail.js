@@ -354,9 +354,9 @@ WifiVis.FloorDetail = function(){
 	}
 	var timeSpeed = 10;
 	function update_device(){
-		var gDevice = g.select("#device-wrapper").selectAll("g.device");
 		deviceLst = [];
 		if(!aps) return;
+		// translate data
 		aps.forEach(function(ap){
 			var px = ap.pos_x, py = ap.pos_y;
 			ap.cluster.deviceLst(timePoint).forEach(function(pos){
@@ -371,58 +371,10 @@ WifiVis.FloorDetail = function(){
 				deviceLst.push(o);
 			});
 		});
-		gDevice = gDevice.data(deviceLst, function(d){return d.mac});
-		var device_enter = gDevice.enter().append("g").attr("class","device");
-		device_enter.append("rect").attr("width", 6).attr("height", 6);
+		var gDevice = g.select("#device-wrapper")
+			.selectAll("g.device").data(deviceLst, function(d){return d.mac});
 		//
-		device_enter.each(function(d){
-			var f = +d.ap.floor;
-			var dx = 0, dy = 0;
-			switch(f){
-				case 1:
-				case 2:
-				case 3:
-				case 16:
-					dy = y(floorImgSize(currentFloor)[1] / 2);
-					break;
-				default:
-					dy = 0;
-			}
-			d3.select(this).attr("cx", dx).attr("cy", dy);
-		});
-		//
-		gDevice.exit().remove();
-		gDevice.classed("selected", function(d){
-			return d.device.selected;
-		}).attr("mac",function(d){return d.mac}).each(function(d){
-			var ele = d3.select(this);
-			ele.select("rect").attr("width", 6).attr("height", 6)
-				.style("fill-opacity", function(){
-					var stay_time_minute = Math.round(d.device.stayTime(timePoint)/(1000*60));
-					return opacity_by_stay_time(stay_time_minute);
-				});
-		}).on("mousemove", function(d){
-			d3.select(this).classed("hover", true);
-			tip_device.show(d);
-		}).on("mouseout", function(d){
-			d3.select(this).classed("hover", false);
-			tip_device.hide(d);
-		}).on("click", function(d){
-			var ele = d3.select(this);
-			if(ele.attr("selected")){
-				ele.attr("selected", null).classed("selected", false);
-				d.device.selected = null;
-				//
-				deviceLst = _.difference(deviceLst, [d.mac]);
-				EventManager.deviceSelect([d.mac], FloorDetail);
-			}else{
-				ele.attr("selected", true).classed("selected", true);
-				d.device.selected = true;
-				//
-				deviceLst = _.union(deviceLst, [d.mac]);
-				EventManager.deviceDeselect([d.mac], FloorDetail);
-			}
-		});
+		// transition for update
 		gDevice.transition().duration(800).ease("linear").attr("transform", function(d){
 			var dx = x(d.x) + d.dx;
 			var dy = y(d.y) + d.dy;
@@ -456,6 +408,52 @@ WifiVis.FloorDetail = function(){
 							this.remove();
 						});
 				});
+		});
+		// enter and enter transition
+		var device_enter = gDevice.enter().append("g").attr("class","device");
+		device_enter.append("rect").attr("width", 6).attr("height", 6);
+		device_enter.attr("transform", function(d){
+			var dx = x(d.x) + d.dx;
+			var dy = y(d.y) + d.dy;
+			return "translate("+dx+","+dy+")";
+		}).selectAll("rect").transition().duration(800).each("start", function(d){
+			d3.select(this).style("fill", "red");
+		}).each("end", function(d){
+			d3.select(this).style("fill", null);
+		});
+		gDevice.exit().selectAll("rect").style("fill", "yellow");
+		gDevice.exit().transition().duration(800).remove();
+		// update with enter
+		gDevice.classed("selected", function(d){
+			return d.device.selected;
+		}).attr("mac",function(d){return d.mac}).each(function(d){
+			var ele = d3.select(this);
+			ele.select("rect").attr("width", 6).attr("height", 6)
+				.style("fill-opacity", function(){
+					var stay_time_minute = Math.round(d.device.stayTime(timePoint)/(1000*60));
+					return opacity_by_stay_time(stay_time_minute);
+				});
+		}).on("mousemove", function(d){
+			d3.select(this).classed("hover", true);
+			tip_device.show(d);
+		}).on("mouseout", function(d){
+			d3.select(this).classed("hover", false);
+			tip_device.hide(d);
+		}).on("click", function(d){
+			var ele = d3.select(this);
+			if(ele.attr("selected")){
+				ele.attr("selected", null).classed("selected", false);
+				d.device.selected = null;
+				//
+				deviceLst = _.difference(deviceLst, [d.mac]);
+				EventManager.deviceSelect([d.mac], FloorDetail);
+			}else{
+				ele.attr("selected", true).classed("selected", true);
+				d.device.selected = true;
+				//
+				deviceLst = _.union(deviceLst, [d.mac]);
+				EventManager.deviceDeselect([d.mac], FloorDetail);
+			}
 		});
 	}
 	function update_histogram_in_out(_data){
