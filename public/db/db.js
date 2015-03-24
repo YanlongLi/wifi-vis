@@ -214,7 +214,9 @@ WFV_DB.prototype.records_by_date = function(date, cb){
 	var res = this.recordsByDate.get(date.toDateString()).map(utils.identity);
 	console.log("get records on", date.toDateString(), "result:", res.length);
 	if(cb){
-		cb(res);
+		setTimeout(function(){
+			cb(res);
+		}, 0);
 	}
 	else{
 		return res;
@@ -232,6 +234,7 @@ WFV_DB.prototype.records_by_interval = function(from, to, cb){
 	}
 	if(cb){
 		console.log(records.length);
+		// not setTimeout
 		cb(records);
 	}else{
 		return records;
@@ -285,7 +288,9 @@ WFV_DB.prototype.ap_by_id = function(apid, cb){
 WFV_DB.prototype.aps_all = function(cb){
 	var aps = this.aps.map(function(ap){return ap});
 	if(cb){
-		cb(aps);
+		setTimeout(function(){
+			cb(aps);
+		}, 0);
 	}else{
 		return aps;
 	}
@@ -309,7 +314,9 @@ WFV_DB.prototype.path_all = function(from, to, cb){
 	}
 	var res = paths.filter(function(path){return path.length > 0});
 	if(cb){
-		cb(res);
+		setTimeout(function(){
+			cb(res);
+		}, 0);
 	}else{
 		return res;
 	}
@@ -324,7 +331,9 @@ WFV_DB.prototype.path_by_mac = function(mac, from, to, cb){
 		path = path.filter(function(r){return to - r.date_time > 0});
 	}
 	if(cb){
-		cb(path);
+		setTimeout(function(){
+			cb(path);
+		}, 0);
 	}else{
 		return path;
 	}
@@ -346,6 +355,7 @@ WFV_DB.prototype.macs_by_ap = function(from, to, apid, cb){
 		if(!res.length){
 			console.warn("no macs on ap in time interval");
 		}
+		// TODO
 		console.log("get mac list on ap", res.length);
 		cb(res);
 	});
@@ -381,7 +391,9 @@ WFV_DB.prototype.ap_bar_data = function(from, to, cb){
 			f.count = _.uniq(macs, function(d){return d.mac}).length;
 			f.type = "floor";
 		});
-		cb && cb(data);
+		setTimeout(function(){
+			cb && cb(data);
+		}, 0);
 	}
 }
 
@@ -401,7 +413,9 @@ WFV_DB.prototype.graph_info = function(from, to, cb){
 	var links = paths_to_links(paths);
 	console.timeEnd("compute graph_info");
 	if(cb){
-		cb(links);
+		setTimeout(function(){
+			cb(links);
+		}, 0);
 	}else{
 		return links;
 	}
@@ -438,7 +452,9 @@ WFV_DB.prototype.graph_info = function(from, to, cb){
 WFV_DB.prototype.tl_data_all = function(from, to, step, cb){
 	this.records_by_interval(from, to, function(records){
 		var tl_data = generate_tl_data(records, from.getTime(), to.getTime(), step);
-		cb(tl_data);
+		setTimeout(function(){
+			cb(tl_data);
+		}, 0);
 	});
 }
 
@@ -447,7 +463,9 @@ WFV_DB.prototype.tl_data_floor = function(from, to, step, floor, cb){
 		records = records.filter(function(r){return +r.floor == +floor});
 		var tl_data = generate_tl_data(records, from.getTime(), to.getTime(), step);
 		tl_data.floor = +floor;
-		cb({floor:+floor, tl_data:tl_data});
+		setTimeout(function(){
+			cb({floor:+floor, tl_data:tl_data});
+		}, 0);
 	});
 }
 WFV_DB.prototype.tl_data_ap = function(from, to, step, apid, cb){
@@ -455,7 +473,9 @@ WFV_DB.prototype.tl_data_ap = function(from, to, step, apid, cb){
 		records = records.filter(function(r){return +r.apid == +apid});
 		var tl_data = generate_tl_data(records, from.getTime(), to.getTime(), step);
 		tl_data.apid = +apid;
-		cb({apid:+apid, tl_data:tl_data});
+		setTimeout(function(){
+			cb({apid:+apid, tl_data:tl_data});
+		}, 0);
 	});		
 }
  
@@ -476,7 +496,9 @@ WFV_DB.prototype.tl_data_aps_of_floor = function(from, to, step, floor, cb){
 				next(i+1)
 			}else{
 				res.floor = floor;
-				cb(res);	
+				setTimeout(function(){
+					cb(res);	
+				}, 0);
 			}
 		})(0);
 	});
@@ -609,7 +631,9 @@ WFV_TL_DATA.prototype.init = function(dateFrom, dateTo, tracer, stepInMinutes){
 WFV_TL_DATA.prototype.tlDataFloor = function(from, to, step, floor, cb){
 	var data = this.floor_tl_data[floor-1];
 	var tl_data = this._slice_tl_array(from, to, data);
-	cb({floor:floor, type:"floor", tl_data: tl_data});
+	setTimeout(function(){
+		cb({floor:floor, type:"floor", tl_data: tl_data});
+	}, 0);
 }
 
 WFV_TL_DATA.prototype.tlDataAp = function(from, to, step, apid, cb){
@@ -620,7 +644,9 @@ WFV_TL_DATA.prototype.tlDataAp = function(from, to, step, apid, cb){
 	}
 	var data = this.ap_tl_data[index]
 	var tl_data = this._slice_tl_array(from, to, data);
-	cb({apid:apid, type:"ap", floor:data.floor, tl_data: tl_data});
+	setTimeout(function(){
+		cb({apid:apid, type:"ap", floor:data.floor, tl_data: tl_data});
+	}, 0);
 }
 
 WFV_TL_DATA.prototype.tlDataApsOfFloor = function(from, to, step, floor, cb){
@@ -636,7 +662,9 @@ WFV_TL_DATA.prototype.tlDataApsOfFloor = function(from, to, step, floor, cb){
 		console.warn("couldn't find ap on floor", floor);
 		return;
 	}
-	cb(data);
+	setTimeout(function(){
+		cb(data);
+	}, 0);
 }
 
 /*
@@ -719,5 +747,7 @@ WFV_TL_DATA.prototype.similarityMatrix = function(from, to , _apids, cb){
 	}
 	matrix = null;
 	//cb && cb({apids:apids, matrix:m});
-	cb && cb(m);
+	setTimeout(function(){
+		cb && cb(m);
+	}, 0);
 }

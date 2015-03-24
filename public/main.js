@@ -13,6 +13,7 @@ var floor_bar = WFV.FloorBar([timeFrom, timeTo]);
 
 var floorDetail, floorsNav, timeline;
 var apGraph, deviceGraph, controllerView;
+var apView, deviceView;
 var loading_tip = loading_tip || {};
 
 $(document).ready(function() {
@@ -76,9 +77,6 @@ function init(){
 	
 	floorDetail = WFV.FloorDetail();
 	timeline = WFV.Timeline([timeFrom, timeTo]);
-	//EventManager.timeRangeChanged([new Date(2013,08,02,12), new Date(2013,08,02,16)]);
-	EventManager.timePointChange(new Date(2013,08,02,12));
-	EventManager.floorChange(1);
 	// apGraph
 	apGraph = WifiVis.ApGraph();
 	apGraph.init();
@@ -99,7 +97,9 @@ function init(){
 	// //
 	// timeline.update();
 	apGraph.draw(); 
-
+	//EventManager.timeRangeChanged([new Date(2013,08,02,12), new Date(2013,08,02,16)]);
+	EventManager.timePointChange(new Date(2013,08,02,12));
+	EventManager.floorChange(1);
     controllerView = WFV.ControllerView();
     controllerView.init()
 
