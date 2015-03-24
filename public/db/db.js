@@ -234,7 +234,7 @@ WFV_DB.prototype.records_by_interval = function(from, to, cb){
 	}
 	if(cb){
 		console.log(records.length);
-		// not setTimeout
+		// TODO not setTimeout
 		cb(records);
 	}else{
 		return records;
