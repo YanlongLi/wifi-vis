@@ -120,8 +120,8 @@ WifiVis.FloorDetail = function(){
 			.attr("selected", null).classed("selected", false);
 		g.select("#device-wrapper").selectAll("g.device")
 			.classed("selected", function(d){
-				var px = d.x + d.dx;
-				var py = d.y + d.dy;
+				var px = x(d.x) + d.dx;
+				var py = y(d.y) + d.dy;
 				if(extent[0][0] <= px && px < extent[1][0]
 						&& extent[0][1] <= py && py < extent[1][1]){
 					deviceLst.push(d.device);
