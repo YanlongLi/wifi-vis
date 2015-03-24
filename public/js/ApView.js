@@ -426,7 +426,11 @@ WifiVis.ApView = function() {
       deviceLoginDuration[deviceList[k]] = [];
     }
     access_data.forEach(function(d) {
-      d[0].line.forEach(function(p){
+      //console.log(d[0].line);
+      d[0].line.filter(function(dd) {
+        return dd.apid in apMap;
+      })
+      .forEach(function(p){
         loginRecords.push(p);
       });
     });
