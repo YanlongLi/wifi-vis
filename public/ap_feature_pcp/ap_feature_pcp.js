@@ -19,7 +19,7 @@ DeviceFeature.prototype.init = function(){
 		if(i == 0){
 			return;
 		}
-		that.time_total += that.path[i].date_time - that.path[i-1].date_time;
+		that.time_total += (that.path[i].date_time - that.path[i-1].date_time);
 	})
 }
 
@@ -56,6 +56,7 @@ ApFeature.prototype.init = function(){
 	var time_segment = [];
 	var mac_list = [];
 	
+	console.time("compute average stay time" + that.apid);
 	db.path_all(from, to, function(paths){
 		pathAll = paths;
 		pathAll.forEach(function(path){
@@ -84,8 +85,8 @@ ApFeature.prototype.init = function(){
 		// }else{
 		// 	that.aveStayTime = d3.sum(time_segment) / time_segment.length; 
 		// }
-		that.aveStayTime = d3.sum(time_segment) / time_segment.length; 
-
+		that.aveStayTime = time_segment.length == 0 ? 0 : d3.sum(time_segment) / time_segment.length; 
+		console.timeEnd("compute average stay time" + that.apid);
 	});
 
 	var times = db_tl.ap_tl_data[0].tl_data.map(function(d){return d.time});
@@ -105,21 +106,25 @@ ApFeature.prototype.init = function(){
 	var fft_before = [];
 	var fft_after = [];
 	var p = 0.5;
-	db_tl.ap_tl_data.forEach(function(ap){
-		if(ap.apid == that.apid){
-			tl_array = ap.tl_data.slice(i, j).map(function(d){return d.count});
-		}
-	});
-	ave = d3.sum(tl_array)/tl_array.length;
-	sum_norm = d3.sum(tl_array, function(d){return Math.pow(d, 2)})
-	ave_norm = sum_norm/tl_array.length;
-	sum_square = d3.sum(tl_array, function(d){return Math.pow(d - ave, 2)});
+	(function(){
+		var index = _.findIndex(db_tl.ap_tl_data, function(d){
+			return d.apid == that.apid;
+		});
+		tl_array = db_tl.ap_tl_data[index].tl_data.slice(i, j).map(function(d){
+			return d.count;
+		});
+	})();
+	var ave = d3.sum(tl_array)/tl_array.length;
+	var sum_norm = d3.sum(tl_array, function(d){return Math.pow(d, 2)})
+	var ave_norm = sum_norm/tl_array.length;
+	var sum_square = d3.sum(tl_array, function(d){return Math.pow(d - ave, 2)});
 	that.variance_ap = sum_square/tl_array.length;
 	for(n = 0; n < tl_array.length; n++){
 		tl_norm[n] = tl_array[n]/Math.sqrt(ave_norm);
 	}
 	// var test1 = d3.sum(tl_norm, function(d){return Math.pow(d, 2)});
 	// console.log(test1)
+	console.time("compute fft " + that.apid);
 	var z = new numeric.T(tl_norm).fft();
 	for(m = 0; m < tl_array.length; m++){
 		that.fft[m] = Math.pow(z.x[m], 2) + Math.pow(z.y[m], 2);
@@ -133,6 +138,7 @@ ApFeature.prototype.init = function(){
 	sum_before = d3.sum(fft_before);
 	sum_after = d3.sum(fft_after);
 	that.fft_param = sum_after/sum_before;
+	console.timeEnd("compute fft " + that.apid);
 	// var test_sum1 = 0;
 	// var test_sum2 = 0;
 	// for(r = 0; r < tl_array.length/2; r++){
@@ -175,18 +181,11 @@ db.init(function(){
 			// console.log(fts);
 		})
 
-		var apid_list = [];
-		aps.map(function(d){
-			apid_list.push(d.apid);
+		var apid_list = aps.map(function(d){
+			return d.apid;
 		}); 
 		// console.log(apid_list);
-		for(i = 0; i < apid_list.length; i++){
-			for(j = 0; j < apid_null_list.length; j++){
-				if(apid_null_list[j] == apid_list[i]){
-					apid_list.splice(i,1)
-				}
-			}
-		}
+		apid_list = _.difference(apid_list, apid_null_list);
 
 		var appcps = apid_list.map(function(d){
 			var fts_ap = new ApFeature(d, from, to, db, db_tl);
