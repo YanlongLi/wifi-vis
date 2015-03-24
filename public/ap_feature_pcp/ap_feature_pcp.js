@@ -191,6 +191,7 @@ db.init(function(){
 			var fts_ap = new ApFeature(d, from, to, db, db_tl);
 			var APpcp = {
 				apid: fts_ap.apid,
+				ftRecordNumber: fts_ap.ftRecordNumber,
 				ftDeviceNumber: fts_ap.ftDeviceNumber,
 				aveStayTime: fts_ap.aveStayTime,
 				fftparam: fts_ap.fft_param,
