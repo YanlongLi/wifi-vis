@@ -312,8 +312,8 @@ WFV.Timeline = function(_time_range){
 			g.select("#time-point-line").attr("d", line_time_point(time_point));
 			// TODO whether fire time point change
 			//from.setMinutes(from.getMinutes() + 1);
-			from.setSeconds(from.getSeconds() + 10);
-		}, 100);
+			from.setSeconds(from.getSeconds() + 60);
+		}, 1000);
 	}
 	function pauseAnimation(){
 		clearInterval(interval);
@@ -414,10 +414,7 @@ WFV.Timeline = function(_time_range){
 		// if _data, add; no _data, update
 		if(_data){
 			var cmax = d3.max(_data.tl_data, function(d){return d.count});
-			console.log("update_floor_timeline", _data.floor);
 			floor_max_count.set(_data.floor, cmax);
-			console.log("update_floor_timeline, floor_max_count",
-					floor_max_count.values());
 			ys[1].domain([0, d3.max(floor_max_count.values())]).nice();
 			//
 			var tl = d3.select(".floor-"+_data.floor).datum(_data);

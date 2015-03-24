@@ -9,9 +9,11 @@
 	<script type="text/javascript" src="jslib/spin.min.js"></script>	
 	<script type="text/javascript" src="jslib/d3/d3.js"></script>
 	<script type="text/javascript" src="jslib/d3.slider.js"></script>
+	<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 	<link rel="stylesheet" href="jslib/bootstrap/css/bootstrap.css"/>
 	<link rel="stylesheet" href="jslib/jquery-ui/jquery-ui.css"/>
 	<link rel="stylesheet" href="jslib/font-awesome/css/font-awesome.min.css">
+	<link rel="stylesheet" href="//rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
 
 	<!-- <link rel="stylesheet" href="jslib/bootstrap/css/bootstrap-theme.css"/> -->
 	<link rel="stylesheet" href="jslib/d3.slider.css"/>
@@ -72,34 +74,29 @@
 					</svg>
 				</div>
 			</div>
-			<div class="dragbox" id="floor-detail-wrapper">
+			<div class="dragbox" id="floor-detail-wrapper-wrapper">
 				<h3 class="header"></h3>
 				<div class="dragbox-content">
-					<div style="position:absolute; left:0; top:0; padding-left:10">
+					<div style="position:absolute; left:0; top:0; padding-left:10; pointer-events:none">
 						<h2 id="floor-detail-floor-label">F2</h2>
+						<div id="path-weight-slider" style="height:250px;"></div>
+						<p style="margin-top:20">
+							<label for="path-weight-label">Link weight:</label>
+							<input type="text" id="path-weight-label" readonly>
+						</p>
 					</div>
-					<div id="floor-detail-ap-description" class="wfv-tip-wrapper floor-detail-tip-wrapper"></div>
+					<div id="floor-detail-wrapper" style="width:100%; height: 100%">
+						<svg width="100%" height="100%" id="floor-detail-svg">
+							<g id="floor-detail-g">
+								<g id="brush-select"></g>
+								<g id="path-wrapper"></g>
+								<g id="aps-wrapper"></g>
+								<g id="device-wrapper"></g>
+							</g>
+							<g id="floor-detail-ap-histogram"><g class="x axis"></g></g>
+						</svg>
+					</div>
 				</div>
-				<svg width="100%" height="100%" id="floor-detail-svg" class="dragbox-content">
-					<defs>
-					<marker id="path-arrow" viewBox="0 0 5 5" refX="4.5" refY="2.5" markerWidth="4" markerHeight="3" orient="auto">
-					<path d="M0,0L5,2.5L0,5"></path>
-					</marker>
-					</defs>
-					<g id="floor-detail-g">
-						<image id="floor-background"></image>
-						<g id="brush-select"></g>
-						<g id="path-wrapper"></g>
-						<g id="aps-wrapper"></g>
-						<g id="device-wrapper"></g>
-						<g id="floor-detail-ap-histogram">
-							<g class="x axis"></g>
-						</g>
-						<g id="floor-detail-histogram">
-							<g class="x axis"></g>
-						</g>
-					</g>
-				</svg>
 			</div>
 			<div class="dragbox graph-view" id="device-graph-wrapper" style="z-index:9">
 				<h3 class="header"></h3>
@@ -223,7 +220,6 @@
 	<script type="text/javascript" src="WFV.js"></script>
 	<script type="text/javascript" src="db/db.js"></script>
 	<script type="text/javascript" src="js/RecordTracer.js"></script>
-	<script type="text/javascript" src="/DeviceFeature.js"></script>
 	<script type="text/javascript" src="js/FloorBar.js"></script>
 	<script type="text/javascript" src="js/Timeline.js"></script>
 	<script type="text/javascript" src="js/FloorDetail.js"></script>

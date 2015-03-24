@@ -47,3 +47,6 @@ rect.placeholder{
 	z-index: 100000;
 }
 
+.d3-tip{
+	z-index: 150;
+}
