@@ -1,9 +1,57 @@
+function DeviceFeature(mac, logins, durations, totalDuration, apDurations){
+  this.mac = device.mac;
+  this.logins = logins;
+  this.durations = durations;
+  this.totalDuration = totalDuration;
+  this.apDurations = apDurations;
+  this.recordCount = null;
+  this.accessedAPCount = null;
+  this.avgDuration = null;
+  this.avgAPDuration = null;
+  this.init();
+}
+
+DeviceFeature.prototype.init = function(){
+  var that = this;
+  that.recordCount = that.logins.length;
+  that.accessedAPCount = 0;
+  that.avgDuration = 0, that.avgAPDuration = {};
+  that.durations.forEach(function(d) {
+    that.avgDuration += d.end.date_time - d.start.date_time;
+  });
+  that.avgDuration /= that.durations.length;
+  Object.keys(that.apDurations).forEach(function(d) {
+    that.avgAPDuration[d] = 0;
+    that.apDurations[d].forEach(function(p) {
+      that.avgAPDuration[d] += p.end.date_time - p.start.date_time;  
+    });
+    if (that.apDurations[d].length)
+      that.avgAPDuration[d] /= that.apDurations[d].length;
+  });
+  curApMap = {};
+  that.logins.forEach(function(d) {
+    if (!(d.apid in curApMap)) {
+      curApMap[d.apid] = d.apid;
+      thar.accessedAPCount ++;
+    }
+  });
+}
+
+
 WifiVis.DeviceStats = function(){
   function DeviceStats(){}
 
   var loginRecords, loginPeriods;
   var apLoginRecords, apLoginPeriods;
-  var deviceFeatures = ["ttRecNum", "ttApNum", "avgStayTime"];
+  var deviceFeatures = ["", "ttApNum", "avgStayTime"];
+  var deviceList = [], deviceMap = {};
+  var apList = [], apMap = {};
+
+  var loginRecords;
+  var deviceTotalLoginDuration = {};
+  var deviceLoginDuration = {};
+  var deviceAPLoginDuration = {};
+
 
   var checkInIntervalString = "2013-09-02 00:00:30";
   var checkInInterval;
@@ -15,170 +63,201 @@ WifiVis.DeviceStats = function(){
   var FloorAPformatDate = d3.time.format("%x");
   var parseTime = d3.time.format("%y-%m-%d %H:%M:%S");
 
-  var margin = {top: 30, right: 10, bottom: 10, left: 10},
-    width = 960 - margin.left - margin.right,
-    height = 300 - margin.top - margin.bottom;
-
-  var x = d3.scale.ordinal().rangePoints([0, width], 1),
-      y = {},
-      dragging = {};
-
-  var line = d3.svg.line(),
-      axis = d3.svg.axis().orient("left"),
-      background,
-      foreground;
-
-  function parallelCordinates(){
-
-    d3.select("#device-stats-svg").remove();
-
-    var svg = d3.select("#device-stats-wrapper").append("svg")
-      .attr("id","device-stats-svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-    x.domain(dimensions = deviceFeatures);
-
-
-    x.domain(dimensions = d3.keys(winedata[0]).filter(function(d) {
-      return d != "Wine" && (y[d] = d3.scale.linear()
-          .domain(d3.extent(winedata, function(p) { return +p[d]; }))
-          .range([height, 0]));
-    }));
-
-    console.log(dimensions);
-    // Add grey background lines for context.
-
-    background = svg.append("g")
-        .attr("class", "background")
-      .selectAll("path")
-        .data(dataset)
-      .enter().append("path")
-        .attr("d", path);
-
-    // Add blue foreground lines for focus.
-    foreground = svg.append("g")
-        .attr("class", "foreground")
-      .selectAll("path")
-        .data(dataset)
-      .enter().append("path")
-        .attr("d", path)
-        .style("stroke", function(d) {
-          //console.log(lineColor(+d.Wine));
-          //return lineColor(+d.Wine);
-          return "#808080";
-        })
-        .style("opacity", function(d) {
-          //return lineOpacity[+d.Wine];
-          return 1.0;
-        });
-
-    // Add a group element for each dimension.
-    var g = svg.selectAll(".dimension")
-        .data(dimensions)
-      .enter().append("g")
-        .attr("class", "dimension")
-        .attr("transform", function(d) { return "translate(" + x(d) + ")"; });
-        // .call(d3.behavior.drag()
-        //   .origin(function(d) { return {x: x(d)}; })
-        //   .on("dragstart", function(d) {
-        //     dragging[d] = x(d);
-        //     background.attr("visibility", "hidden");
-        //   })
-        //   .on("drag", function(d) {
-        //     dragging[d] = Math.min(width, Math.max(0, d3.event.x));
-        //     foreground.attr("d", path);
-        //     dimensions.sort(function(a, b) { return position(a) - position(b); });
-        //     x.domain(dimensions);
-        //     g.attr("transform", function(d) { return "translate(" + position(d) + ")"; })
-        //   })
-        //   .on("dragend", function(d) {
-        //     delete dragging[d];
-        //     transition(d3.select(this)).attr("transform", "translate(" + x(d) + ")");
-        //     transition(foreground).attr("d", path);
-        //     background
-        //         .attr("d", path)
-        //       .transition()
-        //         .delay(500)
-        //         .duration(0)
-        //         .attr("visibility", null);
-        //     //datatable()
-        //   }));
-
-    // Add an axis and title.
-    g.append("g")
-        .attr("class", "axis")
-        .each(function(d) { d3.select(this).call(axis.scale(y[d])); })
-        .on("click", click)
-        .attr("fill",  function (d, i) {
-          if (selectedAttr[i+1] == 1) return "red";
-            else return "#000";
-        })
-      .append("text")
-        .style("text-anchor", "middle")
-        .attr("y", -9)
-        .text(function(d) { return d; });
-
-    // Add and store a brush for each axis.
-    g.append("g")
-        .attr("class", "brush")
-        .each(function(d) {
-          d3.select(this).call(y[d].brush = d3.svg.brush().y(y[d]).on("brushstart", brushstart).on("brush", brush));
-        })
-      .selectAll("rect")
-        .attr("x", -8)
-        .attr("width", 16);
-
-  }
-
-
-  function get_access_data(){
+  function get_access_data(mac, dates){
     var access_data = [];
-
-    db.records_by_interval(timeFrom, timeTo, function(res) {
-      console.log(res);  
-    });
-    
+    var len = dates.length;
+    for(var i = 0; i < len; i++){
+      var date = dates[i]
+      var next_date = new Date(date).setDate(date.getDate() +1);
+      var path = db.path_by_mac(mac, date, next_date);
+      path.forEach(function(d) {
+        if (!(d.apid in apFloorMappings)) {
+          apNameMappings[d.apid] = d.ap.name;
+        }
+      });
+      path = path.map(function(r,i){
+        if(i == 0 || r.apid != path[i-1].apid) return r;
+        return null;
+      }).filter(function(d){return d!=null})
+      var eachpath = path.map(function(r,i){
+        if(i == 0) return null;
+        var o1 = {date_time: r.date_time, apid:path[i-1].apid};
+        var o2 = {date_time: path[i-1].date_time, apid:path[i-1].apid};
+        return [o2, o1];
+      });
+      eachpath.shift();
+      access_data.push({lines:eachpath, line:path});
+    }
     return access_data;
   }
 
+  ObserverManager.addListener(DeviceStats);
+  DeviceStats.OMListen = function(message, data){
+    
+    if(message === WFV.Message.DeviceSelect){
+      //if (!data.isAdd) {brushedDevices = []; }
+      return;
+    }
 
-  function position(d) {
-    //var v = dragging[d];
-    //return v == null ? x(d) : v;
-    return x(d);
+    if(message === WFV.Message.ApSelect){
+      console.log(data);
+      if (!data.isAdd) {
+        apList = data.change;
+        console.log(apMap);
+        apList.forEach(function(d) {
+          delete apMap[d];
+        });
+        console.log(apMap);
+        deviceList = [];
+        deviceMap = {};
+        if (Object.keys(apMap).length > 0) {
+          var waitData = Object.keys(apMap).length;
+          Object.keys(apMap).forEach(function(d) {
+            console.log(d);
+            db.macs_by_ap(timeFrom, timeTo, d, function(res) {
+              
+              // deviceList.concat(res.map(function(p) {
+              //   return p.mac;
+              // }));
+              res.forEach(function(p) {
+                if (!(p.mac in deviceMap)) {
+                  deviceMap[p.mac] = deviceList.length;
+                  deviceList.push(p.mac);
+                }
+              });
+              console.log(deviceList);
+              waitData --;
+            }); 
+          }); 
+
+          while (waitData > 0) {};
+          DeviceStats.update(); 
+        }
+        else {
+          console.log(deviceList);
+          deviceList = [];
+          render(1);
+        }
+        return;
+      }
+      else {
+        console.log(data.apid);
+        apList = data.apid;
+        apList.forEach(function(d) {
+          apMap[d] = d;
+        });
+        console.log(apMap);
+        //deviceList = [];
+        var waitData = apList.length;
+        apList.forEach(function(d) {
+          console.log(d);
+          db.macs_by_ap(timeFrom, timeTo, d, function(res) {
+            // deviceList.concat(res.map(function(p) {
+            //   return p.mac;
+            // }));
+            res.forEach(function(p) {
+              if (!(p.mac in deviceMap)) {
+                deviceMap[p.mac] = deviceList.length;
+                deviceList.push(p.mac);
+              }
+            })
+            waitData--;
+          }); 
+        });
+        while (waitData > 0) {};
+        console.log(deviceList);
+        DeviceStats.update();
+      }
+    }
   }
 
-  // Returns the path for a given data point.
-  function path(d) {
-    return line(dimensions.map(function(p) { return [position(p), y[p](d[p])]; }));
-  }
 
-  function brushstart() {
-    d3.event.sourceEvent.stopPropagation();
-  }
+  DeviceStats.update = function(){
 
-  // Handles a brush event, toggling the display of foreground lines.
-  function brush() {
-    var actives = dimensions.filter(function(p) { return !y[p].brush.empty(); }),
-        extents = actives.map(function(p) { return y[p].brush.extent(); });
-    foreground.style("display", function(d) {
-      return actives.every(function(p, i) {
-        return extents[i][0] <= d[p] && d[p] <= extents[i][1];
-      }) ? null : "none";
+    loginRecords = [];
+    var access_data = [];
+    apNameMappings = {}, apFloorMappings = {};
+    for (var k = 0; k < deviceList.length; k++) {
+      access_data.push(get_access_data(deviceList[k], [timeFrom]));
+      deviceTotalLoginDuration[deviceList[k]] = 0.0;
+      deviceLoginDuration[deviceList[k]] = [];
+      deviceAPLoginDuration[deviceList[k]] = {};
+      for (var j = 0; j < apList.length; j ++) {
+        deviceAPLoginDuration[deviceList[k]][apList[j]] = [];
+      }
+    }
+    access_data.forEach(function(d) {
+      //console.log(d[0].line);
+      d[0].line
+        .forEach(function(p){
+          loginRecords.push(p);
+        });
     });
-    datatable(winedata.filter(function(d) {
-      return actives.every(function(p, i) {
-        return extents[i][0] <= d[p] && d[p] <= extents[i][1];
-      }) 
-    }));
+
+    checkInInterval = checkInIntervalDate - timeFrom;
+    console.log(checkInInterval);
+    dataset = [];
+    var cnt = 0;
+    var dataDeviceMappings = {};
+
+    for (var device = 0; device < access_data.length; device ++) {
+      tempDataset = access_data[device][0].lines;
+      if (tempDataset.length === 0) continue;
+      dataset.push({start:tempDataset[0][0], end:tempDataset[0][1], device:deviceList[device]});
+      //cnt = 0;
+      dataDeviceMappings[cnt++] = device;
+      for (var i = 1; i < tempDataset.length; i++) {
+        var cur = {start:tempDataset[i][0], end:tempDataset[i][1], device:deviceList[device]}
+        //if (x(dataset[cnt][1].date_time) - x(cur[0].date_time) > 5.0 || cur[0].apid != dataset[cnt][1].apid) {
+        //if (x(dataset[deviceList[device]][cnt-1].end.date_time) - x(cur.start.date_time) > 0.0 || 
+        //    cur.start.apid !== dataset[deviceList[device]][cnt-1].end.apid) {
+        if (dataset[cnt-1].end.date_time - cur.start.date_time > 0 || 
+            cur.start.apid !== dataset[cnt-1].end.apid || 
+            cur.start.date_time - dataset[cnt-1].end.date_time > checkInInterval
+            ) {
+          //dataset[deviceList[device]].push(cur);
+          dataset.push(cur);
+          dataDeviceMappings[cnt++] = device;
+        }
+        else {
+          //dataset[deviceList[device]][cnt-1].end = cur.end;
+          dataset[cnt-1].end = cur.end;
+        }
+      }
+    }
+
+    dataset.forEach(function(d) {
+      deviceTotalLoginDuration[d.device] += d.end.date_time - d.start.date_time;
+      deviceLoginDuration[d.device].push(d);
+      if (d.start.apid in apMap){
+        if (d.start.apid in deviceAPLoginDuration[d.device]) {
+          deviceAPLoginDuration[d.device][d.start.apid].push(d);
+        }
+        else {
+          deviceAPLoginDuration[d.device][d.start.apid] = [d]; 
+        }
+      }
+    });
+
+    var devicePCP = {};
+    
+    var devicePCPs = deviceList.map(function(d){
+      var fts_device = new DeviceFeature(d, loginRecords[d], deviceLoginDuration[d], deviceTotalLoginDuration[d], deviceAPLoginDuration[d]);
+      var res = {
+        mac: fts_device.mac,
+        ftRecordNumber: fts_device.ftRecordNumber,
+        ftAPNumber: fts_device.ftAPNumber,
+        avgStayTime: fts_device.avgStayTime
+      };
+      for (var apid in apMap) {
+        res[apid] = fts_device[apid];
+      }
+    });
+    console.log(devicePCPs);  
+    // console.log()
+    devicePCP = PCP.init(d3.select("#device-stats-svg");, {pos: [100,100], size: [800,600]}, devicePCPs);
   }
 
-  get_access_data();
-
-      
   return DeviceStats;
 }
 
