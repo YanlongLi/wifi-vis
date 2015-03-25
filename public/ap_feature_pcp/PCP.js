@@ -20,6 +20,7 @@
 	function PCP_createInteract(){
 		var o={};
 
+		o.brushIndex=d3.set();
 		o.EnbHover=true;
 		o.isSwap=true;
 		o.swap;
@@ -32,22 +33,28 @@
 
 		o.options=options;
 		o.canvas=canvas;
-		o.ord=[];
-		o.axes={};
-		o.data=data;
+		o.axes={};//Original Names
+		o.data=data;//Original Names
+		o.featNum=-1;
+		o.dimensions=[];//Original Names
+		o.IDs=[];//Name for IDs
+		o.idMap=d3.map();//Map ID to Name
 		o.colors=[];
 		o.interact;
 		o.redraw=false;
 
 		//Private
-		o.initInteract=PCP_InitInteract;
+		o.initInteract=PCP_initInteract;
 		o.createAxis=PCP_createAxis;
 		o.getAxes=PCP_getAxes;
+		o.updateSize=PCP_updateSize;
 		o.parseData=PCP_parseData;
 		o.renderAxes=PCP_renderAxes;
 		o.renderData=PCP_renderData;
+		o.redrawPCP=PCP_redrawPCP;
 		o.getPath=PCP_getPath;
 		o.getInfo=PCP_getInfo;
+		o.updateBrush=PCP_updateBrush;
 
 		//Public
 		o.init=PCP_initPCP;
@@ -68,8 +75,12 @@
 		for(var i in this.data[0]){
 			l++;
 		}
+		this.featNum=l;
 		for(var i in this.data[0]){
-			this.ord.push(i);
+			var j=i.replace(" ","_");
+			this.dimensions.push(i);
+			this.IDs.push(j);
+			this.idMap.set(j, i);
 			this.axes[i]=this.createAxis(i, this.options.size[0]*tcount/l, [parseFloat(d[i]),parseFloat(d[i])]);
 			tcount++;
 		}
@@ -80,6 +91,7 @@
 		var PCP_tdata=[];
 		var PCP_taxes=this.axes;
 		var PCP_tInfo=this.getInfo;
+		var PCP_tBrush=d3.set();
 		$.each(PCP_mdata, function(PCP_id, d){
 			for(var i in d){
 				var PCP_d=parseFloat(d[i]);
@@ -99,15 +111,16 @@
 			}
 			PCP_titem.PCPInfo=PCP_tInfo(d, PCP_id);
 			PCP_tdata.push(PCP_titem);
+			PCP_tBrush.add(PCP_id);
 		});
 		this.data=PCP_tdata;
+		this.interact.brushIndex=PCP_tBrush;
 	}
 
 	function PCP_getPath(item){
 		var PCP_taxes=this.axes
 		var PCP_tpath="";
-		$.each(this.ord, function(PCP_id, d){
-			// console.log([d,item]);
+		$.each(this.dimensions, function(PCP_id, d){
 			if(PCP_tpath==""){
 				PCP_tpath+="M"+PCP_taxes[d].pos+","+item[d];
 				return;
@@ -126,25 +139,54 @@
 	}
 
 	function PCP_Brush(){
-		var PCP_tActive=tPCP.ord.filter(function(d) { return !tPCP.axes[d].brush.empty(); }),
+		var PCP_tActive=tPCP.dimensions.filter(function(d) { return !tPCP.axes[d].brush.empty(); }),
 		PCP_tExtents=PCP_tActive.map(function(d) { return tPCP.axes[d].brush.extent(); });
 		var PCP_tScale=PCP_tActive.map(function(d){ return tPCP.axes[d].scale.invert});
+		var PCP_tBrushInd=[];
 		d3.selectAll("PCP_fade")
 		.classed("PCP_fade",false);
 		d3.selectAll(".PCP_path")
-		.classed("PCP_fade",function(d){
+		.classed("PCP_fade",function(d, j){
 			var PCP_tHighLight=true;
 			$.each(PCP_tActive,function(i,e){
 				var td=PCP_tScale[i](d[e]);
 				var te=PCP_tExtents[i];
 				PCP_tHighLight=PCP_tHighLight && (td>=te[0] && td<=te[1]);
 			});
+			if(PCP_tHighLight)
+				PCP_tBrushInd.push(j);
 			return !PCP_tHighLight;
 		});
+		tPCP.updateBrush(PCP_tBrushInd);
 	}
 
-	function PCP_InitInteract(){
+	function PCP_initInteract(){
 		this.interact=PCP_createInteract();
+	}
+
+	function PCP_updateSize(tSize){
+		var PCP_tXScale=d3.scale.linear().domain([0,this.options.size[0]]).range([0,tSize[0]]);
+		var PCP_tdata=this.data;
+		this.options.size=tSize;
+		$.each(this.axes, function(PCP_id, d){
+			d.axisHeight=tSize[1]*0.8;
+			d.hdlPos=tSize[1]*0.84;
+			d.hdlRad=tSize[1]*0.02;
+			d.txtPos=tSize[1]*0.90;
+			d.pos=PCP_tXScale(d.pos);
+			var tRange=[d.axisHeight,0], tExt=d.brush.extent();
+			var tExtChange=d3.scale.linear().domain(d.scale.range()).range(tRange);
+			d.scale.range(tRange);
+			$.each(PCP_tdata, function(PCP_id2, e){
+				e[PCP_id]=tExtChange(e[PCP_id]);
+			});
+			d.brush=d3.svg.brush()
+			.y(d.scale)
+			.extent(tExt)
+			.on("brushstart",function(){tPCP.interact.EnbHover=false;})
+			.on("brush",PCP_Brush)
+			.on("brushend",function(){tPCP.interact.EnbHover=true;});
+		});
 	}
 
 	function PCP_renderAxes(){
@@ -153,13 +195,19 @@
 		.on("dragstart",function(){tPCP.interact.EnbHover=false;})
 		.on("drag", PCP_dragmove)
 		.on("dragend",function(){tPCP.interact.EnbHover=true});
+		var PCP_tRDW=this.redraw;
 		$.each(this.axes,function(PCP_id, d){
-			var PCP_tBrush=d3.svg.brush()
-			.y(d.scale)
-			.extent(d.scale.domain())
-			.on("brushstart",function(){tPCP.interact.EnbHover=false;})
-			.on("brush",PCP_Brush)
-			.on("brushend",function(){tPCP.interact.EnbHover=true;});
+			var PCP_tBrush;
+			if(!PCP_tRDW){
+				PCP_tBrush=d3.svg.brush()
+				.y(d.scale)
+				.extent(d.scale.domain())
+				.on("brushstart",function(){tPCP.interact.EnbHover=false;})
+				.on("brush",PCP_Brush)
+				.on("brushend",function(){tPCP.interact.EnbHover=true;});
+			}
+			else
+				PCP_tBrush=d.brush;
 			var PCP_axis=d3.svg.axis()
 			.scale(d.scale)
 			.orient("left")
@@ -187,12 +235,14 @@
 			.attr("x",-8)
 			.attr("width",16);
 			PCP_tg.call(PCP_axis);
-			d.brush=PCP_tBrush;
+			if(!PCP_tRDW)
+				d.brush=PCP_tBrush;
 		});
 }
 
 function PCP_renderData(){
 	var PCP_t=this, PCP_tColors=this.colors;
+	var PCP_tBrInd=this.interact.brushIndex;
 	this.canvas.selectAll(".PCP_path")
 	.data(this.data)
 	.enter()
@@ -206,7 +256,8 @@ function PCP_renderData(){
 		return PCP_tColors[i];
 	})
 	.attr("class",function(d, i){
-		return "PCP_path PCP_path_"+i;
+		var e=PCP_tBrInd.has(i)?"":" PCP_fade";
+		return "PCP_path PCP_path_"+i+e;
 	})
 	.on("mouseover",function(){
 		if(!tPCP.interact.EnbHover)
@@ -233,10 +284,10 @@ function PCP_dragmove(d){
 	tPCP.interact.swap =undefined;
 	d3.selectAll(".PCP_chosen").classed("PCP_chosen",false);
 	var PCP_tpos=d3.mouse(tPCP.canvas[0][0])[0];
-	var PCP_ID=$(this).attr("id").replace("PCP_hdl_","").replace("_"," ");
-	d3.select("#PCP_axis_"+PCP_ID.replace(" ","_"))
+	var PCP_ID=$(this).attr("id").replace("PCP_hdl_","");
+	d3.select("#PCP_axis_"+PCP_ID)
 	.attr("transform","translate("+PCP_tpos+",0)");
-	tPCP.axes[PCP_ID].pos=PCP_tpos;
+	tPCP.axes[tPCP.idMap.get(PCP_ID)].pos=PCP_tpos;
 	tPCP.canvas.selectAll("path.PCP_path")
 	.attr("d",function(d){
 		return tPCP.getPath(d);
@@ -265,16 +316,16 @@ function PCP_switch(){
 		}
 		d3.select("#PCP_hdl_"+tPCP.interact.swap)
 		.classed("PCP_chosen",false);
-		var PCP_ax1=PCP_tName.replace("_"," "),
-		PCP_ax2=tPCP.interact.swap.replace("_"," ");
-		var PCP_tID1=tPCP.ord.indexOf(PCP_ax1),
-		PCP_tID2=tPCP.ord.indexOf(PCP_ax2),
+		var PCP_ax1=tPCP.idMap.get(PCP_tName),
+		PCP_ax2=tPCP.idMap.get(tPCP.interact.swap);
+		var PCP_tID1=tPCP.dimensions.indexOf(PCP_ax1),
+		PCP_tID2=tPCP.dimensions.indexOf(PCP_ax2),
 		PCP_tpos1=tPCP.axes[PCP_ax1].pos,
 		PCP_tpos2=tPCP.axes[PCP_ax2].pos;
 		tPCP.axes[PCP_ax1].pos=PCP_tpos2;
 		tPCP.axes[PCP_ax2].pos=PCP_tpos1;
-		tPCP.ord[PCP_tID1]=PCP_ax2;
-		tPCP.ord[PCP_tID2]=PCP_ax1;
+		tPCP.dimensions[PCP_tID1]=PCP_ax2;
+		tPCP.dimensions[PCP_tID2]=PCP_ax1;
 		$("#PCP_axis_"+tPCP.interact.swap)
 		.attr("transform","translate("+PCP_tpos1+",0)");
 		$("#PCP_axis_"+PCP_tName)
@@ -295,8 +346,9 @@ function PCP_setPos(tPos){
 }
 
 function PCP_setSize(tSize){
-	redraw=true;
-	return false;
+	this.redraw=true;
+	this.updateSize(tSize);
+	return this.redrawPCP();
 }
 
 function PCP_setDataColor(tColors){
@@ -324,6 +376,7 @@ function PCP_setBrush(tSelection){
 			return !PCP_tSelection.has(i);
 		});
 	}
+	this.updateBrush(tSelection);
 	return !PCP_tPaths.empty();
 }
 
@@ -343,10 +396,20 @@ function PCP_getBrush(){
 	return PCP_tBrushed;
 }
 
+function PCP_updateBrush(tBrushIndex){
+	this.interact.brushIndex=d3.set(tBrushIndex);
+}
+
+function PCP_redrawPCP(){
+	$(".PCP_Canvas").empty();
+	this.renderData();
+	this.renderAxes();
+}
+
 function PCP_initPCP(){
 	this.getAxes();
-	this.parseData();
 	this.initInteract();
+	this.parseData();
 	this.renderData();
 	this.renderAxes();
 }
