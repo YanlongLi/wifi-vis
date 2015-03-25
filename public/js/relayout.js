@@ -11,14 +11,12 @@ $(document).ready(function(){
 		var names = $(this).attr("id").split("-");
 		names.shift();
 		var id = names.join("-");
-		console.log(id);
 		var p = $("#" + id).closest(".dragbox");
-		console.log(p);
+		if(value){
 			$("#"+id).closest(".dragbox").css({
 				//"left": "", "top": "",
 				"visibility":"visible"
 			});
-		if(value){
 		}else{
 			$("#"+id).closest(".dragbox").css("visibility", "hidden");
 		}
