@@ -57,7 +57,7 @@ WifiVis.DeviceStats = function(){
   var checkInIntervalDate = new Date(checkInIntervalString);
   var checkInInterval;
 
-  var svg = utils.initSVG("#device-stats-svg", [0]);
+  var svg = utils.initSVG("#device-pcp-svg", [0]);
 
   var size, timelineSize;
 
@@ -247,7 +247,7 @@ WifiVis.DeviceStats = function(){
 
 
   function render(needRemove) {
-    var svg = d3.select("#device-stats-svg");
+    var svg = d3.select("#device-pcp-svg");
     if (needRemove) {
       svg.selectAll("g").remove();
     }
@@ -270,7 +270,7 @@ WifiVis.DeviceStats = function(){
       return res;
     });
     console.log(devicePCPs);  
-    devicePCP = PCP.init(svg, {pos: [100,100], size: [800,600]}, devicePCPs);
+    devicePCP = PCP.init(svg, {pos: [100,100], size: [500,300]}, devicePCPs);
   }
     
   return DeviceStats;

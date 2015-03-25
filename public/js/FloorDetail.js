@@ -373,6 +373,18 @@ WifiVis.FloorDetail = function(){
 		});
 		var gDevice = g.select("#device-wrapper")
 			.selectAll("g.device").data(deviceLst, function(d){return d.mac});
+		// enter and enter transition
+		var device_enter = gDevice.enter().append("g").attr("class","device");
+		device_enter.append("rect").attr("width", 6).attr("height", 6);
+		device_enter.attr("transform", function(d){
+			var dx = x(d.x) + d.dx;
+			var dy = y(d.y) + d.dy;
+			return "translate("+dx+","+dy+")";
+		}).selectAll("rect").transition().duration(800).each("start", function(d){
+			d3.select(this).style("fill", "red");
+		}).each("end", function(d){
+			d3.select(this).style("fill", "");
+		});
 		//
 		// transition for update
 		gDevice.transition().duration(800).ease("linear").attr("transform", function(d){
@@ -408,18 +420,6 @@ WifiVis.FloorDetail = function(){
 							this.remove();
 						});
 				});
-		});
-		// enter and enter transition
-		var device_enter = gDevice.enter().append("g").attr("class","device");
-		device_enter.append("rect").attr("width", 6).attr("height", 6);
-		device_enter.attr("transform", function(d){
-			var dx = x(d.x) + d.dx;
-			var dy = y(d.y) + d.dy;
-			return "translate("+dx+","+dy+")";
-		}).selectAll("rect").transition().duration(800).each("start", function(d){
-			d3.select(this).style("fill", "red");
-		}).each("end", function(d){
-			d3.select(this).style("fill", null);
 		});
 		gDevice.exit().remove();
 		// update with enter

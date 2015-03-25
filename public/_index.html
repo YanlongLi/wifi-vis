@@ -1,0 +1,236 @@
+<html>
+<head><title>360 Wifi Visualization</title>
+	<meta charset="utf-8">
+	<!---->
+	<script type="text/javascript" src="jslib/jquery-2.1.1.js"></script>
+	<script type="text/javascript" src="jslib/jquery-ui/jquery-ui.js"></script>
+	<script type="text/javascript" src="jslib/svgclass.js"></script>
+	<script type="text/javascript" src="jslib/underscore.js"></script>
+	<script type="text/javascript" src="jslib/spin.min.js"></script>	
+	<script type="text/javascript" src="jslib/d3/d3.js"></script>
+	<script type="text/javascript" src="jslib/d3.slider.js"></script>
+	<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+	<link rel="stylesheet" href="jslib/bootstrap/css/bootstrap.css"/>
+	<link rel="stylesheet" href="jslib/jquery-ui/jquery-ui.css"/>
+	<link rel="stylesheet" href="jslib/font-awesome/css/font-awesome.min.css">
+	<link rel="stylesheet" href="//rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
+
+	<!-- <link rel="stylesheet" href="jslib/bootstrap/css/bootstrap-theme.css"/> -->
+	<link rel="stylesheet" href="jslib/d3.slider.css"/>
+	<link rel="stylesheet" href="css/floor-bar.css"/>
+	<link rel="stylesheet" href="css/floor-detail.css"/>
+	<link rel="stylesheet" href="css/aps-graph.css"/>
+	<link rel="stylesheet" href="css/device-view.css"/>
+	<link rel="stylesheet" href="css/timeline.css"/>
+	<link rel="stylesheet" href="css/other.css"/>
+	<link rel="stylesheet" href="css/index.css"/>
+	<link rel="stylesheet" href="css/basic.css"/>
+	<link rel="stylesheet" href="css/drag-panel.css"/>
+</head>
+<body>
+	<div id="mask">
+		<div class="loading">
+			<h1>loading data ......</h1>
+			<div id="loading-tip"></div>
+		</div>
+	</div>
+	<!--<div class="navbar navbar-default navbar-fixed-top">
+		<div class="container">
+		</div>
+		</div>-->
+
+    <div class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <span><strong class="l-font">WifiVis</strong></span>
+            <span>Peking University</span>
+            <span class="float-right">
+            	<span class="btn btn-default btn-xs" id="controller-button">Control</span>
+            </span>
+        </div>
+    </div>
+
+	<div id="main-view">
+		<div id="main-view-wrapper">
+			<div class="dragbox" id="floor-bar-wrapper-wrapper">
+				<h3 class="header special"></h3>
+				<div class="dragbox-content">
+					<div id="floor-bar-tip" class="wfv-tip-wrapper floor-bar-tip-wrapper"></div>
+					<div id="floor-bar-tip-time" class="wfv-tip-wrapper"></div>
+				</div>
+				<div id="floor-bar-wrapper" class="dragbox-content" style="overflow:auto;width:95%;height:95%;">
+					<svg>
+						<g id="floor-bar">
+							<rect class="placeholder" width="100%" height="100%"></rect>
+							<g id="floor-bar-btn-wrapper" style="display:none"></g>
+							<g id="floor-bar-circles"></g>
+							<g id="floor-bar-ap-sel-circles"></g>
+							<g id="floor-bar-tls"></g>
+							<g id="floor-bar-ap-sel-tls"></g>
+							<g id="floor-bar-ap-tls" style="visibility:visible"></g> <!--unused-->
+							<g id="floor-bar-aps" style="visibility:hidden"></g> <!--unused-->
+							<g id="floor-bar-tl-x-axis"></g>
+							<line id="floor-bar-time-thread" style="stroke:#333333;stroke-width:1"></line>
+						</g>
+					</svg>
+				</div>
+			</div>
+			<div class="dragbox" id="floor-detail-wrapper-wrapper">
+				<h3 class="header"></h3>
+				<div class="dragbox-content">
+					<div style="position:absolute; left:0; top:0; padding-left:10; pointer-events:none">
+						<h2 id="floor-detail-floor-label">F2</h2>
+						<div id="path-weight-slider" style="height:250px;"></div>
+						<p style="margin-top:20">
+							<label for="path-weight-label">Link weight:</label>
+							<input type="text" id="path-weight-label" readonly>
+						</p>
+					</div>
+					<div id="floor-detail-wrapper" style="width:100%; height: 100%">
+						<svg width="100%" height="100%" id="floor-detail-svg">
+							<g id="floor-detail-g">
+								<g id="brush-select"></g>
+								<g id="path-wrapper"></g>
+								<g id="aps-wrapper"></g>
+								<g id="device-wrapper"></g>
+							</g>
+							<g id="floor-detail-ap-histogram"><g class="x axis"></g></g>
+						</svg>
+					</div>
+				</div>
+			</div>
+			<div class="dragbox graph-view" id="device-graph-wrapper" style="z-index:9">
+				<h3 class="header"></h3>
+				<div class="btn-group btn-group-xs float-right">
+					<span class="btn btn-default btn-xs">AP</span>
+					<span class="btn btn-default btn-xs active">Device</span>
+				</div>
+				<svg class="dragbox-content" width="100%" height="100%" style="margin-top:-20px"></svg>
+			</div>			
+			<div class="dragbox graph-view" id="aps-graph-wrapper" style="z-index:10">
+				<h3 class="header"></h3>
+				<div class="btn-group btn-group-xs float-right">
+					<span class="btn btn-default btn-xs active">AP</span>
+					<span class="btn btn-default btn-xs">Device</span>
+				</div>
+				<svg class="dragbox-content" width="100%" height="100%" style="margin-top:-20px"></svg>
+				<div id="ap-graph-description" class="wfv-tip-wrapper ap-graph-tip-wrapper"></div>
+			</div>
+
+			<div class="dragbox" id="timeline-wrapper">
+				<h3 class="header"></h3>
+				<div class="dragbox-content" style="position:absolute;right:10;top:10;margin:6 10 0 0">
+					<button class="btn" id="timeline-btn-play">
+						<i class="fa fa-play"></i>
+					</button>
+					<button class="btn" id="timeline-btn-stop">
+						<i class="fa fa-stop"></i>
+					</button>
+				</div>
+				<svg class="dragbox-content" id="timeline-svg" width="100%" height="100%">
+					<g id="timeline-g">
+						<rect id="timeline-btn-scale" style="display:none"></rect>
+						<!--<g id="timeline-basic"></g>-->
+						<g id="timeline-floor"></g>
+						<g id="timeline-ap"></g>
+						<g id="brush"></g>
+						<g id="x-axis"></g>
+						<g id="y-axis"></g>
+						<g id="popup-tip"></g>
+					</g>
+				</svg>
+			</div>
+
+			<div class="dragbox" id="device-view-wrapper">
+				<h3 class="header"></h3>
+				<div class="btn-group" role="group">
+					<button type="button" id="device-view-reset-btn" class="btn btn-default btn-xs dragbox-content">Reset</button>
+					<button type="button" id="device-view-zoom-in-btn" class="btn btn-default btn-xs dragbox-content">+</button>
+					<button type="button" id="device-view-zoom-out-btn" class="btn btn-default btn-xs dragbox-content">-</button>
+				</div>
+				<div class="btn-group" role="group">
+  					<button type="button" id="device-view-linear-scale-btn" class="btn btn-default btn-xs">linear</button>
+  					<button type="button" id="device-view-non-linear-scale-btn" class="btn btn-default btn-xs">non-linear</button>
+				</div>
+				<div id="device-view-login-description" class="wfv-tip-wrapper"></div>
+				<svg class="dragbox-content" id="device-view-left-svg" width="8%" height="90%"></svg>
+				<svg class="dragbox-content" id="device-view-svg" width="82%" height="90%">
+					<g id="device-view-g">
+						<g id="device-view-y-axis-g"></g>
+						<g id="device-view-x-axis-g"></g>
+				</svg>
+				<svg class="dragbox-content" id="device-view-list-svg" width="10%" height="90%"></svg>
+			</div>	
+			<!-- <div class="dragbox" id="device-view-non-linear-wrapper">
+				<h3 class="header"></h3>
+				
+				<button type="button" id="device-view-non-linear-reset-btn" class="btn btn-default btn-xs dragbox-content">Reset</button>
+				<button type="button" id="device-view-non-linear-zoom-in-btn" class="btn btn-default btn-xs dragbox-content">+</button>
+				<button type="button" id="device-view-non-linear-zoom-out-btn" class="btn btn-default btn-xs dragbox-content">-</button>
+
+				<svg class="dragbox-content" id="device-view-non-linear-left-svg" width="5%" height="95%"></svg>
+				<svg class="dragbox-content" id="device-view-non-linear-svg" width="85%" height="95%">
+					<g id="device-view-non-linear-g">
+						<g id="device-view-non-linear-y-axis-g"></g>
+						<g id="device-view-non-linear-x-axis-g"></g>
+				</svg>
+				<svg class="dragbox-content" id="device-view-non-linear-list-svg" width="10%" height="95%"></svg>
+			</div>	 -->
+			<div class="dragbox" id="ap-view-wrapper">
+				<h3 class="header"></h3>
+				<div class="btn-group" role="group">
+					<button type="button" id="ap-view-reset-btn" class="btn btn-default btn-xs dragbox-content">Reset</button>
+					<button type="button" id="ap-view-zoom-in-btn" class="btn btn-default btn-xs dragbox-content">+</button>
+					<button type="button" id="ap-view-zoom-out-btn" class="btn btn-default btn-xs dragbox-content">-</button>
+				</div>
+				<div class="btn-group" role="group">
+  					<button type="button" id="ap-view-linear-scale-btn" class="btn btn-default btn-xs">linear</button>
+  					<button type="button" id="ap-view-non-linear-scale-btn" class="btn btn-default btn-xs">non-linear</button>
+				</div>
+
+				<div id="ap-view-login-description" class="wfv-tip-wrapper"></div>
+				<div id="ap-view-curtime-tip" class="wfv-tip-wrapper"></div>
+				<svg class="dragbox-content" id="ap-view-left-svg" width="8%" height="90%"></svg>
+				<svg class="dragbox-content" id="ap-view-svg" width="92%" height="90%">
+					<g id="ap-view-g">
+						<g id="ap-view-y-axis-g"></g>
+						<g id="ap-view-x-axis-g"></g>
+					
+				</svg>
+			</div>	
+
+
+			<div class="dragbox" id="controller-wrapper">
+				<h3 class="header"></h3>
+				<div class="dragbox-content">
+					<strong>AP:</strong> <span id="ap-selected-count">0</span>/250 selected. 
+					<span  class="btn btn-default btn-xs" id="ap-clear-button">Clear</span>
+					<br>
+					<strong>Device:</strong> <span id="device-selected-count">0</span> selected.
+ 					<span  class="btn btn-default btn-xs" id="device-clear-button">Clear</span>
+				</div/>
+			</div>
+
+		</div>
+	</div>
+	<script type="text/javascript" src="jslib/bootstrap/js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/utils.js"></script>
+	<script type="text/javascript" src="js/ObserverManager.js"></script>
+	<script type="text/javascript" src="js/EventManager.js"></script>
+	<script type="text/javascript" src="js/color.js"></script>
+	<script type="text/javascript" src="WFV.js"></script>
+	<script type="text/javascript" src="db/db.js"></script>
+	<script type="text/javascript" src="js/RecordTracer.js"></script>
+	<script type="text/javascript" src="js/FloorBar.js"></script>
+	<script type="text/javascript" src="js/Timeline.js"></script>
+	<script type="text/javascript" src="js/FloorDetail.js"></script>
+	<script type="text/javascript" src="js/ApGraph.js"></script>
+	<script type="text/javascript" src="js/ApView.js"></script>
+	<script type="text/javascript" src="js/DeviceGraph.js"></script>
+	<script type="text/javascript" src="js/DeviceView.js"></script>
+	<script type="text/javascript" src="js/NlDeviceView.js"></script>
+	<script type="text/javascript" src="js/ControllerView.js"></script>
+	<script type="text/javascript" src="main.js"></script>
+
+
+</body>
+</html>
