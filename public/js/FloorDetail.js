@@ -421,8 +421,7 @@ WifiVis.FloorDetail = function(){
 		}).each("end", function(d){
 			d3.select(this).style("fill", null);
 		});
-		gDevice.exit().selectAll("rect").style("fill", "yellow");
-		gDevice.exit().transition().duration(800).remove();
+		gDevice.exit().remove();
 		// update with enter
 		gDevice.classed("selected", function(d){
 			return d.device.selected;
@@ -446,13 +445,13 @@ WifiVis.FloorDetail = function(){
 				d.device.selected = null;
 				//
 				deviceLst = _.difference(deviceLst, [d.mac]);
-				EventManager.deviceSelect([d.mac], FloorDetail);
+				EventManager.deviceDeselect([d.mac], FloorDetail);
 			}else{
 				ele.attr("selected", true).classed("selected", true);
 				d.device.selected = true;
 				//
 				deviceLst = _.union(deviceLst, [d.mac]);
-				EventManager.deviceDeselect([d.mac], FloorDetail);
+				EventManager.deviceSelect([d.mac], FloorDetail);
 			}
 		});
 	}
