@@ -100,14 +100,7 @@
 	left: 70%;
 	width: 30%;
 	height: 50%;
-}
-
-#device-view-non-linear-wrapper{
-	position: absolute;
-	top: 50%;
-	left: 70%;
-	width: 30%;
-	height: 50%;
+	overflow: scroll;
 }
 
 #controller-wrapper {

@@ -1,5 +1,5 @@
 function DeviceFeature(mac, logins, durations, totalDuration, apDurations){
-  this.mac = device.mac;
+  this.mac = mac;
   this.logins = logins;
   this.durations = durations;
   this.totalDuration = totalDuration;
@@ -19,7 +19,8 @@ DeviceFeature.prototype.init = function(){
   that.durations.forEach(function(d) {
     that.avgDuration += d.end.date_time - d.start.date_time;
   });
-  that.avgDuration /= that.durations.length;
+  if (that.durations.length)
+    that.avgDuration /= that.durations.length;
   Object.keys(that.apDurations).forEach(function(d) {
     that.avgAPDuration[d] = 0;
     that.apDurations[d].forEach(function(p) {
@@ -32,7 +33,7 @@ DeviceFeature.prototype.init = function(){
   that.logins.forEach(function(d) {
     if (!(d.apid in curApMap)) {
       curApMap[d.apid] = d.apid;
-      thar.accessedAPCount ++;
+      that.accessedAPCount ++;
     }
   });
 }
@@ -47,14 +48,16 @@ WifiVis.DeviceStats = function(){
   var deviceList = [], deviceMap = {};
   var apList = [], apMap = {};
 
-  var loginRecords;
+  var deviceLoginRecords;
   var deviceTotalLoginDuration = {};
   var deviceLoginDuration = {};
   var deviceAPLoginDuration = {};
 
-
   var checkInIntervalString = "2013-09-02 00:00:30";
+  var checkInIntervalDate = new Date(checkInIntervalString);
   var checkInInterval;
+
+  var svg = utils.initSVG("#device-stats-svg", [0]);
 
   var size, timelineSize;
 
@@ -100,20 +103,18 @@ WifiVis.DeviceStats = function(){
     }
 
     if(message === WFV.Message.ApSelect){
-      console.log(data);
       if (!data.isAdd) {
         apList = data.change;
-        console.log(apMap);
+
         apList.forEach(function(d) {
           delete apMap[d];
         });
-        console.log(apMap);
+
         deviceList = [];
         deviceMap = {};
         if (Object.keys(apMap).length > 0) {
           var waitData = Object.keys(apMap).length;
           Object.keys(apMap).forEach(function(d) {
-            console.log(d);
             db.macs_by_ap(timeFrom, timeTo, d, function(res) {
               
               // deviceList.concat(res.map(function(p) {
@@ -125,7 +126,6 @@ WifiVis.DeviceStats = function(){
                   deviceList.push(p.mac);
                 }
               });
-              console.log(deviceList);
               waitData --;
             }); 
           }); 
@@ -134,23 +134,19 @@ WifiVis.DeviceStats = function(){
           DeviceStats.update(); 
         }
         else {
-          console.log(deviceList);
           deviceList = [];
           render(1);
         }
         return;
       }
       else {
-        console.log(data.apid);
         apList = data.apid;
         apList.forEach(function(d) {
           apMap[d] = d;
         });
-        console.log(apMap);
         //deviceList = [];
         var waitData = apList.length;
         apList.forEach(function(d) {
-          console.log(d);
           db.macs_by_ap(timeFrom, timeTo, d, function(res) {
             // deviceList.concat(res.map(function(p) {
             //   return p.mac;
@@ -165,7 +161,6 @@ WifiVis.DeviceStats = function(){
           }); 
         });
         while (waitData > 0) {};
-        console.log(deviceList);
         DeviceStats.update();
       }
     }
@@ -177,8 +172,13 @@ WifiVis.DeviceStats = function(){
     loginRecords = [];
     var access_data = [];
     apNameMappings = {}, apFloorMappings = {};
+    deviceLoginRecords = {};
+    deviceTotalLoginDuration = {};
+    deviceLoginDuration = {};
+    deviceAPLoginDuration = {};
     for (var k = 0; k < deviceList.length; k++) {
       access_data.push(get_access_data(deviceList[k], [timeFrom]));
+      deviceLoginRecords[deviceList[k]] = [];
       deviceTotalLoginDuration[deviceList[k]] = 0.0;
       deviceLoginDuration[deviceList[k]] = [];
       deviceAPLoginDuration[deviceList[k]] = {};
@@ -191,11 +191,11 @@ WifiVis.DeviceStats = function(){
       d[0].line
         .forEach(function(p){
           loginRecords.push(p);
+          deviceLoginRecords[p.mac].push(p);
         });
     });
 
     checkInInterval = checkInIntervalDate - timeFrom;
-    console.log(checkInInterval);
     dataset = [];
     var cnt = 0;
     var dataDeviceMappings = {};
@@ -239,25 +239,40 @@ WifiVis.DeviceStats = function(){
       }
     });
 
-    var devicePCP = {};
-    
-    var devicePCPs = deviceList.map(function(d){
-      var fts_device = new DeviceFeature(d, loginRecords[d], deviceLoginDuration[d], deviceTotalLoginDuration[d], deviceAPLoginDuration[d]);
-      var res = {
-        mac: fts_device.mac,
-        ftRecordNumber: fts_device.ftRecordNumber,
-        ftAPNumber: fts_device.ftAPNumber,
-        avgStayTime: fts_device.avgStayTime
-      };
-      for (var apid in apMap) {
-        res[apid] = fts_device[apid];
-      }
-    });
-    console.log(devicePCPs);  
-    // console.log()
-    devicePCP = PCP.init(d3.select("#device-stats-svg");, {pos: [100,100], size: [800,600]}, devicePCPs);
+    console.log(loginRecords);
+    console.log(deviceLoginRecords);
+    console.log(deviceLoginDuration);
+    render(1);
   }
 
+
+  function render(needRemove) {
+    var svg = d3.select("#device-stats-svg");
+    if (needRemove) {
+      svg.selectAll("g").remove();
+    }
+
+    var devicePCP = {};
+    
+    var devicePCPs = deviceList.map(function(d, i){
+      console.log(d);
+      console.log(deviceLoginRecords[d]);
+      var fts_device = new DeviceFeature(d, deviceLoginRecords[d], deviceLoginDuration[d], deviceTotalLoginDuration[d], deviceAPLoginDuration[d]);
+      var res = {
+        mac: db.macid_by_mac(fts_device.mac),
+        recordCount: fts_device.recordCount,
+        accessedAPCount: fts_device.accessedAPCount,
+        avgDuration: fts_device.avgDuration
+      };
+      Object.keys(apMap).forEach(function(p, j){
+        res["apid " + j] = fts_device.avgAPDuration[p];
+      });
+      return res;
+    });
+    console.log(devicePCPs);  
+    devicePCP = PCP.init(svg, {pos: [100,100], size: [800,600]}, devicePCPs);
+  }
+    
   return DeviceStats;
 }
 
