@@ -54,7 +54,7 @@ WifiVis.FloorDetail = function(){
 		range: true,
 		values: [0,100],
 		slide: function(event, ui){
-			var v1 = ui.values[0], v2 = ui.values[1];
+			var v1 = ui.values[0] || 0, v2 = ui.values[1];
 			$("#path-weight-label").val(v1 + "-" + v2);
 			filter_links(v1, v2);
 		}
@@ -256,8 +256,9 @@ WifiVis.FloorDetail = function(){
 		update_device(aps);
 		update_links(links);
 		update_histogram_in_out(links);
-		$("#path-weight-label").val($( "#path-weight-slider" ).slider( "values", 0 )
-				+ $( "#path-weight-slider" ).slider( "values", 1 ));
+		var v0 = $("#path-weight-slider" ).slider("values", 0) || 0;
+		var v1 = $("#path-weight-slider" ).slider("values", 1);
+		$("#path-weight-label").val(v0 + "-" + v1);
 	}
 	function init_interaction(){
 	}
