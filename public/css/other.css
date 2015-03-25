@@ -25,7 +25,29 @@ rect.placeholder{
 	margin: auto;
 	visibility: inherit;
 }
+/*
+ * floor select menu
+ */
+#floor-select-menu{
+	width: 80px;
+	height: 20px;
+	font-size: 12px;
+}
 
+#floor-select-menu + span.ui-selectmenu-button{
+	width: 80px;
+  height: 22px;
+  font-size: 12px;
+}
+
+#floor-select-menu + span.ui-selectmenu-button .ui-selectmenu-text{
+	padding: 3px 15px;
+}
+
+.ui-menu-item{
+	text-align: center;
+	font-size: 12px;
+}
 /*
  * tip
  */

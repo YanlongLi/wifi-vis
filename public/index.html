@@ -97,12 +97,16 @@
 				<h3 class="header"></h3>
 				<div class="dragbox-content wfv-view-wrapper-default">
 					<div style="position:absolute; left:0; top:0; padding-left:10; pointer-events:none">
-						<h2 id="floor-detail-floor-label">F2</h2>
-						<div id="path-weight-slider" style="height:250px;"></div>
+						<!--<h2 id="floor-detail-floor-label">F2</h2>-->
+						<div id="path-weight-slider" style="margin-top:60px; height:250px;"></div>
 						<p style="margin-top:20">
-						<label for="path-weight-label">Link weight:</label>
-						<input type="text" id="path-weight-label" readonly>
+							<label for="path-weight-label">Link weight:</label>
+							<input type="text" id="path-weight-label" readonly>
 						</p>
+					</div>
+					<div style="position:absolute; right:0; top:12px; padding-right:10;">
+						<!--<label for="floor-select-menu">Select a floor</label>-->
+						<select name="floor-select-menu" id="floor-select-menu"></select>
 					</div>
 					<div class="wfv-svg-wrapper" id="floor-detail-wrapper">
 						<svg id="floor-detail-svg" width="100%" height="100%">

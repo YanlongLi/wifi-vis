@@ -36,6 +36,19 @@ WifiVis.FloorDetail = function(){
 	var y_ap_hist = d3.scale.linear();
 	var ap_hist_axis = d3.svg.axis().scale(x_ap_hist).orient("bottom");
 	//
+	var apNumOfFloor = WFV.AP_NUM_OF_FLOOR;
+	_.range(1,18).forEach(function(f){
+		var html = "F"+f+"("+apNumOfFloor(f)+")";
+		$("<option></option>").attr("value", f).html(html).appendTo($("#floor-select-menu"));
+	});
+	$("#floor-select-menu option").first().attr("selected", "selected");
+	$("#floor-select-menu").selectmenu({
+		change: function(event, ui){
+			_help_change_floor(+ui.item.value);
+			EventManager.floorChange(+ui.item.value, FloorDetail);
+		}
+	});
+	//
 	$("#path-weight-slider").slider({
 		orientation: "vertical",
 		range: true,
@@ -162,22 +175,25 @@ WifiVis.FloorDetail = function(){
 			.y(d3.scale.identity().domain([0, size.height]));
 		g.select("#brush-select").call(brush);
 	}
+	function _help_change_floor(f){
+		currentFloor = f;
+		if(!currentFloor) return;
+		$("#floor-detail-floor-label").text("F" + currentFloor);
+		var imgSize = floorImgSize(currentFloor)
+			x.domain([0, imgSize[0]]);
+		y.domain([0, imgSize[1]]);
+		aps = apLst.filter(function(d){return d.floor == currentFloor});
+		//
+		if(graphInfo){
+			_reset();
+		}else{
+			load_links_data(_reset);
+		}
+	}
 	ObserverManager.addListener(FloorDetail);
 	FloorDetail.OMListen = function(message, data, sender){
 		if(message == WFV.Message.FloorChange){
-			currentFloor = +data.floor;
-			if(!currentFloor) return;
-			$("#floor-detail-floor-label").text("F" + currentFloor);
-			var imgSize = floorImgSize(currentFloor)
-			x.domain([0, imgSize[0]]);
-			y.domain([0, imgSize[1]]);
-			aps = apLst.filter(function(d){return d.floor == currentFloor});
-			//
-			if(graphInfo){
-				_reset();
-			}else{
-				load_links_data(_reset);
-			}
+			_help_change_floor(+data.floor);
 		}
 		if(message == WFV.Message.ApHover){
 			if(sender == FloorDetail) return;
@@ -226,22 +242,22 @@ WifiVis.FloorDetail = function(){
 			graphInfo = null;
 			load_links_data(_reset);
 		}
-		function _reset(){
-			// reset slider
-			links = graphInfo.filter(function(link){
-				return link.sap.floor == currentFloor && link.tap.floor == currentFloor;
-			});
-			var max = d3.max(links, function(d){return d.weight});
-			$("#path-weight-slider").slider("option", "max", max)
-				.slider("option", "min", 0)
-				.slider("option", "values", [0, max]);
-			update_aps(aps);
-			update_device(aps);
-			update_links(links);
-			update_histogram_in_out(links);
-			$("#path-weight-label").val($( "#path-weight-slider" ).slider( "values", 0 )
-					+ $( "#path-weight-slider" ).slider( "values", 1 ));
-		}
+	}
+	function _reset(){
+		// reset slider
+		links = graphInfo.filter(function(link){
+			return link.sap.floor == currentFloor && link.tap.floor == currentFloor;
+		});
+		var max = d3.max(links, function(d){return d.weight});
+		$("#path-weight-slider").slider("option", "max", max)
+			.slider("option", "min", 0)
+			.slider("option", "values", [0, max]);
+		update_aps(aps);
+		update_device(aps);
+		update_links(links);
+		update_histogram_in_out(links);
+		$("#path-weight-label").val($( "#path-weight-slider" ).slider( "values", 0 )
+				+ $( "#path-weight-slider" ).slider( "values", 1 ));
 	}
 	function init_interaction(){
 	}

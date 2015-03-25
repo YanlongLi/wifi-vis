@@ -54,6 +54,11 @@ WFV.FLOOR_IMG_SIZE = function(f){
 	return [1000, 600];
 };
 
+WFV.AP_NUM_OF_FLOOR = function(f){
+	var num = [0,8,11,24,11,15,21,21,18,14,15,16,15,15,15,14,10,7];
+	return num[f];
+};
+
 WFV.VIR_AP_POS = [
 	[[0 , 0] , [0    , 0] , [0 , 0]    , [0    , 0]]    ,
 	[[0 , 0] , [1003 , 0] , [0 , 519]  , [1003 , 519]]  ,
