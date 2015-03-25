@@ -13,7 +13,8 @@ var floor_bar = WFV.FloorBar([timeFrom, timeTo]);
 
 var floorDetail, floorsNav, timeline;
 var apGraph, deviceGraph, controllerView;
-var apView, deviceView;
+var deviceView, apView;
+var deviceStats;
 var loading_tip = loading_tip || {};
 
 $(document).ready(function() {
@@ -78,16 +79,15 @@ function init(){
 	floorDetail = WFV.FloorDetail();
 	timeline = WFV.Timeline([timeFrom, timeTo]);
 	// apGraph
-	apGraph = WifiVis.ApGraph();
-	apGraph.init();
+	//apGraph = WifiVis.ApGraph();
+	//apGraph.init();
 	// deviceGrpah
 	deviceGraph = WifiVis.DeviceGraph();
 	deviceGraph.init();
 
-	deviceView = WFV.DeviceView();
-	//nlDeviceView = WFV.NlDeviceView();
+	//deviceView = WFV.DeviceView();
 	//deviceView.draw();
-	apView = WFV.ApView();
+	//apView = WFV.ApView();
 	// floorDetail.addFloorChangeListener(apGraph);
 	// floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, apGraph);
 	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_ENTER, apGraph);
@@ -96,7 +96,9 @@ function init(){
 	// apGraph.addEventListener(apGraph.EventType.AP_CLICK, floorDetail);
 	// //
 	// timeline.update();
-	apGraph.draw(); 
+	//apGraph.draw(); 
+	deviceStats = WFV.DeviceStats();
+
 	//EventManager.timeRangeChanged([new Date(2013,08,02,12), new Date(2013,08,02,16)]);
 	EventManager.timePointChange(new Date(2013,08,02,12));
 	EventManager.floorChange(1);
