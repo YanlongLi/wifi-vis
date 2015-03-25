@@ -1,0 +1,52 @@
+path.PCP_path{
+	fill: none;
+	opacity: 0.3;
+	stroke-width: 2;
+}
+
+path.PCP_path.PCP_hovered{
+	fill: none;
+	opacity: 1;
+	stroke-width: 5;
+}
+
+path.PCP_path.PCP_fade{
+	fill: none;
+	opacity: 0.05;
+	stroke-width: 2;
+}
+
+.PCP_axis path{
+	fill: none;
+	stroke: #000;
+	stroke-width: 2;
+}
+
+circle.PCP_hdl{
+	fill: #A40;
+	stroke: none;
+	cursor: pointer;
+}
+
+g.PCP_brush .extent{
+	stroke: #000;
+	fill: #000;
+	fill-opacity: .125;
+	shape-rendering: crispEdges;
+}
+
+circle.PCP_hdl.PCP_chosen{
+	fill: #F40;
+	stroke: none;
+	cursor: pointer;
+}
+
+g.PCP_Canvas{
+	moz-user-select: -moz-none;
+	-moz-user-select: none;
+	-o-user-select:none;
+	-khtml-user-select:none;
+	-webkit-user-select:none;
+	-ms-user-select:none;
+	user-select:none;
+}

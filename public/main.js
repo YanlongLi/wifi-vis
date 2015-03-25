@@ -78,9 +78,6 @@ function init(){
 	
 	floorDetail = WFV.FloorDetail();
 	timeline = WFV.Timeline([timeFrom, timeTo]);
-	//EventManager.timeRangeChanged([new Date(2013,08,02,12), new Date(2013,08,02,16)]);
-	EventManager.timePointChange(new Date(2013,08,02,12));
-	EventManager.floorChange(1);
 	// apGraph
 	apGraph = WifiVis.ApGraph();
 	apGraph.init();
@@ -102,6 +99,9 @@ function init(){
 	apGraph.draw(); 
 	//deviceStats = WFV.DeviceStats();
 
+	//EventManager.timeRangeChanged([new Date(2013,08,02,12), new Date(2013,08,02,16)]);
+	EventManager.timePointChange(new Date(2013,08,02,12));
+	EventManager.floorChange(1);
     controllerView = WFV.ControllerView();
     controllerView.init()
 
