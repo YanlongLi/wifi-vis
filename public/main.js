@@ -13,6 +13,8 @@ var floor_bar = WFV.FloorBar([timeFrom, timeTo]);
 
 var floorDetail, floorsNav, timeline;
 var apGraph, deviceGraph, controllerView;
+var deviceView, apView;
+var deviceStats;
 var loading_tip = loading_tip || {};
 
 $(document).ready(function() {
@@ -87,7 +89,6 @@ function init(){
 	deviceGraph.init();
 
 	deviceView = WFV.DeviceView();
-	//nlDeviceView = WFV.NlDeviceView();
 	//deviceView.draw();
 	apView = WFV.ApView();
 	// floorDetail.addFloorChangeListener(apGraph);
@@ -99,6 +100,7 @@ function init(){
 	// //
 	// timeline.update();
 	apGraph.draw(); 
+	//deviceStats = WFV.DeviceStats();
 
     controllerView = WFV.ControllerView();
     controllerView.init()
