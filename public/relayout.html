@@ -1,0 +1,123 @@
+<html>
+<head><title>360 Wifi Visualization</title>
+	<meta charset="utf-8">
+	<!---->
+	<script type="text/javascript" src="jslib/jquery-2.1.1.js"></script>
+	<script type="text/javascript" src="jslib/jquery-ui/jquery-ui.js"></script>
+	<script type="text/javascript" src="jslib/svgclass.js"></script>
+	<script type="text/javascript" src="jslib/underscore.js"></script>
+	<script type="text/javascript" src="jslib/spin.min.js"></script>	
+	<script type="text/javascript" src="jslib/d3/d3.js"></script>
+	<script type="text/javascript" src="jslib/d3.slider.js"></script>
+	<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+	<link rel="stylesheet" href="jslib/bootstrap/css/bootstrap.css"/>
+	<link rel="stylesheet" href="jslib/jquery-ui/jquery-ui.css"/>
+	<link rel="stylesheet" href="jslib/font-awesome/css/font-awesome.min.css">
+	<link rel="stylesheet" href="//rawgithub.com/Caged/d3-tip/master/examples/example-styles.css">
+
+	<!-- <link rel="stylesheet" href="jslib/bootstrap/css/bootstrap-theme.css"/> -->
+	<link rel="stylesheet" href="jslib/d3.slider.css"/>
+	<link rel="stylesheet" href="css/floor-bar.css"/>
+	<link rel="stylesheet" href="css/floor-detail.css"/>
+	<link rel="stylesheet" href="css/aps-graph.css"/>
+	<link rel="stylesheet" href="css/device-view.css"/>
+	<link rel="stylesheet" href="css/timeline.css"/>
+	<link rel="stylesheet" href="css/other.css"/>
+	<link rel="stylesheet" href="relayout.css"/>
+	<link rel="stylesheet" href="css/basic.css"/>
+	<link rel="stylesheet" href="css/drag-panel.css"/>
+</head>
+<body>
+	<div class="navbar navbar-default navbar-fixed-top">
+		<div class="container">
+			<span><strong class="l-font">WifiVis</strong></span>
+			<span>Peking University</span>
+			<span class="float-right">
+				<span class="btn btn-default btn-xs" id="controller-button">Control</span>
+			</span>
+		</div>
+	</div>
+	<div id="main-view">
+		<div id="main-view-wrapper">
+			<!-- left views -->
+			<div class="dragbox wfv-wrapper-left">
+				<h3 class="header"></h3>
+				<div class="dragbox-content wfv-view-wrapper-default" id="floor-bar-floor-wrapper">
+				</div>
+			</div>
+			<div class="dragbox wfv-wrapper-left view-hidden">
+				<h3 class="header"></h3>
+				<div class="dragbox-content wfv-view-wrapper-default" id="floor-bar-floor-ap-wrapper">
+				</div>
+			</div>
+			<div class="dragbox wfv-wrapper-left view-hidden">
+				<h3 class="header"></h3>
+				<div class="dragbox-content wfv-view-wrapper-default" id="floor-bar-sel-ap-wrapper">
+				</div>
+			</div>
+			<!-- views middle -->
+			<div class="dragbox wfv-wrapper-middle view-hidden">
+				<h3 class="header"></h3>
+				<div class="dragbox-content wfv-view-wrapper-default" id="ap-pcp-wrapper"></div>
+			</div>
+			<div class="dragbox wfv-wrapper-middle view-hidden">
+				<h3 class="header"></h3>
+				<div class="dragbox-content wfv-view-wrapper-default" id="device-pcp-wrapper"></div>
+			</div>
+			<div class="dragbox wfv-wrapper-middle view-hidden">
+				<h3 class="header"></h3>
+				<div class="dragbox-content wfv-view-wrapper-default" id="ap-scatter-wrapper"></div>
+			</div>
+			<div class="dragbox wfv-wrapper-middle view-hidden">
+				<h3 class="header"></h3>
+				<div class="dragbox-content wfv-view-wrapper-default" id="device-scatter-wrapper"></div>
+			</div>
+			<div class="dragbox wfv-wrapper-middle">
+				<h3 class="header"></h3>
+				<div class="dragbox-content wfv-view-wrapper-default" id="ap-graph-wrapper"></div>
+			</div>
+			<div class="dragbox wfv-wrapper-middle">
+				<h3 class="header"></h3>
+				<div class="dragbox-content wfv-view-wrapper-default" id="device-graph-wrapper"></div>
+			</div>
+			<div class="dragbox wfv-wrapper-middle">
+				<h3 class="header"></h3>
+				<div class="dragbox-content wfv-view-wrapper-default" id="floor-detail-wrapper"></div>
+			</div>
+			<!-- views right -->
+			<div class="dragbox wfv-wrapper-right">
+				<h3 class="header"></h3>
+				<div class="dragbox-content wfv-view-wrapper-default">
+					<div class="wfv-wrapper-right-top"></div>
+					<div class="wfv-wrapper-right-bottom"></div>
+				</div>
+			</div>
+			<!-- views bottom -->
+			<div class="dragbox wfv-wrapper-bottom">
+				<h3 class="header"></h3>
+				<div class="dragbox-content wfv-view-wrapper-default" id="timeline-wrapper"></div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript" src="jslib/bootstrap/js/bootstrap.js"></script>
+	<script type="text/javascript" src="js/utils.js"></script>
+	<script type="text/javascript" src="js/ObserverManager.js"></script>
+	<script type="text/javascript" src="js/EventManager.js"></script>
+	<script type="text/javascript" src="js/color.js"></script>
+	<script type="text/javascript" src="WFV.js"></script>
+	<script type="text/javascript" src="db/db.js"></script>
+	<script type="text/javascript" src="js/RecordTracer.js"></script>
+	<script type="text/javascript" src="js/FloorBar.js"></script>
+	<script type="text/javascript" src="js/Timeline.js"></script>
+	<script type="text/javascript" src="js/FloorDetail.js"></script>
+	<script type="text/javascript" src="js/ApGraph.js"></script>
+	<script type="text/javascript" src="js/ApView.js"></script>
+	<script type="text/javascript" src="js/DeviceGraph.js"></script>
+	<script type="text/javascript" src="js/DeviceView.js"></script>
+	<script type="text/javascript" src="js/NlDeviceView.js"></script>
+	<script type="text/javascript" src="js/ControllerView.js"></script>
+	<script type="text/javascript" src="relayout.js"></script>
+
+
+</body>
+</html>
