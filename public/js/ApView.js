@@ -312,7 +312,7 @@ WifiVis.ApView = function() {
   }
 
   ObserverManager.addListener(ApView);
-  ApView.OMListen = function(message, data){
+  ApView.OMListen = function(message, data, sender){
     //console.log(data);
     // if(message == WFV.Message.DeviceSelect){
     //   if (!data.isAdd) return;
@@ -321,8 +321,20 @@ WifiVis.ApView = function() {
     //   ApView.update();
     // }
     if(message === WFV.Message.DeviceSelect){
-      //if (!data.isAdd) {brushedDevices = []; }
-      return;
+    
+      if (sender !== "DeviceStats") return;
+      if (!data.isAdd) {
+        data.change.forEach(function(d) {
+          gTagText.select(".mac" + d)
+            .classed("highlighted", false);
+        });
+      }
+      else {
+        data.device.forEach(function(d) {
+          gTagText.select(".mac" + d)
+            .classed("highlighted", true);
+        });
+      }
     }
 
     if(message === WFV.Message.ApSelect){
@@ -735,8 +747,10 @@ WifiVis.ApView = function() {
         .data(yScale.domain())
         .enter()
         .append("text")
-        .attr("class", "deviceTag text")
-          .attr("transform", "translate(0,0)scale(1,1)")
+        .attr("class", function (d) {
+          return "deviceTag text mac" + d;
+        })
+        .attr("transform", "translate(0,0)scale(1,1)")
         .attr("x", 0)
         .attr("y", function(d){
           return yScale(d) + yScale.rangeBand()/2.0 + 2.5;
