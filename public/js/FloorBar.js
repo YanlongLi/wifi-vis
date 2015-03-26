@@ -616,7 +616,27 @@ WFV.FloorBar = function(_time_range){
 			return;
 		}
 		if(d3.event.defaultPrevented) return; 
-		var floor = d.floor;
+		var floor = +d.floor;
+		var flag = false;
+		d3.selectAll("#floor-bar-circles, #floor-bar-tls").selectAll("g.bar, g.tl").filter(function(d){
+			return d.floor == floor;
+		}).classed("selected", function(d){
+			var ele = d3.select(this);
+			if(ele.attr("_selected")){
+				ele.attr("_selected", null);
+				flag = false;
+				return false;
+			}else{
+				ele.attr("_selected", true);
+				flag = true;
+				return true;	
+			}
+		});
+		if(flag){
+			EventManager.floorSelect([floor], FloorBar);
+		}else{
+			EventManager.floorDeselect([floor], FloorBar);
+		}
 		if(floor == current_floor){
 			is_floor_tl = !is_floor_tl;
 			// change_tl();
@@ -637,7 +657,7 @@ WFV.FloorBar = function(_time_range){
 			}
 		}else{
 			//EventManager.apDeselect(null);
-			EventManager.floorChange(floor);
+			// EventManager.floorChange(floor);
 		}
 	}
 	$(window).resize(function(e){

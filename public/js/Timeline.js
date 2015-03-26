@@ -4,10 +4,6 @@ WFV.Timeline = function(_time_range){
 	var floor_color = ColorScheme.floor;
 	var svg = $("#timeline-svg"), size;
 	var g = d3.select("#timeline-g").attr("class", "timeline");
-	// TODO to change scale
-	g.select("#timeline-btn-scale")
-		.attr("class", "timeline-btn-scale")
-		.attr("width", 30).attr("height", 15);
 	//
 	var all_time_range = _time_range, time_range = _time_range, time_point = _time_range[0]; 
 
@@ -15,7 +11,9 @@ WFV.Timeline = function(_time_range){
 	var ys = d3.range(0,3).map(function(){
 		return d3.scale.linear().range([0,10]).domain([0,1]);
 	}),y = ys[1];
+	//
 	var floor_max_count = d3.map(), ap_max_count = d3.map();
+
 	var tickFormat = d3.time.format.multi([
 			["%I:%M", function(d) { return d.getMinutes(); }],
 			["%H:%M", function(d) { return d.getHours(); }],
@@ -29,9 +27,11 @@ WFV.Timeline = function(_time_range){
 		.tickFormat(tickFormat);
 	var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5)
 		.tickFormat(d3.format(",.0f"));
+
 	var line = d3.svg.line().interpolate("monotone")
 			.x(function(d){return x(d.time)})
 			.y(function(d){return y(d.count)});
+	// timepoint line
 	var line_time_point = function(){
 		var tp = time_point;
 		var line = d3.svg.line().x(function(d){return x(d[0])});
@@ -40,6 +40,27 @@ WFV.Timeline = function(_time_range){
 	};
 	g.append("path").attr("id", "time-point-line")
 		.style("stroke", "#000000").attr("stroke-width",2);
+	//
+	var current_floor, sel_aps, 
+		floor_data_status = d3.range(0,18).map(function(){return false});
+	//
+	var step_by = "minute", step_count = 20;
+	var TIME_STEP = WFV.TIME_STEP;
+	var TIMELINE_TYPE = {
+		all: "timeline_type_all",
+		floor: "timeline_type_floor",
+		ap: "timeline_type_ap"
+	}
+	// timeline change select
+	$("input[name=timelineTypeSelect]:radio").change(function(e){
+		var v = $(this).val();
+		console.log("change scale to ", v);
+		change_scale(v);
+	});
+	//
+	var AnimationStatus = {stopped:0, running:1, paused: 2};
+	var interval, animation_status = AnimationStatus.stopped;
+	// brush
 	var brush = d3.svg.brush().x(x)
 		.on("brushstart", onBrushStart)
 		.on("brush", onBrushMove)
@@ -82,19 +103,6 @@ WFV.Timeline = function(_time_range){
 		console.log(range[0].to_time_str(), range[1].to_time_str());
 		EventManager.timeRangeChanged(time_range);
 	}
-	//
-	var current_floor, sel_aps, 
-		floor_data_status = d3.range(0,18).map(function(){return false});
-	//
-	var step_by = "minute", step_count = 20;
-	var TIME_STEP = WFV.TIME_STEP;
-	var TIMELINE_TYPE = {
-		all: "timeline_type_all",
-		floor: "timeline_type_floor",
-		ap: "timeline_type_ap"
-	}
-	var AnimationStatus = {stopped:0, running:1, paused: 2};
-	var interval, animation_status = AnimationStatus.stopped;
 
 	init_svg();
 	init_interaction();
@@ -110,12 +118,6 @@ WFV.Timeline = function(_time_range){
 			});
 		d3.range(1,18).forEach(function(f){_load_floor(f,true)});
 	})();
-	// timeline change select
-	$("input[name=timelineTypeSelect]:radio").change(function(e){
-		var v = $(this).val();
-		console.log("change scale to ", v);
-		change_scale(v);
-	});
 	//
 	g.select("#timeline-basic").attr("class", "line").append("path");
 	_timeline_data(TIMELINE_TYPE.all, null, update_basic_timeline);
@@ -433,8 +435,11 @@ WFV.Timeline = function(_time_range){
 			g.select("#y-axis").call(yAxis);
 		}else{
 			var tl = d3.select("#timeline-floor").selectAll("g.line");
-			var lines = tl.selectAll("path").attr("d",function(d){return line(d.tl_data)})
-				.style("stroke",function(d){return floor_color(d.floor)});
+			var lines = tl.selectAll("path").attr("d",function(d){
+				if(d.tl_data){
+					return line(d.tl_data);
+				}
+			}).style("stroke",function(d){return floor_color(d.floor)});
 		}
 	}
 	/*
