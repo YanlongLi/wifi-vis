@@ -85,9 +85,9 @@ function init(){
 	deviceGraph = WifiVis.DeviceGraph();
 	deviceGraph.init();
 
-	//deviceView = WFV.DeviceView();
+	deviceView = WFV.DeviceView();
 	//deviceView.draw();
-	//apView = WFV.ApView();
+	apView = WFV.ApView();
 	// floorDetail.addFloorChangeListener(apGraph);
 	// floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, apGraph);
 	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_ENTER, apGraph);

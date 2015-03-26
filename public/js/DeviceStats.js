@@ -47,6 +47,7 @@ WifiVis.DeviceStats = function(){
   var deviceFeatures = ["", "ttApNum", "avgStayTime"];
   var deviceList = [], deviceMap = {};
   var apList = [], apMap = {};
+  var apNameMappings = {};
 
   var deviceLoginRecords;
   var deviceTotalLoginDuration = {};
@@ -57,7 +58,10 @@ WifiVis.DeviceStats = function(){
   var checkInIntervalDate = new Date(checkInIntervalString);
   var checkInInterval;
 
-  var svg = utils.initSVG("#device-pcp-svg", [0]);
+  var devicePCP = {}, devicePCPs;
+
+  var svg = utils.initSVG("#device-pcp-svg", [10]);
+  var width = svg.w, height = svg.h;
 
   var size, timelineSize;
 
@@ -65,6 +69,8 @@ WifiVis.DeviceStats = function(){
   var xformatDate = d3.time.format("%H:%M");
   var FloorAPformatDate = d3.time.format("%x");
   var parseTime = d3.time.format("%y-%m-%d %H:%M:%S");
+
+  d3.select("#device-pcp-select-btn").on("click", selectDevices);
 
   function get_access_data(mac, dates){
     var access_data = [];
@@ -251,26 +257,32 @@ WifiVis.DeviceStats = function(){
     if (needRemove) {
       svg.selectAll("g").remove();
     }
-
-    var devicePCP = {};
     
-    var devicePCPs = deviceList.map(function(d, i){
+    devicePCPs = deviceList.map(function(d, i){
       console.log(d);
       console.log(deviceLoginRecords[d]);
       var fts_device = new DeviceFeature(d, deviceLoginRecords[d], deviceLoginDuration[d], deviceTotalLoginDuration[d], deviceAPLoginDuration[d]);
-      var res = {
-        mac: db.macid_by_mac(fts_device.mac),
-        recordCount: fts_device.recordCount,
-        accessedAPCount: fts_device.accessedAPCount,
-        avgDuration: fts_device.avgDuration
-      };
+      var res = {};
+      res["macid"] = db.macid_by_mac(fts_device.mac),
+      res["login count"] = fts_device.recordCount,
+      res["acsed ap num"] = fts_device.accessedAPCount,
+      res["avg stay time"] = fts_device.avgDuration / 60000;
       Object.keys(apMap).forEach(function(p, j){
-        res["apid " + j] = fts_device.avgAPDuration[p];
+        res["avg time@" + apNameMappings[p]] = fts_device.avgAPDuration[p] / 60000;
       });
       return res;
     });
     console.log(devicePCPs);  
-    devicePCP = PCP.init(svg, {pos: [100,100], size: [500,300]}, devicePCPs);
+
+    devicePCP = PCP.init(svg, {pos: [70, 50], size: [width, height]}, devicePCPs);
+  }
+
+  function selectDevices() {
+    console.log(devicePCP.getBrush());
+    EventManager.deviceDeselect(null);
+    EventManager.deviceSelect(devicePCP.getBrush().map(function(d) {
+      return deviceList[d];
+    }));
   }
     
   return DeviceStats;
