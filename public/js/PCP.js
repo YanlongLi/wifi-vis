@@ -386,12 +386,15 @@ function PCP_getBrush(){
 	if(!PCP_tPaths.empty())
 		d3.selectAll(".PCP_fade")
 	.classed("PCP_NULL",function(d,i){
-		PCP_tFade.add(i);
+		PCP_tFade.add(d.PCPInfo);
 		return false;
 	});
 	for(var i=0; i < this.data.length; i++){
-		if(!PCP_tFade.has(i))
+		
+		if(!PCP_tFade.has(this.data[i].PCPInfo)){
+			console.log(this.data[i].PCPInfo);
 			PCP_tBrushed.push(i);
+		}
 	}
 	return PCP_tBrushed;
 }

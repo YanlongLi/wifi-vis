@@ -281,6 +281,9 @@ WifiVis.DeviceStats = function(){
   function selectDevices() {
     console.log(devicePCP.getBrush());
     EventManager.deviceDeselect(null, "DeviceStats");
+    console.log(devicePCP.getBrush().map(function(d) {
+      return db.macid_by_mac(deviceList[d]);
+    }));
     EventManager.deviceSelect(devicePCP.getBrush().map(function(d) {
       return deviceList[d];
     }), "DeviceStats");
