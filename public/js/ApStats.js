@@ -33,7 +33,7 @@ ApFeature.prototype.init = function(){
 	var time_segment = [];
 	var mac_list = [];
 	
-	console.time("compute average stay time" + that.apid);
+	// console.time("compute average stay time" + that.apid);
 	db.path_all(from, to, function(paths){
 		pathAll = paths;
 		pathAll.forEach(function(path){
@@ -63,7 +63,7 @@ ApFeature.prototype.init = function(){
 		// 	that.aveStayTime = d3.sum(time_segment) / time_segment.length; 
 		// }
 		that.aveStayTime = time_segment.length == 0 ? 0 : d3.sum(time_segment) / time_segment.length; 
-		console.timeEnd("compute average stay time" + that.apid);
+		// console.timeEnd("compute average stay time" + that.apid);
 	});
 
 	var times = db_tl.ap_tl_data[0].tl_data.map(function(d){return d.time});
@@ -149,11 +149,8 @@ WifiVis.ApStats = function(){
     if(message == WFV.Message.ApSelect){
       if(sender == ApStats) return;
       var apids = data.apid, change = data.change, isAdd = data.isAdd;
-      if(!isAdd){
-
-      }else{
-      	apid_list = change;
-      }
+      	apid_list = apids;  
+      	ApStats.update(); 
     }
   }
 	
