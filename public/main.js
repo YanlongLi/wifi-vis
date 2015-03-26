@@ -87,9 +87,17 @@ function init(){
 	deviceGraph.init();
 
 	deviceView = WFV.DeviceView();
-	// deviceView.draw();
+	//deviceView.draw();
 	apView = WFV.ApView();
-	//
+	// floorDetail.addFloorChangeListener(apGraph);
+	// floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, apGraph);
+	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_ENTER, apGraph);
+	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_LEAVE, apGraph); 
+	// tlBrush.addEventListener(tlBrush.EventType.EVENT_BRUSH_END, apGraph);
+	// apGraph.addEventListener(apGraph.EventType.AP_CLICK, floorDetail);
+	// //
+	// timeline.update();
+	//apGraph.draw(); 
 	deviceStats = WFV.DeviceStats();
 
 	//

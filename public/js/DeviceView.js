@@ -375,6 +375,7 @@ WifiVis.DeviceView = function(selectedDevices){
   DeviceView.OMListen = function(message, data){
     if(message == WFV.Message.DeviceSelect){
       if (!data.isAdd) {
+        console.log(data);
         console.log(deviceMap);
         if (Object.keys(deviceMap).length > 0) {
           data.change.forEach(function(d) {
@@ -567,6 +568,8 @@ WifiVis.DeviceView = function(selectedDevices){
     for (var device = 0; device < access_data.length; device ++) {
     //for (var device = 2; device < 4; device ++) {
       tempDataset = access_data[device][0].lines;
+      if (tempDataset.length === 0)
+        continue;
       for (var i = 0; i< tempDataset.length; i++)
           tempDataset[i]["device"] = deviceList[device];
       dataset.push(tempDataset[0]);

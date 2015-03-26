@@ -219,7 +219,7 @@ WifiVis.FloorDetail = function(){
 			if(sender == FloorDetail) return;
 			var devs = data.device, change = data.change, isAdd = data.isAdd;
 			d3.select("#device-wrapper").selectAll("g.device").filter(function(d){
-				return chagne.indexOf(d.mac) != -1;
+				return change.indexOf(d.mac) != -1;
 			}).each(function(d){
 				var ele = d3.select(this);
 				ele.attr("selected", isAdd).classed("selected", isAdd);
