@@ -19,7 +19,7 @@
             sender
         );
     }
-    EventManager.floorDeSelect = function(list, sender) {
+    EventManager.floorDeselect = function(list, sender) {
         if (list == null) {
             list = floorSelectdList;
             floorSelectdList = []; 
