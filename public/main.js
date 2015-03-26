@@ -99,7 +99,8 @@ function init(){
 	// timeline.update();
 	//apGraph.draw(); 
 	deviceStats = WFV.DeviceStats();
-
+	//
+	apStats = WFV.ApStats();
 	//
 	EventManager.floorChange(1);
     controllerView = WFV.ControllerView();
