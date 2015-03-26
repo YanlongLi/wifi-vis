@@ -10,7 +10,7 @@ WFV.Timeline = function(_time_range){
 		.attr("width", 30).attr("height", 15);
 	//
 	var all_time_range = _time_range, time_range = _time_range, time_point = _time_range[0]; 
-	console.log(all_time_range);
+
 	var x = d3.time.scale().domain(all_time_range);
 	var ys = d3.range(0,3).map(function(){
 		return d3.scale.linear().range([0,10]).domain([0,1]);
@@ -110,7 +110,13 @@ WFV.Timeline = function(_time_range){
 			});
 		d3.range(1,18).forEach(function(f){_load_floor(f,true)});
 	})();
-
+	// timeline change select
+	$("input[name=timelineTypeSelect]:radio").change(function(e){
+		var v = $(this).val();
+		console.log("change scale to ", v);
+		change_scale(v);
+	});
+	//
 	g.select("#timeline-basic").attr("class", "line").append("path");
 	_timeline_data(TIMELINE_TYPE.all, null, update_basic_timeline);
 	
