@@ -107,17 +107,6 @@ WFV.Timeline = function(_time_range){
 	init_svg();
 	init_interaction();
 	//change_scale(1);
-
-	(function(){// append 1-17 floor lines, init invisible
-		var fls = g.select("#timeline-floor")
-			.selectAll("g.line").data(d3.range(1,18).map(function(d){return {floor:d}}));
-		fls.enter().append("g").attr("class", "line").append("path");
-		fls.attr("floor", function(d){return d.floor})
-			.each(function(d){
-				d3.select(this).classed("floor-" + d.floor, true);
-			});
-		d3.range(1,18).forEach(function(f){_load_floor(f,true)});
-	})();
 	//
 	g.select("#timeline-basic").attr("class", "line").append("path");
 	_timeline_data(TIMELINE_TYPE.all, null, update_basic_timeline);
@@ -153,32 +142,23 @@ WFV.Timeline = function(_time_range){
 	Timeline.OMListen = function(message, data){
 		// floor
 		if(message == WFV.Message.FloorChange){
-			//onBtnStop();
-			console.log("timeline on floor change", data.floor)
 			current_floor = +data.floor;
-			$("#timeline-floor g.line").removeClass("current");
-			$("#timeline-floor g.line[floor="+current_floor+"]").addClass("current");
-			// when change floor, only show floor timeline, ap timeline remove by ApSelect
-			change_scale(3);
-			_load_floor(current_floor, true);
+			db_tl.tlDataAps(all_time_range[0], all_time_range[1], 20, [current_floor], _update_floor_timeline);
 		}
 		if(message == WFV.Message.FloorSelect){// isAdd true or false
 			var floors = data.floor, change = data.change, isAdd = data.isAdd;
 			if(isAdd){
-				// when floor select, show floor timeline
-				// hide ap timeline, this is done by manually
-				// change_scale(2);
 				if(!change) return;
-				change.forEach(function(f){
-					$("#timeline-floor g.line[floor="+f+"]").addClass("selected")
-						.attr('_selected', true);
-				});
+				db_tl.tlDataFloors(all_time_range[0], all_time_range[1], 20, change, _update_floor_timeline);
+				return;
 			}else{
 				if(!change) return;
-				change.forEach(function(f){
-					$("#timeline-floor g.line[floor="+f+"]").removeClass("selected")
-						.attr('_selected', null);
-				});
+				d3.select("#timeline-floor").selectAll("g.line").filter(function(d){
+					if(d.floor == current_floor) return;
+					floor_max_count.remove(d.floor);
+					return change.indexOf(+d.floor) != -1;
+				}).remove();
+				return;
 			}
 		}
 		if(message == WFV.Message.FloorHover){
@@ -201,25 +181,13 @@ WFV.Timeline = function(_time_range){
 			if(isAdd){// select ap, TODO: add labels
 				 // change_scale(1);
 				if(!change) return;
-				change.forEach(function(apid){
-					// ap time line
-					//$("#timeline-ap g.line[apid="+apid+"]")
-					//	.addClass("selected").attr("_selected", true);
-					_timeline_data(TIMELINE_TYPE.ap, apid, update_ap_timeline);
-				});
+				db_tl.tlDataAps(all_time_range[0], all_time_range[1], 20, change, _update_ap_timeline);
 			}else{// deselect ap
 				if(!change) return;
-				change.forEach(function(apid){
-					// ap time line
-					$("#timeline-ap g.line[apid="+apid+"]")
-						.removeClass("selected").attr("_selected", null);
-					$("#timeline-ap g.line[apid="+apid+"]").remove();
-					// update ap_max_count
-					ap_max_count.remove(apid);
-				});
-				if(!apids.length){
-					change_scale(2);
-				}
+				d3.select("#timeline-ap").selectAll("g.line").filter(function(d){
+					ap_max_count.remove(d.apid);
+					return change.indexOf(+d.apid) != -1;
+				}).remove();
 			}
 		}
 		if(message == WFV.Message.ApHover){// isAdd true or false
@@ -339,6 +307,8 @@ WFV.Timeline = function(_time_range){
 	});
 	function change_scale(type){
 		console.log("change scale", type);
+		ys[1].domain([0, d3.max(floor_max_count.values())]).nice();
+		ys[2].domain([0, d3.max(ap_max_count.values())]).nice();
 		y = (function(){
 			if(type & 4){
 				return ys[0];
@@ -362,8 +332,8 @@ WFV.Timeline = function(_time_range){
 		//
 		// TODO BUGS
 		update_basic_timeline();
-		update_floor_timeline();
-		update_ap_timeline();
+		_update_floor_timeline();
+		_update_ap_timeline();
 	}
 	//
 	function update_basic_timeline(_data){
@@ -376,6 +346,30 @@ WFV.Timeline = function(_time_range){
 			g.select("#y-axis").call(yAxis);
 		}
 		tl.attr("d", line)
+	}
+	function _update_ap_timeline(_data){
+		var tls = d3.select("#timeline-ap").selectAll("g.line");
+		if(_data && _data.length){
+			tls = tls.data(_data, function(d){return d.floor});
+			var enter = tls.enter().append("g").attr("class", "line");
+			enter.each(function(d){
+				var cmax = d3.max(d.tl_data, function(d){return d.count});
+				ap_max_count.set(d.apid, cmax);
+				d3.select(this).append("path");
+			});
+		}
+		ys[2].domain([0, d3.max(ap_max_count.values())]).nice();
+		[tls, tls.exit ? tls.exit() : null].forEach(function(sel){
+			if(!sel) return;
+			sel.attr("apid", function(d){return d.apid})
+				.each(function(d){
+					d3.select(this).select("path")
+						.style("stroke", floor_color(d.floor))
+						.attr("d", d.tl_data ? line(d.tl_data) : "");
+				});
+		});
+		yAxis.scale(y);
+		g.select("#y-axis").call(yAxis);
 	}
 	function update_ap_timeline(_data){
 		// [{time:,count;,values:[]}].apid:
@@ -416,6 +410,30 @@ WFV.Timeline = function(_time_range){
 			_timeline_data(TIMELINE_TYPE.floor, floor, update_floor_timeline);
 		}
 		//g.select("#tl-floor-"+floor).style("display", b ? "block" : "none");
+	}
+	function _update_floor_timeline(_data){
+		var tls = d3.select("#timeline-floor").selectAll("g.line");
+		if(_data && _data.length){
+			tls = tls.data(_data, function(d){return d.floor});
+			var enter = tls.enter().append("g").attr("class", "line");
+			enter.each(function(d){
+				var cmax = d3.max(d.tl_data, function(d){return d.count});
+				floor_max_count.set(d.floor, cmax);
+				d3.select(this).append("path");
+			});
+		}
+		ys[1].domain([0, d3.max(floor_max_count.values())]).nice();
+		[tls, tls.exit ? tls.exit():null].forEach(function(sel){
+			if(!sel) return;
+			sel.attr("floor", function(d){return d.floor})
+				.each(function(d){
+					d3.select(this).select("path")
+						.style("stroke", floor_color(d.floor))
+						.attr("d", d.tl_data ? line(d.tl_data) : "");
+				});
+		});
+		yAxis.scale(y);
+		g.select("#y-axis").call(yAxis);
 	}
 	function update_floor_timeline(_data){
 		// [{time:,count;,values:[],floor:}]

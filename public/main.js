@@ -79,18 +79,18 @@ function init(){
 	floorDetail = WFV.FloorDetail();
 	timeline = WFV.Timeline([timeFrom, timeTo]);
 	// apGraph
-	apGraph = WifiVis.ApGraph();
-	apGraph.init();
-	apGraph.draw(); 
+//	apGraph = WifiVis.ApGraph();
+//	apGraph.init();
+//	apGraph.draw(); 
 	// deviceGrpah
-	deviceGraph = WifiVis.DeviceGraph();
-	deviceGraph.init();
+//	deviceGraph = WifiVis.DeviceGraph();
+//	deviceGraph.init();
 
-	deviceView = WFV.DeviceView();
+//	deviceView = WFV.DeviceView();
 	// deviceView.draw();
-	apView = WFV.ApView();
+//	apView = WFV.ApView();
 	//
-	deviceStats = WFV.DeviceStats();
+//	deviceStats = WFV.DeviceStats();
 
 	//
 	EventManager.floorChange(1);
