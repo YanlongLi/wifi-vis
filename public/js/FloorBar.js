@@ -309,10 +309,12 @@ WFV.FloorBar = function(_time_range){
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
 		size = utils.initG(g, _w, _h, [10, 20, 30, 30]);
-		vertical_scale[0].rangeBands([0, size.height]);
-		vertical_scale[1].rangeBands([0, size.height]);
+		vertical_scale[0].rangeBands([0, size.height - 2]);
+		vertical_scale[1].rangeBands([0, size.height - 2]);
+		line_generator[0].y0(function(){return vertical_scale[0].rangeBand()});
+		line_generator[1].y0(function(){return vertical_scale[1].rangeBand()});
 		//per_h.h0 = size.height / 17;
-		var offset = tl_offset;
+		var offset = tl_offset = size.width * 0.25;
 		x_line_scale.range([0, size.width - offset]);
 		//line_generator[0].y0(per_h.h0);
 		
@@ -494,6 +496,7 @@ WFV.FloorBar = function(_time_range){
 	// var horizon_data;
 	function update_horizon_bars(_data){
 		var bars = g.select("#floor-bar-circles").selectAll("g.bar");
+		circle_scale.range([0, tl_offset-2]);
 		if(_data && _data.length){
 			// horizon_data = _data;
 			vertical_scale[0].domain(_data.map(_tl_key));
@@ -618,25 +621,36 @@ WFV.FloorBar = function(_time_range){
 		if(d3.event.defaultPrevented) return; 
 		var floor = +d.floor;
 		var flag = false;
-		d3.selectAll("#floor-bar-circles, #floor-bar-tls").selectAll("g.bar, g.tl").filter(function(d){
+		d3.selectAll("#floor-bar-circles, #floor-bar-tls").selectAll("g.bar.floor, g.tl.floor").filter(function(d){
 			return d.floor == floor;
 		}).classed("selected", function(d){
 			var ele = d3.select(this);
 			if(ele.attr("_selected")){
 				ele.attr("_selected", null);
-				flag = false;
-				return false;
+				return flag = false;
 			}else{
 				ele.attr("_selected", true);
-				flag = true;
-				return true;	
+				return flag = true;
 			}
 		});
 		if(flag){
+			ftlData.flatFloor(floor, function(){
+				ftlData.getFlattedData(update_all_tls);
+			});
+			barData.flatFloor(floor, function(){
+				barData.getFlattedData(update_horizon_bars);
+			});
 			EventManager.floorSelect([floor], FloorBar);
 		}else{
+			ftlData.unflatFloor(floor, function(){
+				ftlData.getFlattedData(update_all_tls);
+			});
+			barData.unflatFloor(floor, function(){
+				barData.getFlattedData(update_horizon_bars);
+			});
 			EventManager.floorDeselect([floor], FloorBar);
 		}
+		return;
 		if(floor == current_floor){
 			is_floor_tl = !is_floor_tl;
 			// change_tl();
