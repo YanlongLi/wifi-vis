@@ -552,6 +552,7 @@ WFV_TL_DATA.prototype.init = function(dateFrom, dateTo, tracer, stepInMinutes){
 	this.tracer = tracer;
 	this.dateFrom = dateFrom;
 	this.dateTo = dateTo;
+	this.apidToFloor = d3.map();
 	//
 	var that = this;
 	var slot = [];
@@ -588,13 +589,18 @@ WFV_TL_DATA.prototype.init = function(dateFrom, dateTo, tracer, stepInMinutes){
 			var tls = _.zip.apply(_, slot);
 			var tls_floor = _.zip.apply(_, slot_floor);
 			that.ap_tl_data = tracer.aps.map(function(ap, i){
+				that.apidToFloor.set(+ap.apid, +ap.floor);
 				return {
-					apid:ap.apid,
+					apid: +ap.apid,
 					type:"ap",
-					floor: ap.floor,
+					floor: +ap.floor,
 					tl_data:tls[i]
 				};
 			});
+			that.ap_tl_data_by_floor = d3.nest().key(function(d){return d.floor})
+				.entries(that.ap_tl_data).map(function(d){
+					return d.values;
+				});
 			that.floor_tl_data = d3.range(1,18).map(function(f, i){
 				return {
 					floor: f,
@@ -612,6 +618,16 @@ WFV_TL_DATA.prototype.tlDataFloor = function(from, to, step, floor, cb){
 	cb({floor:floor, type:"floor", tl_data: tl_data});
 }
 
+WFV_TL_DATA.prototype.tlDataFloors = function(from, to, step, floors, cb){
+	var that = this;
+	var datas = floors.map(function(f){
+		var data = that.floor_tl_data[f-1];
+		var tl_data = that._slice_tl_array(from, to, data);
+		return {floor:+f, type:"floor", tl_data: tl_data};
+	});
+	cb(datas);
+}
+
 WFV_TL_DATA.prototype.tlDataAp = function(from, to, step, apid, cb){
 	var index = _.findIndex(this.ap_tl_data, {apid:+apid});
 	if(index == -1){
@@ -623,12 +639,24 @@ WFV_TL_DATA.prototype.tlDataAp = function(from, to, step, apid, cb){
 	cb({apid:apid, type:"ap", floor:data.floor, tl_data: tl_data});
 }
 
+WFV_TL_DATA.prototype.tlDataAps = function(from, to, step, apids, cb){
+	var that = this;
+	var datas = apids.map(function(apid){
+		var floor = +that.apidToFloor.get(apid);
+		var dtsOnFloor = that.ap_tl_data_by_floor[floor-1];
+		var index = _.findIndex(dtsOnFloor, {apid:+apid});
+		if(index == -1){
+			console.warn("no find ap tl data");
+		}
+		var tl_data = that._slice_tl_array(from, to, dtsOnFloor[index]);
+		return {apid:apid, type:"ap", floor:floor, tl_data: tl_data};
+	});
+	cb(datas);
+}
+
 WFV_TL_DATA.prototype.tlDataApsOfFloor = function(from, to, step, floor, cb){
 	var that = this;
-	var data = this.ap_tl_data.filter(function(d){
-		// TODO
-		return d.floor == floor && d3.sum(d.tl_data, function(d){return +d.count});
-	}).map(function(data){
+	var data = this.ap_tl_data_by_floor[floor-1].map(function(data){
 		var tl_data = that._slice_tl_array(from, to, data);
 		return {apid:data.apid, type:"ap", floor:data.floor, tl_data: tl_data};
 	});

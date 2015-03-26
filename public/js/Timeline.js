@@ -185,7 +185,7 @@ WFV.Timeline = function(_time_range){
 			var floors = data.floor, change = data.change, isAdd = data.isAdd;
 			console.log("timeline on floor hover", floors);
 			if(isAdd){
-				change_scale(2);
+				// change_scale(2);
 				change.forEach(function(f){
 					$("#timeline-floor g.line[floor="+f+"]").addClass("hover");
 				});
@@ -199,7 +199,7 @@ WFV.Timeline = function(_time_range){
 		if(message == WFV.Message.ApSelect){// isAdd true or false
 			var apids = data.apid, change = data.change, isAdd = data.isAdd;
 			if(isAdd){// select ap, TODO: add labels
-				 change_scale(1);
+				 // change_scale(1);
 				if(!change) return;
 				change.forEach(function(apid){
 					// ap time line

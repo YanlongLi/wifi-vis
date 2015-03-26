@@ -171,8 +171,8 @@ WifiVis.FloorDetail = function(){
 		var sliderHeight = size.height - 80;
 		$("#path-weight-slider").height(sliderHeight);
 		//
-		brush.x(d3.scale.identity().domain([0, size.width]))
-			.y(d3.scale.identity().domain([0, size.height]));
+		brush.x(d3.scale.identity().domain([-80, size.width+20]))
+			.y(d3.scale.identity().domain([-80, size.height+20]));
 		g.select("#brush-select").call(brush);
 	}
 	function _help_change_floor(f){
