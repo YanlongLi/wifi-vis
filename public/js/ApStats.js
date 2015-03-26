@@ -9,6 +9,8 @@ function ApFeature(apid, from, to, db, db_tl){
 }
 
 var apid_null_list = [];
+// var apid_change_list = [];
+var apid_current_list = [];
 var apid_list = [];
 
 ApFeature.prototype.init = function(){
@@ -149,12 +151,23 @@ WifiVis.ApStats = function(){
     if(message == WFV.Message.ApSelect){
       if(sender == ApStats) return;
       var apids = data.apid, change = data.change, isAdd = data.isAdd;
-      	apid_list = apids;  
-      	ApStats.update(); 
+      if(isAdd){
+      	apid_list = apids;
+      	ApStats.update(1); 
+      }else{
+      	apid_list = apids; 
+      	ApStats.update(1);
+      }
     }
   }
 	
-	ApStats.update = function(){
+	ApStats.update = function(isRemove){
+		var svg=d3.select("#ap-pcp-svg");
+		var width = svg.w, height = svg.h;
+		if(isRemove) {
+			svg.selectAll("g").remove();
+		}
+
 		db.init(function(){ 
 			db.records_by_interval(from, to, function(records){
 				var aps = db.aps_all();
@@ -166,6 +179,7 @@ WifiVis.ApStats = function(){
 				// }); 
 			
 				apid_list = _.difference(apid_list, apid_null_list);
+				apid_current_list = apid_list;
 
 				var appcps = apid_list.map(function(d){
 					var fts_ap = new ApFeature(d, from, to, db, db_tl);
@@ -180,11 +194,16 @@ WifiVis.ApStats = function(){
 					return APpcp;
 				});
 				console.log(appcps);	
-				var svg=d3.select("#ap-pcp-svg");
-				myPCP = PCP.init(svg, {pos: [100,100], size: [800,600]}, appcps);
+				
+				myPCP = PCP.init(svg, {pos: [70,30], size: [500,400]}, appcps);
 			});
 		});
 	}
+	$(window).resize(function(){
+		var w = $("#ap-pcp-svg").width() - 70 - 30,
+				h = $("#ap-pcp-svg").height() - 30 - 30;
+		myPCP.updateSize([w,h]);
+	});
 	return ApStats;
 }
 
