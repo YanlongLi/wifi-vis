@@ -79,30 +79,24 @@ function init(){
 	floorDetail = WFV.FloorDetail();
 	timeline = WFV.Timeline([timeFrom, timeTo]);
 	// apGraph
-	//apGraph = WifiVis.ApGraph();
-	//apGraph.init();
+	apGraph = WifiVis.ApGraph();
+	apGraph.init();
+	apGraph.draw(); 
 	// deviceGrpah
 	deviceGraph = WifiVis.DeviceGraph();
 	deviceGraph.init();
 
-	//deviceView = WFV.DeviceView();
-	//deviceView.draw();
-	//apView = WFV.ApView();
-	// floorDetail.addFloorChangeListener(apGraph);
-	// floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, apGraph);
-	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_ENTER, apGraph);
-	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_LEAVE, apGraph); 
-	// tlBrush.addEventListener(tlBrush.EventType.EVENT_BRUSH_END, apGraph);
-	// apGraph.addEventListener(apGraph.EventType.AP_CLICK, floorDetail);
-	// //
-	// timeline.update();
-	//apGraph.draw(); 
+	deviceView = WFV.DeviceView();
+	// deviceView.draw();
+	apView = WFV.ApView();
+	//
 	deviceStats = WFV.DeviceStats();
 
-	//EventManager.timeRangeChanged([new Date(2013,08,02,12), new Date(2013,08,02,16)]);
-	EventManager.timePointChange(new Date(2013,08,02,12));
+	//
 	EventManager.floorChange(1);
     controllerView = WFV.ControllerView();
-    controllerView.init()
+    controllerView.init();
+	//
+	EventManager.timePointChange(new Date(2013,08,02,12));
 
 }
