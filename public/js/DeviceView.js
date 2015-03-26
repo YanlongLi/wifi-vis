@@ -168,6 +168,9 @@ WifiVis.DeviceView = function(selectedDevices){
 
   function initSvg(){
     //var _w = svg.width(), _h = svg.height()-5;
+    svg = utils.initSVG("#device-view-svg", [10]);
+    leftSvg = utils.initSVG("#device-view-left-svg", [10, 0]);
+    listSvg = utils.initSVG("#device-view-list-svg", [10, 0]);
     var _w = svg.w, _h = svg.h - 5;
 
     size = utils.initG(g, _w-15, _h, [0,5,20,0]);
@@ -711,9 +714,12 @@ WifiVis.DeviceView = function(selectedDevices){
       d3.select("#device-view-wrapper")
         .on("mousemove", function(){  
           var mousex = d3.mouse(this)[0] + 2, mousey = d3.mouse(this)[1];
+          console.log(mousex);
+          console.log(leftSvg.w);
+          console.log(svg.w);
           //if (mousex < 58) mousex = leftSvg.w + 58;
           //if (mousex > svg.w + 40) mousex = svg.w + 40;
-          if (mousex < 58 || mousex > svg.w + 30) {
+          if (mousex < leftSvg.w + 20 || mousex > svg.w + leftSvg.w + 40) {
             tooltip.style("visibility", "hidden");
             vertical.style("visibility", "hidden");
             return;
@@ -723,9 +729,9 @@ WifiVis.DeviceView = function(selectedDevices){
             .style("left", mousex + "px" );
           var timePoint;
           if (isNLScale)
-            timePoint = nlX.invert(mousex - 58);
+            timePoint = nlX.invert(mousex - 30 - leftSvg.w);
           else
-            timePoint = x.invert(mousex - 58);
+            timePoint = x.invert(mousex - 30 -leftSvg.w);
           // tooltip.html( "<p>" + d3.time.format("%c")(timePoint) + "</p>" ).style("visibility", "visible");
           // tooltip.style("top", mousey + "px")
           //   .style("left", mousex + "px");
@@ -849,9 +855,11 @@ WifiVis.DeviceView = function(selectedDevices){
           var mousex = d3.mouse(this)[0] + 2, mousey = d3.mouse(this)[1];
           //if (mousex < 58) mousex = leftSvg.w + 58;
           //if (mousex > svg.w + 40) mousex = svg.w + 40;
+          console.log(mousex);
+          console.log(leftSvg.w);
           
           vertical.style("visibility", "visible")
-            .style("left", (mousex + 58) + "px" );
+            .style("left", (mousex + leftSvg.w + 30) + "px" );
           var timePoint;
           var timeLasted = d[1].date_time - d[0].date_time;
           if (isNLScale)

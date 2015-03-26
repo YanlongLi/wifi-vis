@@ -105,6 +105,7 @@ WifiVis.DeviceStats = function(){
     
     if(message === WFV.Message.DeviceSelect){
       //if (!data.isAdd) {brushedDevices = []; }
+
       return;
     }
 
@@ -279,10 +280,10 @@ WifiVis.DeviceStats = function(){
 
   function selectDevices() {
     console.log(devicePCP.getBrush());
-    EventManager.deviceDeselect(null);
+    EventManager.deviceDeselect(null, "DeviceStats");
     EventManager.deviceSelect(devicePCP.getBrush().map(function(d) {
       return deviceList[d];
-    }));
+    }), "DeviceStats");
   }
     
   return DeviceStats;
