@@ -9,12 +9,12 @@
 	fill:#C8CCD5; 
 }
 
-#floor-bar-ap-sel-circles .bar text::selection,
+.ap-bars-g .bar text::selection,
 #floor-bar-circles .bar text::selection{
 	background: none;
 }
 
-#floor-bar-ap-sel-circles .bar text.value,
+.ap-bars-g .bar text.value,
 #floor-bar-circles .bar text.value{
 	text-anchor: start;
 }
@@ -25,6 +25,7 @@
 	font-size: 10px;
 }
 
+.ap-bars-g .bar text,
 #floor-bar-ap-sel-circles .ap text,
 #floor-bar-circles .ap text{
 	font-size: 8px;
@@ -38,12 +39,14 @@
 	stroke-width: 2;
 }
 
+.ap-bars-g .bar.selected rect,
 #floor-bar-circles .floor.selected rect{
 	fill: #646464;
 	stroke: #646464;
 	stroke-width: 2;
 }
 
+.ap-bars-g .bar.hover rect,
 #floor-bar-circles .floor.hover rect{
 	fill: #646464;
 	stroke: #646464;
@@ -73,7 +76,6 @@
  * floor bar timeline
  * and aps timeline
  */
-#floor-bar-ap-sel-tls .ap path,
 #floor-bar-tls .floor path,
 #floor-bar-tls .ap path {
 	stroke: #898989;
@@ -84,14 +86,14 @@
 #floor-bar-tls .floor.current path{
 }
 
+.ap-tls-g .tl.hover  path,
 #floor-bar-tls .floor.hover path,
-#floor-bar-ap-sel-tls .ap.hover path,
 #floor-bar-tls .ap.hover path{
 	stroke-width: 2;
 }
 
+.ap-tls-g .tl.selected path,
 #floor-bar-tls .floor.selected path,
-#floor-bar-ap-sel-tls .ap.selected path,
 #floor-bar-tls .ap.selected path{
 	stroke-width: 2;
 }
@@ -100,6 +102,13 @@
 	
 }
 
+/*
+ * timepoint-line
+ */
+line.timepoint-line{
+	stroke-width: 1px;
+	stroke: black;
+}
 /*
  * tip
  */

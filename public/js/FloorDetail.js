@@ -171,8 +171,8 @@ WifiVis.FloorDetail = function(){
 		var sliderHeight = size.height - 80;
 		$("#path-weight-slider").height(sliderHeight);
 		//
-		brush.x(d3.scale.identity().domain([0, size.width]))
-			.y(d3.scale.identity().domain([0, size.height]));
+		brush.x(d3.scale.identity().domain([-80, size.width+20]))
+			.y(d3.scale.identity().domain([-80, size.height+20]));
 		g.select("#brush-select").call(brush);
 	}
 	function _help_change_floor(f){
@@ -209,7 +209,7 @@ WifiVis.FloorDetail = function(){
 			if(sender == FloorDetail) return;
 			var apids = data.apid, change = data.change, isAdd = data.isAdd;
 			g.select("#aps-wrapper").selectAll("g.ap").filter(function(d){
-				return change.indexOf(""+d.apid) != -1;
+				return change.indexOf(+d.apid) != -1;
 			}).each(function(d){
 				var ele = d3.select(this);
 				ele.attr("selected", isAdd ? true : null).classed("selected", isAdd);

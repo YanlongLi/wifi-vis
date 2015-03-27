@@ -13,6 +13,7 @@ $(document).ready(function(){
 		var id = names.join("-");
 		var p = $("#" + id).closest(".dragbox");
 		if(value){
+			p.css("z-index", ++currentZIndex);
 			$("#"+id).closest(".dragbox").css({
 				//"left": "", "top": "",
 				"visibility":"visible"
