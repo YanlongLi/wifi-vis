@@ -620,7 +620,7 @@ WFV.FloorBar = function(_time_range){
 		}
 		if(d3.event.defaultPrevented) return; 
 		var floor = +d.floor;
-		var flag = false;
+		var flag = false;// to be selected or not
 		d3.selectAll("#floor-bar-circles, #floor-bar-tls").selectAll("g.bar.floor, g.tl.floor").filter(function(d){
 			return d.floor == floor;
 		}).classed("selected", function(d){
@@ -651,28 +651,6 @@ WFV.FloorBar = function(_time_range){
 			EventManager.floorDeselect([floor], FloorBar);
 		}
 		return;
-		if(floor == current_floor){
-			is_floor_tl = !is_floor_tl;
-			// change_tl();
-			if(ftlData.floorStatus[current_floor]){
-				ftlData.unflatFloor(current_floor, function(){
-					ftlData.getFlattedData(update_all_tls);
-				});
-				barData.unflatFloor(current_floor, function(){
-					barData.getFlattedData(update_horizon_bars);
-				});
-			}else{
-				ftlData.flatFloor(current_floor, function(){
-					ftlData.getFlattedData(update_all_tls);
-				});
-				barData.flatFloor(current_floor, function(){
-					barData.getFlattedData(update_horizon_bars);
-				});
-			}
-		}else{
-			//EventManager.apDeselect(null);
-			// EventManager.floorChange(floor);
-		}
 	}
 	$(window).resize(function(e){
 		init_svg();
