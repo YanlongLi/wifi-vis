@@ -8,6 +8,32 @@
         deviceSelectdList = [],
         deviceHoveredList = [];       
 
+		/*
+		 *
+		 */
+		EventManager.selectedFloors = function(){
+			return floorSelectdList;
+		}
+
+		EventManager.hoveredFloors = function(){
+			return floorHoveredList;
+		}
+		EventManager.selectedAps = function(){
+			return apSelectdList;
+		}
+		EventManager.hoveredAps = function(){
+			return apHoveredList;
+		}
+		EventManager.selectedDevices = function(){
+			return deviceSelectdList;
+		}
+		EventManager.hoveredDevices = function(){
+			return deviceHoveredList;
+		}
+		/*
+		 *
+		 */
+
     EventManager.floorChange = function(floor, sender) {
         ObserverManager.post(WFV.Message.FloorChange, {floor:floor}, sender);
     }

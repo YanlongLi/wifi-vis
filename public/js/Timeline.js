@@ -1,12 +1,13 @@
 WFV.Timeline = function(_time_range){
 	function Timeline(){}
 	//
-	var floor_color = ColorScheme.floor;
+	var floor_color = ColorScheme.floor;// floor color function
 	var svg = $("#timeline-svg"), size;
 	var g = d3.select("#timeline-g").attr("class", "timeline");
 	//
 	var all_time_range = _time_range, time_range = _time_range, time_point = _time_range[0]; 
-
+	var current_floor, sel_aps; 
+	//
 	var x = d3.time.scale().domain(all_time_range);
 	var ys = d3.range(0,3).map(function(){
 		return d3.scale.linear().range([0,10]).domain([0,1]);
@@ -41,9 +42,6 @@ WFV.Timeline = function(_time_range){
 	g.append("path").attr("id", "time-point-line")
 		.style("stroke", "#000000").attr("stroke-width",2);
 	//
-	var current_floor, sel_aps, 
-		floor_data_status = d3.range(0,18).map(function(){return false});
-	//
 	var step_by = "minute", step_count = 20;
 	var TIME_STEP = WFV.TIME_STEP;
 	var TIMELINE_TYPE = {
@@ -65,51 +63,11 @@ WFV.Timeline = function(_time_range){
 		.on("brushstart", onBrushStart)
 		.on("brush", onBrushMove)
 		.on("brushend", onBrushEnd);
-	function onBrushStart(){
-		console.log("brush start");
-		onBtnStop();
-	}
-	function onBrushMove(e){
-		time_range  = d3.event.target.extent();
-		if(time_point - time_range[0] <= 0){
-			time_point = time_range[0];
-			g.select("#time-point-line").attr("d", line_time_point(time_point));
-			EventManager.timePointChange(time_point);
-		}else if(time_point - time_range[1] >= 0){
-			time_point = time_range[1];
-			g.select("#time-point-line").attr("d", line_time_point(time_point));
-			EventManager.timePointChange(time_point);
-		}
-		EventManager.timeRangeChange(time_range);
-	}
-	function onBrushEnd(){
-		if(!d3.event.sourceEvent) return;
-		var range = d3.event.target.extent();
-		var step = TIME_STEP[step_by] * step_count;
-		if(brush.empty() || range[1] - range[0] < step){
-			range = all_time_range;
-		}else{
-			var from = range[0];
-			from.setMinutes(from.getMinutes() - (from.getMinutes() % 20));
-			from.setSeconds(0);
-			from.setMilliseconds(0);
-			var to = range[1];
-			to.setMinutes(to.getMinutes() + 20);
-			to.setMinutes(to.getMinutes() - (to.getMinutes() % 20));
-			to.setSeconds(0);
-			to.setMilliseconds(0);
-		}
-		time_range = range;
-		console.log(range[0].to_time_str(), range[1].to_time_str());
-		EventManager.timeRangeChanged(time_range);
-	}
-
 	init_svg();
 	init_interaction();
 	//change_scale(1);
 	//
 	g.select("#timeline-basic").attr("class", "line").append("path");
-	_timeline_data(TIMELINE_TYPE.all, null, update_basic_timeline);
 	
 	EventManager.timeRangeChanged(all_time_range);
 
@@ -132,32 +90,47 @@ WFV.Timeline = function(_time_range){
 		//
 		g.select("#brush").attr("class", "brush")
 			.call(brush).selectAll("rect").attr("height", size.height);
-		//
-		var btn_scale_dx = size.width;
-		g.select("#timeline-btn-scale")
-			.attr("transform", "translate("+btn_scale_dx+")");
 	}
-	//
+	/*
+	 * message handle
+	 */
 	ObserverManager.addListener(Timeline);
 	Timeline.OMListen = function(message, data){
 		// floor
 		if(message == WFV.Message.FloorChange){
+			var of = current_floor;
 			current_floor = +data.floor;
-			db_tl.tlDataAps(all_time_range[0], all_time_range[1], 20, [current_floor], _update_floor_timeline);
+			db_tl.tlDataFloors(all_time_range[0], all_time_range[1], 20, [current_floor], update_floor_timeline);
+			d3.select("#timeline-floor").selectAll("g.line").filter(function(d){
+				return d.floor == current_floor;
+			}).classed("currrent", true);
+			if(EventManager.selectedAps().indexOf(of) == -1){
+				d3.select("#timeline-floor").selectAll("g.line").filter(function(d){
+					return d.floor == of;
+				}).remove();
+			}
+			update_floor_timeline();
+			update_ap_timeline();
 		}
 		if(message == WFV.Message.FloorSelect){// isAdd true or false
 			var floors = data.floor, change = data.change, isAdd = data.isAdd;
 			if(isAdd){
 				if(!change) return;
-				db_tl.tlDataFloors(all_time_range[0], all_time_range[1], 20, change, _update_floor_timeline);
+				var as = _.union(change, [current_floor]);
+				db_tl.tlDataFloors(all_time_range[0], all_time_range[1], 20, as, update_floor_timeline);
 				return;
 			}else{
 				if(!change) return;
 				d3.select("#timeline-floor").selectAll("g.line").filter(function(d){
 					if(d.floor == current_floor) return;
-					floor_max_count.remove(d.floor);
-					return change.indexOf(+d.floor) != -1;
+					if(change.indexOf(+d.floor) != -1){
+						floor_max_count.remove(d.floor);
+						return true;
+					}
+					return false;
 				}).remove();
+				update_floor_timeline();
+				update_ap_timeline();
 				return;
 			}
 		}
@@ -181,12 +154,15 @@ WFV.Timeline = function(_time_range){
 			if(isAdd){// select ap, TODO: add labels
 				 // change_scale(1);
 				if(!change) return;
-				db_tl.tlDataAps(all_time_range[0], all_time_range[1], 20, change, _update_ap_timeline);
+				db_tl.tlDataAps(all_time_range[0], all_time_range[1], 20, change, update_ap_timeline);
 			}else{// deselect ap
 				if(!change) return;
 				d3.select("#timeline-ap").selectAll("g.line").filter(function(d){
-					ap_max_count.remove(d.apid);
-					return change.indexOf(+d.apid) != -1;
+					if(change.indexOf(+d.apid) != -1){
+						ap_max_count.remove(d.apid);
+						return true;
+					}
+					return false;
 				}).remove();
 			}
 		}
@@ -194,13 +170,7 @@ WFV.Timeline = function(_time_range){
 			// TODO
 			var apids = data.apid, change = data.change, isAdd = data.isAdd;
 			if(isAdd){
-				if(!change) return;
-				change.forEach(function(apid){
-				});
 			}else{
-				if(!change) return;
-				change.forEach(function(apid){
-				});
 			}
 		}
 		//
@@ -239,6 +209,9 @@ WFV.Timeline = function(_time_range){
 		$(document).on("click", "#timeline-btn-play", onBtnPlay);
 		$(document).on("click", "#timeline-btn-stop", onBtnStop);
 	}
+	/*
+	 * animation control
+	 */
 	function onBtnPlay(e){
 		if(animation_status == AnimationStatus.running){
 			animation_status = AnimationStatus.paused;
@@ -299,9 +272,11 @@ WFV.Timeline = function(_time_range){
 		time_point = time_range[0];
 		EventManager.timePointChange(time_point);
 	}
+	/*
+	 *
+	 */
 	$(window).resize(function(e){
 		init_svg();
-		update_basic_timeline();
 		update_floor_timeline();
 		update_ap_timeline();
 	});
@@ -331,26 +306,25 @@ WFV.Timeline = function(_time_range){
 		_show_tl_g(2, (type & 1) ? true : false);
 		//
 		// TODO BUGS
-		update_basic_timeline();
-		_update_floor_timeline();
-		_update_ap_timeline();
-	}
-	//
-	function update_basic_timeline(_data){
-		// {time:[],count:[];,values:[]}
-		// if no _data, update
-		var tl = g.select("#timeline-basic").select("path");
-		if(_data){
-			ys[0].domain([0, d3.max(_data,function(d){return d.count})]).nice();
-			tl.datum(_data);
-			g.select("#y-axis").call(yAxis);
+		update_floor_timeline();
+		update_ap_timeline();
+		//
+		function _show_tl_g(type, flag){
+			// type:0, show timeline-basic
+			// type:1, show timeline-floor
+			// type:2  show timeline-ap
+			var selector = ["#timeline-basic", "#timeline-floor", "#timeline-ap"];
+			//g.select(selector[type]).style('display', flag ? "block":"none");
+			$(selector[type]).css("display", flag ? "block":"none");
 		}
-		tl.attr("d", line)
 	}
-	function _update_ap_timeline(_data){
+	/*
+	 * update
+	 */
+	function update_ap_timeline(_data){
 		var tls = d3.select("#timeline-ap").selectAll("g.line");
 		if(_data && _data.length){
-			tls = tls.data(_data, function(d){return d.floor});
+			tls = tls.data(_data, function(d){return d.apid});
 			var enter = tls.enter().append("g").attr("class", "line");
 			enter.each(function(d){
 				var cmax = d3.max(d.tl_data, function(d){return d.count});
@@ -371,47 +345,7 @@ WFV.Timeline = function(_time_range){
 		yAxis.scale(y);
 		g.select("#y-axis").call(yAxis);
 	}
-	function update_ap_timeline(_data){
-		// [{time:,count;,values:[]}].apid:
-		// if _data, add; no _data, update
-		if(_data){
-			console.log(_data);
-			var cmax = d3.max(_data.tl_data, function(d){return d.count});
-			ap_max_count.set(_data.apid, cmax);
-			ys[2].domain([0, d3.max(ap_max_count.values())]).nice();
-			var tls = d3.select("#timeline-ap")
-				.selectAll("g.line").data([_data], function(d){return d.apid});
-			var tls_enter = tls.enter().append("g").attr("class","line");
-			tls_enter.append('path');
-			tls.attr("apid", function(d){return d.apid}).each(function(d){
-					d3.select(this).classed("ap-"+d.apid);
-			});
-			tls.selectAll("path").datum(function(d){return d});
-				//.attr("d", line);
-			g.select("#y-axis").call(yAxis);
-		}
-		d3.select("#timeline-ap").selectAll("g.line path")
-			.attr("d",function(d){
-				return line(d.tl_data);
-			});
-	}
-	function _show_tl_g(type, flag){
-		// type:0, show timeline-basic
-		// type:1, show timeline-floor
-		// type:2  show timeline-ap
-		var selector = ["#timeline-basic", "#timeline-floor", "#timeline-ap"];
-		//g.select(selector[type]).style('display', flag ? "block":"none");
-		$(selector[type]).css("display", flag ? "block":"none");
-	}
-	function _load_floor(floor, b){// load floor data and draw path, 
-		// not change visibility
-		if(b && !floor_data_status[floor]){
-			console.log("load floor timeline data", floor);
-			_timeline_data(TIMELINE_TYPE.floor, floor, update_floor_timeline);
-		}
-		//g.select("#tl-floor-"+floor).style("display", b ? "block" : "none");
-	}
-	function _update_floor_timeline(_data){
+	function update_floor_timeline(_data){
 		var tls = d3.select("#timeline-floor").selectAll("g.line");
 		if(_data && _data.length){
 			tls = tls.data(_data, function(d){return d.floor});
@@ -435,52 +369,47 @@ WFV.Timeline = function(_time_range){
 		yAxis.scale(y);
 		g.select("#y-axis").call(yAxis);
 	}
-	function update_floor_timeline(_data){
-		// [{time:,count;,values:[],floor:}]
-		// if _data, add; no _data, update
-		if(_data){
-			var cmax = d3.max(_data.tl_data, function(d){return d.count});
-			floor_max_count.set(_data.floor, cmax);
-			ys[1].domain([0, d3.max(floor_max_count.values())]).nice();
-			//
-			var tl = d3.select(".floor-"+_data.floor).datum(_data);
-			tl.select("path").datum(function(d){return d})
-				.attr("d", function(d){
-					return line(d.tl_data);
-				}).style("stroke", function(d){return floor_color(d.floor)});
-			//
-			floor_data_status[_data.floor] = true;
-			g.select("#y-axis").call(yAxis);
-		}else{
-			var tl = d3.select("#timeline-floor").selectAll("g.line");
-			var lines = tl.selectAll("path").attr("d",function(d){
-				if(d.tl_data){
-					return line(d.tl_data);
-				}
-			}).style("stroke",function(d){return floor_color(d.floor)});
-		}
-	}
 	/*
-	 * help function
+	 * brush event
 	 */
-	function _timeline_data(type, id, cb){
-		// type
-		// 0: total records, 1: by floor, 2: by apid
-		var step      = TIME_STEP[step_by] * step_count;
-		var from = all_time_range[0], to = all_time_range[1];
-		if(type == TIMELINE_TYPE.all){
-			db.tl_data_all(from, to, step, cb);	
-		}else if(type == TIMELINE_TYPE.floor){
-			var floor     = id;
-			// db.tl_data_floor(from, to, step, floor, cb);
-			db_tl.tlDataFloor(from, to, step, floor, cb);
-		}else if(type == TIMELINE_TYPE.ap){
-			var apid = id;
-			// db.tl_data_ap(from, to, step, apid, cb);
-			db_tl.tlDataAp(from, to, step, apid, cb);
-		}else{
-			console.warn("unkonw timeline type");
-		}
+	function onBrushStart(){
+		console.log("brush start");
+		onBtnStop();
 	}
+	function onBrushMove(e){
+		time_range  = d3.event.target.extent();
+		if(time_point - time_range[0] <= 0){
+			time_point = time_range[0];
+			g.select("#time-point-line").attr("d", line_time_point(time_point));
+			EventManager.timePointChange(time_point);
+		}else if(time_point - time_range[1] >= 0){
+			time_point = time_range[1];
+			g.select("#time-point-line").attr("d", line_time_point(time_point));
+			EventManager.timePointChange(time_point);
+		}
+		EventManager.timeRangeChange(time_range);
+	}
+	function onBrushEnd(){
+		if(!d3.event.sourceEvent) return;
+		var range = d3.event.target.extent();
+		var step = TIME_STEP[step_by] * step_count;
+		if(brush.empty() || range[1] - range[0] < step){
+			range = all_time_range;
+		}else{
+			var from = range[0];
+			from.setMinutes(from.getMinutes() - (from.getMinutes() % 20));
+			from.setSeconds(0);
+			from.setMilliseconds(0);
+			var to = range[1];
+			to.setMinutes(to.getMinutes() + 20);
+			to.setMinutes(to.getMinutes() - (to.getMinutes() % 20));
+			to.setSeconds(0);
+			to.setMilliseconds(0);
+		}
+		time_range = range;
+		console.log(range[0].to_time_str(), range[1].to_time_str());
+		EventManager.timeRangeChanged(time_range);
+	}
+
 	return Timeline;
 }
