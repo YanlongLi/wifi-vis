@@ -667,6 +667,19 @@ WFV_TL_DATA.prototype.tlDataApsOfFloor = function(from, to, step, floor, cb){
 	cb(data);
 }
 
+WFV_TL_DATA.prototype.tlDataApsOfFloors = function(from, to, step, floors, cb){
+	var that = this;
+	var data = floors.map(function(floor){
+		return that.ap_tl_data_by_floor[floor-1].map(function(data){
+			var tl_data = that._slice_tl_array(from, to, data);
+			return {apid:data.apid, type:"ap", floor:data.floor, tl_data: tl_data};
+		});
+	});
+	data = Array.prototype.concat.apply([], data);
+	console.log(data);
+	cb(data);
+}
+
 /*
  * help function
  */
@@ -748,4 +761,188 @@ WFV_TL_DATA.prototype.similarityMatrix = function(from, to , _apids, cb){
 	matrix = null;
 	//cb && cb({apids:apids, matrix:m});
 	cb && cb(m);
+}
+
+
+/*
+ * FlooorBarTLData and FloorBarBarData,
+ * used by floorbar, expand one floor or unexpand one floor
+ */
+function FloorBarTlData(){
+	this.timeRange;
+	this.step;
+	this.data = null; //[{floor:, tl_data[], aps:}]
+	this.apDataMap = d3.map();
+	this.floorStatus = d3.range(0,18).map(function(){return false});
+}
+
+FloorBarTlData.prototype.init = function(range, step, cb){
+	// this function may not be called expicity
+	var that = this;
+	that.timeRange = range;
+	that.step = step;
+	that.data = null;
+	that.data = [];
+	that.data.push([]);
+	(function next_f(f, _data, cb){
+		if(f < 18){
+			// db.tl_data_floor(that.timeRange[0], that.timeRange[1], step, f, function(d){
+			db_tl.tlDataFloor(that.timeRange[0], that.timeRange[1], step, f, function(d){
+				d.type = "floor";
+				// db.tl_data_aps_of_floor(that.timeRange[0], that.timeRange[1], step, f, function(apsTlData){
+				db_tl.tlDataApsOfFloor(that.timeRange[0], that.timeRange[1], step, f, function(apsTlData){
+					d.aps = apsTlData;
+					apsTlData.forEach(function(ap){
+						ap.type = "ap";
+						that.apDataMap.set(ap.apid, ap);
+					});
+					_data.push(d);
+					next_f(f+1, _data, cb);
+				});
+			});
+		}else{
+			cb(that);
+		}
+	})(1, that.data, cb);
+}
+
+FloorBarTlData.prototype.changeRange = function(range, step, cb){
+	this.timeRange = range ? range : this.timeRange;
+	this.step = step ? step : this.step;
+	this.init(this.timeRange, this.step, _recover_status);
+	function _recover_status(that){
+		(function next_f(f){
+			if(f >= 18){
+				cb(that);
+			}else{
+				if(that.floorStatus[f]){
+					that.flatFloor(f, function(){});
+				}
+				next_f(f+1);
+			}
+		})(1);
+	}
+}
+
+FloorBarTlData.prototype.getSelData = function(apids, cb){
+	var _this = this;
+	var res = [];
+	apids.forEach(function(apid){
+		res.push(_this.apDataMap.get(apid));
+	});
+	cb && cb(res);
+}
+
+FloorBarTlData.prototype.flatFloor = function(f, cb){
+	// force to reload aps timeline
+	console.log("flatter floor", f);
+	var that = this;
+	if(that.data[f].aps){
+		that.floorStatus[f] = true;
+		cb(that);
+		return;
+	}
+	console.warn("not here");
+	if(that.floorStatus[f]) console.warn("illegal status");
+	// db.tl_data_aps_of_floor(that.timeRange[0],
+	db_tl.tlDataApsOfFloor(that.timeRange[0],
+			that.timeRange[1], that.step, f, function(apsTlData){
+				// TODO sort?
+				apsTlData.forEach(function(d){d.type = "ap"});
+				that.data[f].aps = apsTlData;
+				that.floorStatus[f] = true;
+				cb(that);
+			});
+};
+
+FloorBarTlData.prototype.unflatFloor = function(f, cb){
+	console.log("unflat floor", f);
+	var that = this;
+	that.floorStatus[f] = false;
+	cb(that);
+}
+
+FloorBarTlData.prototype.getFlattedData = function(cb){
+	// cb([{floor:,tl_data:}, {apid:, tl_data:}])
+	var res = [];
+	var that = this;
+	this.data.forEach(function(ftl,i){
+		res = res.concat(ftl);
+		if(that.floorStatus[i]){
+			if(!ftl.aps){console.warn("no aptl data")};
+			res = res.concat(ftl.aps);
+		}
+	});
+	cb(res)
+}
+
+FloorBarTlData.prototype.getFloorData = function(cb){
+	var res = this.data.map(function(d){return d})
+	cb(res);
+}
+
+
+/*
+ *
+ */
+
+function FloorBarBarData(){
+	this.timeRange;
+	this.data = null;
+	this.floorStatus = d3.range(0,18).map(function(){return false});
+	this.apDataMap = d3.map();
+}
+
+FloorBarBarData.prototype.init = function(range, cb){
+	var that = this;
+	that.timeRange = range;
+	db.ap_bar_data(that.timeRange[0], that.timeRange[1], function(data){
+		//
+		data.forEach(function(d){
+			d.aps.forEach(function(ap){
+				that.apDataMap.set(ap.apid, ap);
+			});
+		})
+		//
+		data.unshift([]);	
+		that.data = data;
+		cb && cb(that);
+	});
+}
+
+FloorBarBarData.prototype.changeRange = function(range, cb){
+	this.init(range, cb);
+}
+
+FloorBarBarData.prototype.getSelData = function(apids, cb){
+	var _this = this;
+	var res = [];
+	apids.forEach(function(apid){
+		res.push(_this.apDataMap.get(apid));
+	});
+	cb(res);
+};
+
+FloorBarBarData.prototype.flatFloor = function(f, cb){
+	this.floorStatus[f]	= true;
+	this.getFlattedData(cb);
+}
+
+FloorBarBarData.prototype.unflatFloor = function(f, cb){
+	this.floorStatus[f]	= false;
+	this.getFlattedData(cb);
+}
+
+FloorBarBarData.prototype.getFlattedData = function(cb){
+	var res = [];
+	var that = this;
+	this.data.forEach(function(ftl,i){
+		res = res.concat(ftl);
+		if(that.floorStatus[i]){
+			if(!ftl.aps){console.warn("no aptl data")};
+			ftl.aps.forEach(function(d){d.type = "ap"});
+			res = res.concat(ftl.aps);
+		}
+	});
+	cb(res)
 }
