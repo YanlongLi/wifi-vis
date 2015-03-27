@@ -209,7 +209,7 @@ WifiVis.FloorDetail = function(){
 			if(sender == FloorDetail) return;
 			var apids = data.apid, change = data.change, isAdd = data.isAdd;
 			g.select("#aps-wrapper").selectAll("g.ap").filter(function(d){
-				return change.indexOf(""+d.apid) != -1;
+				return change.indexOf(+d.apid) != -1;
 			}).each(function(d){
 				var ele = d3.select(this);
 				ele.attr("selected", isAdd ? true : null).classed("selected", isAdd);

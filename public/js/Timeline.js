@@ -16,14 +16,14 @@ WFV.Timeline = function(_time_range){
 	var floor_max_count = d3.map(), ap_max_count = d3.map();
 
 	var tickFormat = d3.time.format.multi([
-			["%I:%M", function(d) { return d.getMinutes(); }],
+			["%I:%M", function(d) { return d.getMinutes() % 30; }],
 			["%H:%M", function(d) { return d.getHours(); }],
 			["%a %d", function(d) { return d.getDay() && d.getDate() != 1; }],
 			["%b %d", function(d) { return d.getDate() != 1; }]
 	]);
 	var xAxis = d3.svg.axis().scale(x).orient("bottom")
 		.tickSize(2,0,4).tickSubdivide(0)
-		.ticks(d3.time.hour, 2)
+		.ticks(6)
 		.tickPadding(6)
 		.tickFormat(tickFormat);
 	var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5)
