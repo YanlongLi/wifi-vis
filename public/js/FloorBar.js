@@ -701,7 +701,7 @@ WFV.FloorBarFloorAps = function(timeFrom, timeTo){
 			_name.shift();
 			return "ap:" + _name.join("-") + "</br>"
 				+ "apid:" + ap.apid + "</br>"
-				+ "max online person:" + d.maxCount;
+				+ "max online person:" + ap.maxCount;
 		});
 	d3.select("#floor-bar-floor-aps-wrapper").select("svg").call(tipTimePoint);
 	d3.select("#floor-bar-floor-aps-wrapper").select("svg").call(tipAp);
@@ -968,7 +968,7 @@ WFV.FloorBarSelAps = function(){
 			return f(time);
 		});
 	var tipAp= d3.tip().attr('class', 'd3-tip')
-		.direction("sw")
+		.direction("nw")
 		.offset(function(d){
 			return [d[0],d[1]];
 		}).html(function(d){
@@ -977,7 +977,7 @@ WFV.FloorBarSelAps = function(){
 			_name.shift();
 			return "ap:" + _name.join("-") + "</br>"
 				+ "apid:" + ap.apid + "</br>"
-				+ "max online person:" + d.maxCount;
+				+ "max online person:" + ap.maxCount;
 		});
 	d3.select("#floor-bar-sel-aps-wrapper").select("svg").call(tipTimePoint);
 	d3.select("#floor-bar-sel-aps-wrapper").select("svg").call(tipAp);
@@ -1147,7 +1147,7 @@ WFV.FloorBarSelAps = function(){
 				onApHover(d.apid, true);
 			}).on("mousemove", function(d){
 				var pos = d3.mouse(this);
-				var p = [pos[1] - 10, pos[0] - 10, d];
+				var p = [pos[1] + 60, pos[0] - 10, d];
 				tipAp.show(p, this);
 			}).on("mouseout", function(d){
 				onApHover(d.apid, false);
