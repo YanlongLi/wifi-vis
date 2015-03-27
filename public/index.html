@@ -35,23 +35,28 @@
 			<div id="loading-tip"></div>
 		</div>
 	</div>
-	<div class="navbar navbar-default navbar-fixed-top">
+	<div class="navbar navbar-default navbar-fixed-top" style="background-color:#494949; color:#FFFFFF;">
 		<div class="container">
 			<span><strong class="l-font">WifiVis</strong></span>
 			<span>Peking University</span>
 			<span class="float-right">
 				<span class="btn btn-default btn-xs" id="controller-button">Control</span>
 			</span>
-			<span class="view-control-panel float-right" style="padding-right:80px" >
+			<span class="view-control-panel float-right" style="padding-right:60px" >
 				<input class="control-button" type="checkbox" id="control-ap-view-wrapper"><label for="control-ap-view-wrapper">ApView</label>
 				<input class="control-button" type="checkbox" id="control-device-view-wrapper"><label for="control-device-view-wrapper">DeviceView</label>
 			</span>
-			<span class="view-control-panel float-right" style="padding-right:80px">
+			<span class="view-control-panel float-right" style="padding-right:40px">
 				<input class="control-button" type="checkbox" id="control-floor-detail-wrapper"><label for="control-floor-detail-wrapper">FloorDetail</label>
 				<input class="control-button" type="checkbox" id="control-aps-graph-wrapper"><label for="control-aps-graph-wrapper">ApGraph</label>
 				<input class="control-button" type="checkbox" id="control-device-graph-wrapper"><label for="control-device-graph-wrapper">DeviceGraph</label>
 				<input class="control-button" type="checkbox" id="control-ap-pcp-wrapper"><label for="control-ap-pcp-wrapper">ApPCP</label>
 				<input class="control-button" type="checkbox" id="control-device-pcp-wrapper"><label for="control-device-pcp-wrapper">DevicePCP</label>
+			</span>
+			<span class="view-control-panel float-right" style="padding-right:40px">
+				<input class="control-button" type="checkbox" id="control-floor-bar-wrapper"><label for="control-floor-detail-wrapper">Floors</label>
+				<input class="control-button" type="checkbox" id="control-floor-bar-floor-aps-wrapper"><label for="control-floor-bar-floor-aps-wrapper">ApsInSelFloor</label>
+				<input class="control-button" type="checkbox" id="control-floor-bar-sel-aps-wrapper" disabled="true"><label for="control-floor-bar-sel-aps-wrapper">SelAps</label>
 			</span>
 		</div>
 	</div>
@@ -81,7 +86,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="dragbox wfv-wrapper-left">
+			<div class="dragbox wfv-wrapper-left wfv-wrapper-leftadjust-1" style="visibility: hidden;">
 				<h3 class="header"></h3>
 				<div class="dragbox-content wfv-view-wrapper-default">
 					<div class="wfv-svg-wrapper" id="floor-bar-floor-aps-wrapper">
@@ -89,6 +94,7 @@
 							<g id="floor-bar-floor-aps-g">
 								<g class="ap-bars-g"></g>
 								<g class="ap-tls-g">
+									<rect class="placeholder" width="100%" height="100%"></rect>
 									<g class="floor-bar-tls-x-axis x axis"></g>
 									<line class="timepoint-line"></line>
 								</g>
@@ -97,10 +103,21 @@
 					</div>
 				</div>
 			</div>
-			<div class="dragbox wfv-wrapper-left" style="visibility: hidden;">
+			<div class="dragbox wfv-wrapper-left wfv-wrapper-leftadjust-2" style="visibility: hidden;">
 				<h3 class="header"></h3>
 				<div class="dragbox-content wfv-view-wrapper-default">
-					<div class="wfv-svg-wrapper" id="floor-bar-sel-aps-wrapper"><svg></svg></div>
+					<div class="wfv-svg-wrapper" id="floor-bar-sel-aps-wrapper">
+						<svg width="100%" height="100%">
+							<g id="floor-bar-sel-aps-g">
+							<g class="ap-bars-g"></g>
+							<g class="ap-tls-g">
+								<rect class="placeholder" width="100%" height="100%"></rect>
+								<g class="floor-bar-tls-x-axis x axis"></g>
+								<line class="timepoint-line"></line>
+							</g>
+							</g>
+						</svg>
+					</div>
 				</div>
 			</div>
 			<!-- views middle -->
