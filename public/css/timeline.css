@@ -12,7 +12,6 @@
 	fill: none; 
 	stroke: #000000; 
 	stroke-width: 2;
-	display: none;
 }
 
 #timeline-floor g.line.current path{
