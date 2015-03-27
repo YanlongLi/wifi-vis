@@ -930,5 +930,258 @@ WFV.FloorBarFloorAps = function(timeFrom, timeTo){
 }
 
 WFV.FloorBarSelAps = function(){
+	function FloorBarSelAps(){}
+	var floor_color = ColorScheme.floor;
+	//
+	var svg = $("#floor-bar-sel-aps-wrapper > svg"), size;
+	var g = d3.select('#floor-bar-sel-aps-g');
+	//
+	var tl_offset;
+	var x_scale = d3.time.scale(),
+		y_scale = d3.scale.linear(),
+		bar_scale = d3.scale.linear(),
+		vertical_scale = d3.scale.ordinal();
+	var tickFormat = d3.time.format.multi([
+			["%I:%M", function(d) { return d.getMinutes(); }],
+			["%H:%M", function(d) { return d.getHours(); }],
+			["%a %d", function(d) { return d.getDay() && d.getDate() != 1; }],
+			["%b %d", function(d) { return d.getDate() != 1; }]
+	]);
+	var time_axis = d3.svg.axis().scale(x_scale).ticks(3).tickFormat(tickFormat);
+	var line = d3.svg.area().interpolate("monotone")
+		.x(function(d){return x_scale(d.time)})
+		.y(function(d){return y_scale(d.count)})
+		.y0(function(){return vertical_scale.rangeBand()});
 
+	//
+	var timePoint, timeRange = [timeFrom, timeTo],
+		selFloors = [], curApidLst = [];
+	var barDataByFloor, barDataMap;
+	//
+	var tipTimePoint = d3.tip().attr('class', 'd3-tip')
+		.direction("nw")
+		.offset(function(d){
+			return [d[0],d[1]];
+		}).html(function(d){
+			var time = d[2];
+			var f = d3.time.format("%Y-%m-%d %H:%M:%S");
+			return f(time);
+		});
+	var tipAp= d3.tip().attr('class', 'd3-tip')
+		.direction("sw")
+		.offset(function(d){
+			return [d[0],d[1]];
+		}).html(function(d){
+			var ap = d[2];
+			var _name = apMap.get(ap.apid).name.split(/ap|f/);
+			_name.shift();
+			return "ap:" + _name.join("-") + "</br>"
+				+ "apid:" + ap.apid + "</br>"
+				+ "max online person:" + d.maxCount;
+		});
+	d3.select("#floor-bar-sel-aps-wrapper").select("svg").call(tipTimePoint);
+	d3.select("#floor-bar-sel-aps-wrapper").select("svg").call(tipAp);
+	//
+	init_svg();
+	init_interaction();
+	//
+	function init_svg(){
+		var _w = svg.width(), _h = svg.height();
+		size = utils.initG(g, _w, _h, [10, 20, 20, 30]);
+		//
+		var offset = tl_offset = size.width * 0.25;
+		vertical_scale.rangeBands([0, size.height]);
+		x_scale.range([0, size.width - offset]);
+		bar_scale.range([0, offset - 6]);
+		//
+		//
+		g.select(".ap-tls-g").attr("transform", "translate("+offset+")");
+		g.select(".ap-tls-g").select(".x.axis")
+			.attr("transform", "translate(0,"+size.height+")").call(time_axis.scale(x_scale));
+	}
+	function init_interaction(){
+		g.select(".ap-tls-g").on("mousemove", function(d){
+			var pos = d3.mouse(this);
+			var time = x_scale.invert(pos[0]);
+			d3.select(this).select("line.timepoint-line")
+				.attr("x1", pos[0]).attr("y1", 0)
+				.attr("x2", pos[0]).attr("y2", size.height);
+			var p = [pos[1] - 10, pos[0] - 10, time];
+			tipTimePoint.show(p,this);
+		}).on("mouseout", function(d){
+			tipTimePoint.hide();
+		});
+	}
+	//
+	ObserverManager.addListener(FloorBarSelAps);
+	FloorBarSelAps.OMListen = function(message, data, sender){
+		if(message == WFV.Message.FloorChange){
+		}
+		if(message ==  WFV.Message.FloorSelect){
+		}
+		if(message ==  WFV.Message.floorHover){
+		}
+		if(message ==  WFV.Message.ApHover){
+			var apid = data.apid, change = data.change, isAdd = data.isAdd;
+			g.selectAll(".ap-tls-g, .ap-bars-g").selectAll("g.tl, g.bar").filter(function(d){
+				return change.indexOf(d.apid) != -1;
+			}).classed("hover", isAdd);
+		}
+		if(message ==  WFV.Message.ApSelect){
+			var apid = data.apid, change = data.change, isAdd = data.isAdd;
+			if(isAdd){
+				var newBarData = change.map(function(d){return barDataMap.get(d)});
+				update_ap_bars(newBarData);
+				//
+				db_tl.tlDataAps(timeRange[0], timeRange[1], 10, change, update_ap_tls);
+			}else{
+				g.selectAll(".ap-bars-g, .ap-tls-g").selectAll("g.tl, g.bar").filter(function(d){
+					return change.indexOf(d.apid) != -1;
+				}).remove();
+				curApidLst = _.difference(curApidLst, change);
+				update_ap_bars();
+				update_ap_tls();
+			}
+		}
+		if(message ==  WFV.Message.TimeRangeChanged){
+			timeRange = data.range;
+			x_scale.domain(timeRange);
+			db.ap_bar_data(timeRange[0], timeRange[1], function(data){
+				barDataMap = data;	
+				var newBarData = curApidLst.map(function(apid){return barDataMap.get(apid)});
+				update_ap_bars(newBarData);
+			}, true);
+			//
+			db_tl.tlDataAps(timeRange[0], timeRange[1], 10, curApidLst, update_ap_tls);
+			g.select(".ap-tls-g").select(".x.axis").call(time_axis.scale(x_scale));
+		}
+	}
+
+	//
+	function update_ap_bars(_data){
+		// [{apid:, floor, count:, type:"ap"}]
+		var items = g.select(".ap-bars-g").selectAll("g.bar");
+		if(_data && _data.length){
+			//
+			items = items.data(_data, function(d){return d.apid});
+			var enter = items.enter().append("g").attr("class", "bar");
+			enter.append("rect").append("title");
+			enter.append("text").attr("class", "label");
+			enter.append("text").attr("class", "value");
+			// 
+			enter.each(function(d){
+				curApidLst.push(d.apid);
+			});
+			//bars.exit().remove();
+		}
+		// to sort the slections  TODO
+		items = g.select(".ap-bars-g").selectAll("g.bar");
+		var tmpCurIds = [];
+		items.sort(function(d1, d2){
+			return d2.count - d1.count;	
+		}).order().each(function(d){
+			tmpCurIds.push(d.apid);
+		});
+		curApidLst = tmpCurIds;
+		// update bar scale
+		var cmax = 1;
+		items.each(function(d){
+			cmax = d.count > cmax ? d.count : cmax;	
+		});
+		bar_scale.domain([0, cmax]);
+		//
+		vertical_scale.domain(curApidLst);
+		var per_height = vertical_scale.rangeBand();
+		y_scale.range([per_height, 4]);
+		//
+		items.attr("apid", function(d){return d.apid})
+			.each(function(d){
+				var ele = d3.select(this);
+				ele.select("rect").style("fill", floor_color(d.floor))
+					.attr("height", per_height - 2)
+					.attr("width", bar_scale(d.count))
+					.select("title").text("persons(occur): " + d.count);
+				var _name = apMap.get(d.apid).name.split(/ap|f/);
+				_name.shift();
+				ele.selectAll("text").attr("y", per_height/2).attr("dy", 5);
+				ele.select("text.label").text(_name.join("-")).attr("x", -6)
+					ele.select("text.value").text(d.count).attr("x", bar_scale(d.count)).attr("dy", 6);
+			}).on("click", function(d){
+				onApClick.call(this, d.apid);
+			}).on("mousemove",function(d){
+				onApHover(d.apid, true);
+			}).on("mouseout", function(d){
+				onApHover(d.apid, false);
+			});
+		items.transition().attr("transform", function(d){
+			var dy = vertical_scale(d.apid);
+			return "translate(0,"+dy+")";
+		});
+	}
+	function update_ap_tls(_data){
+		var items = g.select(".ap-tls-g").selectAll("g.tl");
+		if(_data){
+			items = items.data(_data, function(d){return d.apid});
+			var enter = items.enter().append("g").attr("class", "tl");
+			enter.append("path");
+		}
+		var per_height = vertical_scale.rangeBand();
+		//
+		items = g.select(".ap-tls-g").selectAll("g.tl");
+		items.each(function(d){
+			d.maxCount = d3.max(d.tl_data, function(d){return d.count});
+		})
+		//
+		items.attr("apid", function(d){return d.apid})
+			.each(function(d){
+				var ele = d3.select(this);
+				var cmax = d3.max(d.tl_data, function(d){return d.count});
+				y_scale.domain([0, cmax || 1]);
+				ele.select("path").attr("d", line(d.tl_data))
+					.style("fill", floor_color(d.floor))
+					.style("fill-opacity", "0.5")
+					.style("stroke", "black");
+			}).on("click", function(d){
+				onApClick.call(this, d.apid);
+			}).on("mouseenter",function(d){
+				onApHover(d.apid, true);
+			}).on("mousemove", function(d){
+				var pos = d3.mouse(this);
+				var p = [pos[1] - 10, pos[0] - 10, d];
+				tipAp.show(p, this);
+			}).on("mouseout", function(d){
+				onApHover(d.apid, false);
+				tipAp.hide();
+			});
+		items.transition().attr("transform", function(d){
+			var dy = vertical_scale(d.apid);
+			return "translate(0,"+dy+")";
+		});
+	}
+	function onApHover(apid, f){
+		g.selectAll(".ap-tls-g, .ap-bars-g").selectAll("g.tl, g.bar").filter(function(d){
+			return d.apid == apid;
+		}).classed("hover", f);
+	}
+	function onApClick(apid){
+		if(d3.select(this).attr("_selected")){
+			g.selectAll(".ap-tls-g, .ap-bars-g").selectAll("g.tl, g.bar").filter(function(d){
+				return d.apid == apid;
+			}).classed("selected",false).attr("_selected", null);
+			EventManager.apDeselect([apid], FloorBarSelAps);
+		}else{
+			g.selectAll(".ap-tls-g, .ap-bars-g").selectAll("g.tl, g.bar").filter(function(d){
+				return d.apid == apid;
+			}).classed("selected",true).attr("_selected", true);
+			EventManager.apSelect([apid], FloorBarSelAps);
+		}
+	}
+	//
+	$(window).resize(function(){
+		init_svg();
+		update_ap_bars();
+		update_ap_tls();
+	});
+	//
+	return FloorBarSelAps;
 }

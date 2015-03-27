@@ -28,6 +28,7 @@ var db_tl = new WFV_TL_DATA();
 
 var floor_bar = WFV.FloorBar([timeFrom, timeTo]);
 var floor_bar_floor_aps = WFV.FloorBarFloorAps([timeFrom, timeTo]);
+var floor_bar_sel_aps = WFV.FloorBarSelAps([timeFrom, timeTo]);
 
 var floorDetail, floorsNav, timeline;
 var apGraph, deviceGraph, controllerView;

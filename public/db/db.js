@@ -358,7 +358,7 @@ WFV_DB.prototype.macid_by_mac = function(mac){
 	return +this.macIdByMac.get(mac);
 }
 
-WFV_DB.prototype.ap_bar_data = function(from, to, cb){
+WFV_DB.prototype.ap_bar_data = function(from, to, cb, isGetMap){
 	// generage ap_bar_data, [floor:, aps:[{apid, count}], count:]
 	var that = this;
 	this.records_by_interval(from, to, _structure_records);
@@ -373,6 +373,10 @@ WFV_DB.prototype.ap_bar_data = function(from, to, cb){
 				o.get(d.key).macs = macs;
 				o.get(d.key).count = macs.length;
 			});
+		if(isGetMap){
+			cb && cb(o);
+			return;
+		}
 		var data = d3.nest().key(function(d){return d.floor}).entries(o.values())
 			.map(function(d){
 				var f = d.key;
