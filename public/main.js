@@ -105,12 +105,14 @@ function init(){
 	deviceGraph = WifiVis.DeviceGraph();
 	deviceGraph.init();
 
-	deviceView = WFV.DeviceView();
-	// deviceView.draw();
-	apView = WFV.ApView();
-	//
-	deviceStats = WFV.DeviceStats();
-
+/*
+ *   deviceView = WFV.DeviceView();
+ *   // deviceView.draw();
+ *   apView = WFV.ApView();
+ *   //
+ *   deviceStats = WFV.DeviceStats();
+ * 
+ */
 	//
 	EventManager.floorChange(1);
     controllerView = WFV.ControllerView();
