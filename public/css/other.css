@@ -48,6 +48,16 @@ rect.placeholder{
 	text-align: center;
 	font-size: 12px;
 }
+.ui-selectmenu-menu{
+	z-index: 1000;
+}
+/*
+ *
+ */
+span.view-control-panel{
+	font-size: 12px;
+}
+
 /*
  * tip
  */

@@ -1,6 +1,23 @@
+var params = (function(){
+	var queryString = window.location.search.substring(1);
+	if(queryString.length < 16) return {}
+	queryString = queryString.slice(0, queryString.length-1);
+	var params = {};
+	var keyValue = queryString.split("&").map(function(d){return d.split("=")}).forEach(function(d){
+		params[d[0]] = d[1];
+	});
+	var format = d3.time.format("%Y%m%d");
+	for(attr in params){
+		params[attr] = format.parse(params[attr]);
+	}
+	console.log("params", params.from);
+	console.log("params", params.to);
+	return params;
+})();
+
 var currentZIndex = 100;
-var timeFrom = new Date(2013,8,2),
-		timeTo   = new Date(2013,8,3);
+var timeFrom = params.from || new Date(2013,8,2),
+		timeTo   = params.to || new Date(2013,8,3);
 var db = new WFV_DB(timeFrom, timeTo);
 
 var apLst = [], apMap = d3.map(), macMap;
@@ -10,6 +27,8 @@ var tracer = new RecordTracer();
 var db_tl = new WFV_TL_DATA();
 
 var floor_bar = WFV.FloorBar([timeFrom, timeTo]);
+var floor_bar_floor_aps = WFV.FloorBarFloorAps([timeFrom, timeTo]);
+var floor_bar_sel_aps = WFV.FloorBarSelAps([timeFrom, timeTo]);
 
 var floorDetail, floorsNav, timeline;
 var apGraph, deviceGraph, controllerView;
@@ -87,17 +106,9 @@ function init(){
 	deviceGraph.init();
 
 	deviceView = WFV.DeviceView();
-	//deviceView.draw();
+	// deviceView.draw();
 	apView = WFV.ApView();
-	// floorDetail.addFloorChangeListener(apGraph);
-	// floorDetail.addEventListener(floorDetail.EventType.AP_CLICK, apGraph);
-	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_ENTER, apGraph);
-	// floorDetail.addEventListener(floorDetail.EventType.AP_MOUSE_LEAVE, apGraph); 
-	// tlBrush.addEventListener(tlBrush.EventType.EVENT_BRUSH_END, apGraph);
-	// apGraph.addEventListener(apGraph.EventType.AP_CLICK, floorDetail);
-	// //
-	// timeline.update();
-	//apGraph.draw(); 
+	//
 	deviceStats = WFV.DeviceStats();
 	//
 	apStats = WFV.ApStats();

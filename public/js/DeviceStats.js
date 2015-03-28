@@ -100,6 +100,12 @@ WifiVis.DeviceStats = function(){
     return access_data;
   }
 
+  $(window).resize(function(e) {
+    svg = utils.initSVG("#device-pcp-svg", [10]);
+    width = svg.w, height = svg.h;
+    render(1);
+  });
+
   ObserverManager.addListener(DeviceStats);
   DeviceStats.OMListen = function(message, data){
     

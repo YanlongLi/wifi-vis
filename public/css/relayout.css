@@ -36,6 +36,16 @@
 	height: 80%;
 	z-index: 2;
 }
+
+.wfv-wrapper-leftadjust-1{
+	width: 20%;
+	left: 20%;
+}
+.wfv-wrapper-leftadjust-2{
+	width: 20%;
+	left: 40%;
+}
+
 .wfv-wrapper-middle{
 	position: absolute;
 	top: 0;
