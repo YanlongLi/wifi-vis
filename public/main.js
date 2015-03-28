@@ -110,7 +110,8 @@ function init(){
 	apView = WFV.ApView();
 	//
 	deviceStats = WFV.DeviceStats();
-
+	//
+	apStats = WFV.ApStats();
 	//
 	EventManager.floorChange(1);
     controllerView = WFV.ControllerView();
