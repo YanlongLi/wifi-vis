@@ -1,5 +1,6 @@
 function ApFeature(apid, from, to, db, db_tl){
 	this.apid = apid;
+	this.floor = apMap.get(apid).floor;
 	this.db = db;
 	this.db_tl = db_tl;
 	this.records = null;
@@ -7,11 +8,6 @@ function ApFeature(apid, from, to, db, db_tl){
 	this.to = to;
 	this.init();
 }
-
-var apid_null_list = [];
-// var apid_change_list = [];
-var apid_current_list = [];
-var apid_list = [];
 
 ApFeature.prototype.init = function(){
 	var db = this.db;
@@ -56,9 +52,6 @@ ApFeature.prototype.init = function(){
 
 		that.ftDeviceNumber = mac_list.length;
 
-		if(that.ftDeviceNumber == 0) {
-			apid_null_list.push(that.apid)
-		}
 		// if(that.ftDeviceNumber == 0){
 		// 	that.aveStayTime = 0;
 		// }else{
@@ -100,8 +93,7 @@ ApFeature.prototype.init = function(){
 	for(n = 0; n < tl_array.length; n++){
 		tl_norm[n] = tl_array[n]/Math.sqrt(ave_norm);
 	}
-	// var test1 = d3.sum(tl_norm, function(d){return Math.pow(d, 2)});
-	// console.log(test1)
+	
 	console.time("compute fft " + that.apid);
 	var z = new numeric.T(tl_norm).fft();
 	for(m = 0; m < tl_array.length; m++){
@@ -117,37 +109,14 @@ ApFeature.prototype.init = function(){
 	sum_after = d3.sum(fft_after);
 	that.fft_param = sum_after/sum_before;
 	console.timeEnd("compute fft " + that.apid);
-	// var test_sum1 = 0;
-	// var test_sum2 = 0;
-	// for(r = 0; r < tl_array.length/2; r++){
-	// 	test_sum1 += that.fft[r];
-	// 	test_sum2 += that.fft[tl_array.length/2 + r];
-	// }
-	// var testR = test_sum2/test_sum1;
-	// console.log(that.fft)
-	// var test = d3.sum(that.fft)/tl_array.length;
-	// console.log(test)
 }
 
 
-WifiVis.ApStats = function(){
+WifiVis.ApStats = function(from, to){
 	function ApStats(){}
-
-	WFV.DATA_PATH = function(){return "../data/"};
-
-	var timeFrom = new Date(2013,8,2),
-			timeTo   = new Date(2013,8,3);
-
-	var db = new WFV_DB(timeFrom, timeTo);
-
-	var from = new Date(2013,08,02),
-			to = new Date(2013,08,03);
-
-	var tracer = new RecordTracer();
-	var db_tl = new WFV_TL_DATA();
-
+	var floor_color = ColorScheme.floor;
+	var apid_list = [];
 	
-
 	ObserverManager.addListener(ApStats);
 
   ApStats.OMListen = function(message, data, sender){  
@@ -172,37 +141,34 @@ WifiVis.ApStats = function(){
 			svg.selectAll("g").remove();
 		}
 
-		db.init(function(){ 
-			db.records_by_interval(from, to, function(records){
-				var aps = db.aps_all();
-				tracer.init(records, aps);
-				db_tl.init(from, to, tracer, 20);
+		db.records_by_interval(from, to, function(records){
+			apid_list = _.uniq(records.map(function(d){return d.apid}));
+			apid_current_list = apid_list;
 
-				var apid_list = aps.map(function(d){
-					return d.apid;
-				}); 
-			
-				apid_list = _.difference(apid_list, apid_null_list);
-				apid_current_list = apid_list;
+			tColors = apid_list.map(function(d){
+				return floor_color(apMap.get(d).floor);
+			})
 
-				var appcps = apid_list.map(function(d){
-					var fts_ap = new ApFeature(d, from, to, db, db_tl);
-					var APpcp = {
-						apid: fts_ap.apid,
-						ftRecordNumber: fts_ap.ftRecordNumber,
-						ftDeviceNumber: fts_ap.ftDeviceNumber,
-						aveStayTime: fts_ap.aveStayTime,
-						fftparam: fts_ap.fft_param,
-						varianceap: fts_ap.variance_ap
-					};
-					return APpcp;
-				});
-				console.log(appcps);	
-				
-				myPCP = PCP.init(svg, {pos: [70,30], size: [500,400]}, appcps);
+			var appcps = apid_list.map(function(d){
+				var fts_ap = new ApFeature(d, from, to, db, db_tl);
+				var APpcp = {
+					apid: fts_ap.apid,
+					floor: fts_ap.floor,
+					ftRecordNumber: fts_ap.ftRecordNumber,
+					ftDeviceNumber: fts_ap.ftDeviceNumber,
+					aveStayTime: fts_ap.aveStayTime,
+					fftparam: fts_ap.fft_param,
+					varianceap: fts_ap.variance_ap
+				};
+				return APpcp;
 			});
+			console.log(appcps);	
+			
+			myPCP = PCP.init(svg, {pos: [70,30], size: [500,400]}, appcps);
+			myPCP.setDataColor(tColors);
 		});
 	}
+
 	$(window).resize(function(){
 		var w = $("#ap-pcp-svg").width() - 70 - 30,
 				h = $("#ap-pcp-svg").height() - 30 - 30;

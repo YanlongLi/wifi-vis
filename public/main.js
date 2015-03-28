@@ -111,7 +111,7 @@ function init(){
 	//
 	deviceStats = WFV.DeviceStats();
 	//
-	apStats = WFV.ApStats();
+	apStats = WFV.ApStats(timeFrom, timeTo);
 	//
 	EventManager.floorChange(1);
     controllerView = WFV.ControllerView();
