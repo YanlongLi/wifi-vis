@@ -17,6 +17,10 @@ WifiVis.ControllerView = function(){
 
   CV.OMListen = function(message, data){
     // console.log(message, data);
+		if (message == WFV.Message.FloorSelect){
+			var floor = data.floor;
+			rootEle.find("#floor-selected-count").html(floor.length);
+		}
     if (message == WFV.Message.ApSelect) {
       var apids = data.apid;
       // console.log(apids.length)
@@ -30,6 +34,9 @@ WifiVis.ControllerView = function(){
   } 
 
   CV.initInteraction = function(){
+		rootEle.on("click", "#floor-clear-button", function(e){
+			EventManager.floorDeselect(null, this);
+		})
     rootEle.on("click", "#ap-clear-button", function(e){
       EventManager.apDeselect(null, this);
     })
