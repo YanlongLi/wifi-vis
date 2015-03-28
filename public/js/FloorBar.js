@@ -85,7 +85,7 @@ WFV.FloorBar = function(_time_range){
 				d3.select(this).select("text")
 					// .attr("x", dx).attr("y", dy)
 					.attr("x", x_scale.range()[1]).attr("y", vertical_scale.rangeBand())
-					.style("text-anchor", "start").style("font-size", "10px")
+					.style("text-anchor", "start").style("font-size", "12px")
 					.text(count).style("opacity", 1);
 			});
 			// update timeline
@@ -367,7 +367,7 @@ WFV.FloorBarFloorAps = function(timeFrom, timeTo){
 				d3.select(this).select("text")
 					// .attr("x", dx).attr("y", dy)
 					.attr("x", x_scale.range()[1]).attr("y", vertical_scale.rangeBand())
-					.style("text-anchor", "start").style("font-size", "10px")
+					.style("text-anchor", "start").style("font-size", "12px")
 					.text(count).style("opacity", 1);
 			});
 			// update timeline
@@ -641,7 +641,7 @@ WFV.FloorBarSelAps = function(){
 	//
 	function init_svg(){
 		var _w = svg.width(), _h = svg.height();
-		size = utils.initG(g, _w, _h, [10, 20, 20, 30]);
+		size = utils.initG(g, _w, _h, [10, 30, 20, 30]);
 		//
 		var offset = tl_offset = size.width * 0.25;
 		vertical_scale.rangeBands([0, size.height]);
@@ -674,7 +674,7 @@ WFV.FloorBarSelAps = function(){
 				d3.select(this).select("text")
 					// .attr("x", dx).attr("y", dy)
 					.attr("x", x_scale.range()[1]).attr("y", vertical_scale.rangeBand())
-					.style("text-anchor", "start").style("font-size", "10px")
+					.style("text-anchor", "start").style("font-size", "12px")
 					.text(count).style("opacity", 1);
 			});
 			// update timeline
