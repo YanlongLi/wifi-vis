@@ -146,8 +146,12 @@ WifiVis.ApStats = function(){
 	var tracer = new RecordTracer();
 	var db_tl = new WFV_TL_DATA();
 
+	
+
 	ObserverManager.addListener(ApStats);
+
   ApStats.OMListen = function(message, data, sender){  
+  	return;
     if(message == WFV.Message.ApSelect){
       if(sender == ApStats) return;
       var apids = data.apid, change = data.change, isAdd = data.isAdd;
@@ -174,9 +178,9 @@ WifiVis.ApStats = function(){
 				tracer.init(records, aps);
 				db_tl.init(from, to, tracer, 20);
 
-				// var apid_list = aps.map(function(d){
-				// 	return d.apid;
-				// }); 
+				var apid_list = aps.map(function(d){
+					return d.apid;
+				}); 
 			
 				apid_list = _.difference(apid_list, apid_null_list);
 				apid_current_list = apid_list;
@@ -204,6 +208,9 @@ WifiVis.ApStats = function(){
 				h = $("#ap-pcp-svg").height() - 30 - 30;
 		myPCP.updateSize([w,h]);
 	});
+
+	ApStats.update(1);
+	
 	return ApStats;
 }
 
