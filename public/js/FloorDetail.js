@@ -390,25 +390,12 @@ WifiVis.FloorDetail = function(){
 		});
 		var gDevice = g.select("#device-wrapper")
 			.selectAll("g.device").data(deviceLst, function(d){return d.mac});
-		// enter and enter transition
-		var device_enter = gDevice.enter().append("g").attr("class","device");
-		device_enter.append("rect").attr("width", 6).attr("height", 6);
-		device_enter.attr("transform", function(d){
-			var dx = x(d.x) + d.dx;
-			var dy = y(d.y) + d.dy;
-			return "translate("+dx+","+dy+")";
-		}).selectAll("rect").transition().duration(800).each("start", function(d){
-			d3.select(this).style("fill", "red");
-		}).each("end", function(d){
-			d3.select(this).style("fill", "");
-		});
-		//
 		// transition for update
 		gDevice.transition().duration(800).ease("linear").attr("transform", function(d){
 			var dx = x(d.x) + d.dx;
 			var dy = y(d.y) + d.dy;
 			return "translate("+dx+","+dy+")";
-		}).each('start', function(d){
+		})/*.each('start', function(d){
 			var x1 = d3.select(this).attr('cx') || 0, y1 = d3.select(this).attr('cy') || 0;
 			var apid = d3.select(this).attr("apid");
 			if(apid == d.ap.apid) return;
@@ -437,6 +424,19 @@ WifiVis.FloorDetail = function(){
 							this.remove();
 						});
 				});
+		});*/
+		//
+		// enter and enter transition
+		var device_enter = gDevice.enter().append("g").attr("class","device");
+		device_enter.append("rect").attr("width", 6).attr("height", 6);
+		device_enter.attr("transform", function(d){
+			var dx = x(d.x) + d.dx;
+			var dy = y(d.y) + d.dy;
+			return "translate("+dx+","+dy+")";
+		}).selectAll("rect").transition().duration(800).each("start", function(d){
+			d3.select(this).style("fill", "red");
+		}).each("end", function(d){
+			d3.select(this).style("fill", "");
 		});
 		gDevice.exit().remove();
 		// update with enter
@@ -600,9 +600,7 @@ WifiVis.FloorDetail = function(){
 		});
 	}
 	function filter_links(v1, v2){
-		console.log("filter path", v1, v2);
 		g.select("#path-wrapper").selectAll("g.link").style("display", function(d){
-			console.log("weight", d.weight);
 			if(+d.weight >= +v1 && +d.weight <= +v2){
 				return "block";
 			}else{
