@@ -75,6 +75,11 @@
 	stroke-width: 1.5
 }
 
+.ap-tls-g .tl circle,
+.floor-tls-g .tl circle{
+	fill: #373737;
+}
+
 /*
  * timepoint-line
  */
