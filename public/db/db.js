@@ -362,6 +362,7 @@ WFV_DB.prototype.floor_bar_data = function(from, to, cb){
 	var that = this;
 	this.records_by_interval(from, to, _structure_records);
 	function _structure_records(records){
+		console.time("db.floor_bar_data");
 		var data = d3.nest().key(function(d){return d.floor}).entries(records)
 			.map(function(d){
 				var f = d.key;
@@ -369,6 +370,7 @@ WFV_DB.prototype.floor_bar_data = function(from, to, cb){
 				return {floor:+f, count:macs.length, macs:macs, type:"floor"};
 			});
 		cb && cb(data);
+		console.timeEnd("db.floor_bar_data");
 	}
 }
 WFV_DB.prototype.ap_bar_data = function(from, to, cb, isGetMap){
@@ -376,6 +378,7 @@ WFV_DB.prototype.ap_bar_data = function(from, to, cb, isGetMap){
 	var that = this;
 	this.records_by_interval(from, to, _structure_records);
 	function _structure_records(records){
+		console.time("db.ap_bar_data");
 		var o = d3.map();
 		that.aps.forEach(function(ap){
 			o.set(ap.apid, {apid:ap.apid, floor:ap.floor, macs:[], count:0, type:"ap"});
@@ -388,6 +391,7 @@ WFV_DB.prototype.ap_bar_data = function(from, to, cb, isGetMap){
 			});
 		if(isGetMap){
 			cb && cb(o);
+			console.time("db.ap_bar_data");
 			return;
 		}
 		var data = d3.nest().key(function(d){return d.floor}).entries(o.values())
@@ -398,6 +402,7 @@ WFV_DB.prototype.ap_bar_data = function(from, to, cb, isGetMap){
 				macs = _.uniq(macs);
 				return {floor:+f, aps:aps, count:macs.length, macs:macs, type:"floor"};
 			});
+		console.time("db.ap_bar_data");
 		cb && cb(data);
 	}
 }
