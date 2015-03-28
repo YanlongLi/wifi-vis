@@ -600,9 +600,7 @@ WifiVis.FloorDetail = function(){
 		});
 	}
 	function filter_links(v1, v2){
-		console.log("filter path", v1, v2);
 		g.select("#path-wrapper").selectAll("g.link").style("display", function(d){
-			console.log("weight", d.weight);
 			if(+d.weight >= +v1 && +d.weight <= +v2){
 				return "block";
 			}else{
