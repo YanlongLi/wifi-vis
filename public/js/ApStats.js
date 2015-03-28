@@ -9,6 +9,8 @@ function ApFeature(apid, from, to, db, db_tl){
 }
 
 var apid_null_list = [];
+// var apid_change_list = [];
+var apid_current_list = [];
 var apid_list = [];
 
 ApFeature.prototype.init = function(){
@@ -33,7 +35,7 @@ ApFeature.prototype.init = function(){
 	var time_segment = [];
 	var mac_list = [];
 	
-	console.time("compute average stay time" + that.apid);
+	// console.time("compute average stay time" + that.apid);
 	db.path_all(from, to, function(paths){
 		pathAll = paths;
 		pathAll.forEach(function(path){
@@ -63,7 +65,7 @@ ApFeature.prototype.init = function(){
 		// 	that.aveStayTime = d3.sum(time_segment) / time_segment.length; 
 		// }
 		that.aveStayTime = time_segment.length == 0 ? 0 : d3.sum(time_segment) / time_segment.length; 
-		console.timeEnd("compute average stay time" + that.apid);
+		// console.timeEnd("compute average stay time" + that.apid);
 	});
 
 	var times = db_tl.ap_tl_data[0].tl_data.map(function(d){return d.time});
@@ -144,31 +146,44 @@ WifiVis.ApStats = function(){
 	var tracer = new RecordTracer();
 	var db_tl = new WFV_TL_DATA();
 
+	
+
 	ObserverManager.addListener(ApStats);
+
   ApStats.OMListen = function(message, data, sender){  
+  	return;
     if(message == WFV.Message.ApSelect){
       if(sender == ApStats) return;
       var apids = data.apid, change = data.change, isAdd = data.isAdd;
-      if(!isAdd){
-
+      if(isAdd){
+      	apid_list = apids;
+      	ApStats.update(1); 
       }else{
-      	apid_list = change;
+      	apid_list = apids; 
+      	ApStats.update(1);
       }
     }
   }
 	
-	ApStats.update = function(){
+	ApStats.update = function(isRemove){
+		var svg=d3.select("#ap-pcp-svg");
+		var width = svg.w, height = svg.h;
+		if(isRemove) {
+			svg.selectAll("g").remove();
+		}
+
 		db.init(function(){ 
 			db.records_by_interval(from, to, function(records){
 				var aps = db.aps_all();
 				tracer.init(records, aps);
 				db_tl.init(from, to, tracer, 20);
 
-				// var apid_list = aps.map(function(d){
-				// 	return d.apid;
-				// }); 
+				var apid_list = aps.map(function(d){
+					return d.apid;
+				}); 
 			
 				apid_list = _.difference(apid_list, apid_null_list);
+				apid_current_list = apid_list;
 
 				var appcps = apid_list.map(function(d){
 					var fts_ap = new ApFeature(d, from, to, db, db_tl);
@@ -183,11 +198,19 @@ WifiVis.ApStats = function(){
 					return APpcp;
 				});
 				console.log(appcps);	
-				var svg=d3.select("#ap-pcp-svg");
-				myPCP = PCP.init(svg, {pos: [100,100], size: [800,600]}, appcps);
+				
+				myPCP = PCP.init(svg, {pos: [70,30], size: [500,400]}, appcps);
 			});
 		});
 	}
+	$(window).resize(function(){
+		var w = $("#ap-pcp-svg").width() - 70 - 30,
+				h = $("#ap-pcp-svg").height() - 30 - 30;
+		myPCP.updateSize([w,h]);
+	});
+
+	ApStats.update(1);
+	
 	return ApStats;
 }
 
