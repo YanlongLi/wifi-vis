@@ -1,105 +1,78 @@
 /*
- * floor bar circles
+ * floor bar bars
  */
 
-#floor-bar-circles .ap rect,
-#floor-bar-ap-sel-circles .ap rect,
-#floor-bar-circles .floor rect{
+.floor-bars-g .ap rect,
+.ap-bars-g .floor rect{
 	/*fill: #A2CE85;*/
 	fill:#C8CCD5; 
 }
 
 .ap-bars-g .bar text::selection,
-#floor-bar-circles .bar text::selection{
+.floor-bars-g .bar text::selection{
 	background: none;
 }
 
-.ap-bars-g .bar text.value,
-#floor-bar-circles .bar text.value{
-	text-anchor: start;
-}
-
-#floor-bar-circles .floor text{
-	text-anchor: end;
-	stroke: #666666; 
-	font-size: 10px;
-}
-
 .ap-bars-g .bar text,
-#floor-bar-ap-sel-circles .ap text,
-#floor-bar-circles .ap text{
+.floor-bars-g .bar text{
 	font-size: 8px;
 	text-anchor: end;
 	stroke: #666666; 
 }
 
-#floor-bar-circles .floor.current rect{
+.floor-bars-g .bar text{
+	font-size: 10px;
+}
+
+.ap-bars-g .bar text.value,
+.floor-bars-g .bar text.value{
+	text-anchor: start;
+}
+
+
+.floor-bars-g .bar.current rect{
 	fill: #646464;
 	stroke: #646464;
-	stroke-width: 2;
+	stroke-width: 1.5
 }
 
 .ap-bars-g .bar.selected rect,
-#floor-bar-circles .floor.selected rect{
+.floor-bars-g .bar.selected rect{
 	fill: #646464;
 	stroke: #646464;
-	stroke-width: 2;
+	stroke-width: 1.5
 }
 
 .ap-bars-g .bar.hover rect,
-#floor-bar-circles .floor.hover rect{
+.floor-bars-g .bar.hover rect{
 	fill: #646464;
 	stroke: #646464;
-	stroke-width: 2;
+	stroke-width: 1.5
 }
 
-#floor-bar-circles .floor.fading{
+.floor-bars-g .bar.fading{
 	opacity: 0.5;
 }
 
-/*
- * aps histogram
- */
-#floor-bar-aps .floor .bar rect{
-	fill: #838383; 
-}
-
-#floor-bar-aps .floor .bar.selected rect{
-	fill:#B31A1A; 
-}
-
-#floor-bar-aps .floor .bar.hover rect{
-	opacity: 0.5;
-}
-
-/*
- * floor bar timeline
- * and aps timeline
- */
-#floor-bar-tls .floor path,
-#floor-bar-tls .ap path {
+/**/
+.floor-tls-g .tl path {
 	stroke: #898989;
 	fill: rgb(5, 5, 5);
 	fill-opacity: 0.2;
 }
 
-#floor-bar-tls .floor.current path{
+.floor-tls-g .tl.current path{
+	stroke-width: 1.5
 }
 
 .ap-tls-g .tl.hover  path,
-#floor-bar-tls .floor.hover path,
-#floor-bar-tls .ap.hover path{
-	stroke-width: 2;
+.floor-tls-g .tl.hover path{
+	stroke-width: 1.5
 }
 
 .ap-tls-g .tl.selected path,
-#floor-bar-tls .floor.selected path,
-#floor-bar-tls .ap.selected path{
-	stroke-width: 2;
-}
-
-#floor-bar-tl-x-axis.axis.x{
-	
+.floor-tls-g .tl.selected path{
+	stroke-width: 1.5
 }
 
 /*

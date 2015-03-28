@@ -225,13 +225,13 @@ WFV_DB.prototype.records_by_interval = function(from, to, cb){
 	var records, key = from.getTime()+","+to.getTime();
 	if(this.recordsByRange.has(key)){
 		records = this.recordsByRange.get(key);
-		console.log("get records by key",from.toLocaleString(),to.toLocaleString(), records.length);
+		// console.log("get records by key",from.toLocaleString(),to.toLocaleString(), records.length);
 	}else{
 		records = this._records_by_interval(from, to);
 		this.recordsByRange.set(key, records);
 	}
 	if(cb){
-		console.log(records.length);
+		// console.log(records.length);
 		cb(records);
 	}else{
 		return records;
@@ -239,14 +239,14 @@ WFV_DB.prototype.records_by_interval = function(from, to, cb){
 }
 
 WFV_DB.prototype._records_by_interval = function(_from, _to){
-	console.log("get records by interval", _from.to_time_str(), _to.to_time_str());
+	// console.log("get records by interval", _from.to_time_str(), _to.to_time_str());
 	if(from - this.dateFrom <= 0 && to - this.dateTo >= 0){
 	 return this.records.map(function(d){return d});
 	}
 	var from = new Date(_from), to = new Date(_to - 1);
 	var res = [], dateRecords, curDate = new Date(from.toDateString());
 	while(true){
-		console.log("get records on ", curDate.toDateString());
+		// console.log("get records on ", curDate.toDateString());
 		dateRecords = this.recordsByDate.get(curDate.toDateString());
 		if(!dateRecords || !dateRecords.length) continue;
 		if(curDate.toDateString() == from.toDateString()){
@@ -255,7 +255,7 @@ WFV_DB.prototype._records_by_interval = function(_from, _to){
 			});
 			dateRecords = dateRecords.slice(f+1);
 			// console.log("f", f);
-			console.log(dateRecords.length);
+			// console.log(dateRecords.length);
 		}
 		// console.log("cur", curDate.toDateString());
 		// console.log("to", to.toDateString());
@@ -358,6 +358,19 @@ WFV_DB.prototype.macid_by_mac = function(mac){
 	return +this.macIdByMac.get(mac);
 }
 
+WFV_DB.prototype.floor_bar_data = function(from, to, cb){
+	var that = this;
+	this.records_by_interval(from, to, _structure_records);
+	function _structure_records(records){
+		var data = d3.nest().key(function(d){return d.floor}).entries(records)
+			.map(function(d){
+				var f = d.key;
+				var macs = _.union(d.values.map(function(d){return d.mac}));
+				return {floor:+f, count:macs.length, macs:macs, type:"floor"};
+			});
+		cb && cb(data);
+	}
+}
 WFV_DB.prototype.ap_bar_data = function(from, to, cb, isGetMap){
 	// generage ap_bar_data, [floor:, aps:[{apid, count}], count:]
 	var that = this;
@@ -680,7 +693,6 @@ WFV_TL_DATA.prototype.tlDataApsOfFloors = function(from, to, step, floors, cb){
 		});
 	});
 	data = Array.prototype.concat.apply([], data);
-	console.log(data);
 	cb(data);
 }
 

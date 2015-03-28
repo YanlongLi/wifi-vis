@@ -136,7 +136,6 @@ WFV.Timeline = function(_time_range){
 		}
 		if(message == WFV.Message.FloorHover){
 			var floors = data.floor, change = data.change, isAdd = data.isAdd;
-			console.log("timeline on floor hover", floors);
 			if(isAdd){
 				// change_scale(2);
 				change.forEach(function(f){
@@ -373,7 +372,6 @@ WFV.Timeline = function(_time_range){
 	 * brush event
 	 */
 	function onBrushStart(){
-		console.log("brush start");
 		onBtnStop();
 	}
 	function onBrushMove(e){
@@ -407,7 +405,6 @@ WFV.Timeline = function(_time_range){
 			to.setMilliseconds(0);
 		}
 		time_range = range;
-		console.log(range[0].to_time_str(), range[1].to_time_str());
 		EventManager.timeRangeChanged(time_range);
 	}
 
