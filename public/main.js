@@ -118,5 +118,4 @@ function init(){
     controllerView.init();
 	//
 	EventManager.timePointChange(new Date(2013,08,02,12));
-
 }
