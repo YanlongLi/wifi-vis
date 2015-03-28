@@ -121,9 +121,14 @@ WFV.FloorBar = function(_time_range){
 		}
 		if(message ==  WFV.Message.FloorSelect){
 			var floor = data.floor, change = data.change, isAdd = data.isAdd;
-			g.selectAll(".ap-tls-g, .ap-bars-g").selectAll("g.tl, g.bar").filter(function(d){
-				return change.indexOf(d.floor) != -1;
-			}).classed("selected", isAdd).attr("_selected", isAdd ? "true" : null);
+			var eles = g.selectAll(".floor-tls-g, .floor-bars-g").selectAll("g.tl, g.bar");
+			if(floor.length == 0){
+					eles.classed("selected", false).attr("_selected", null);
+			}else{
+				eles.filter(function(d){
+					return change.indexOf(d.floor) != -1;
+				}).classed("selected", isAdd).attr("_selected", isAdd ? "true" : null);
+			}
 		}
 		if(message ==  WFV.Message.TimeRangeChanged){
 			timeRange = data.range;
