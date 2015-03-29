@@ -111,6 +111,14 @@ WifiVis.FloorDetail = function(){
 			.attr("orient","auto")
 			.append("svg:path")
 			.attr("d","M0,0L5,2.5L0,5");
+		d3.select("#floor-detail-svg").select("defs").selectAll("radialGradient").data(d3.range(1,18))
+			.enter().append("radialGradient")
+			.attr("id",function(d){return "floorGradient" + d}).each(function(d){
+				var gradient = d3.select(this);
+				gradient.append("stop").attr("offset", "0%").attr("stop-color", floorColor(d)).attr("stop-opacity", 1);
+				gradient.append("stop").attr("offset", "50%").attr("stop-color", floorColor(d)).attr("stop-opacity", 0.6);
+				gradient.append("stop").attr("offset", "100%").attr("stop-color", floorColor(d)).attr("stop-opacity", 0.1);
+			});
 	})();
 	//
 	g.select("#brush-select").attr("class", 'brush');
@@ -297,7 +305,8 @@ WifiVis.FloorDetail = function(){
 		}).each(function(d){
 			var ele = d3.select(this);
 			var r = r_scale(d.cluster.count(timePoint));
-			ele.select("circle").attr("r", r).style("fill", floorColor(currentFloor));
+			// ele.select("circle").attr("r", r).style("fill", floorColor(currentFloor));
+			ele.select("circle").attr("r", r).style("fill", "url(#floorGradient"+d.floor+")");
 			//	
 			ele.select("text").text(d.displayName())
 				.attr("x", r).attr("y", r);
