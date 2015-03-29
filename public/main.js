@@ -36,6 +36,9 @@ var deviceView, apView;
 var deviceStats;
 var loading_tip = loading_tip || {};
 
+var spinner = utils.createSpinner(10,10);
+spinner.spin($("#mask").get(0));
+
 $(document).ready(function() {
 	//init UI
 	$('.dragbox')
@@ -69,31 +72,17 @@ db.init(function(){
   apMap = db.apMap;
 	macMap = db.macIdByMac;
   records = db.records;
-  init_aplst_records();
-  loading_tip.add_tip("done");
-  setTimeout(function(){
-    $("#mask").css("visibility", "hidden");
-    $("#timeline-option-bar").css("visibility", "hidden");
-    init();
-  }, 500);
-
-  // add cluster to aps and add floor to records
-  function init_aplst_records(){
-    apLst.forEach(function(ap){
-      ap.cluster = new DeviceCluster(ap.apid);
-      apMap.set(ap.apid, ap);
-    });
-    records.forEach(function(r,i){r.index = i});
-    records.forEach(function(r){
-      r.floor = apMap.get(r.apid).floor;
-    })
-  }
+	//
+	tracer.init(records, apLst);
+	db_tl.init(db.dateFrom, db.dateTo, tracer, 10);
+	//
+	apStats = WFV.ApStats(timeFrom, timeTo);
+	//
+	init();
 });
  
 
 function init(){
-	tracer.init(records, apLst);
-	db_tl.init(db.dateFrom, db.dateTo, tracer, 10);
 	
 	floorDetail = WFV.FloorDetail();
 	timeline = WFV.Timeline([timeFrom, timeTo]);
@@ -111,11 +100,15 @@ function init(){
 	//
 	deviceStats = WFV.DeviceStats();
 	//
-	apStats = WFV.ApStats(timeFrom, timeTo);
-	//
 	EventManager.floorChange(1);
     controllerView = WFV.ControllerView();
     controllerView.init();
 	//
 	EventManager.timePointChange(new Date(2013,08,02,12));
+  loading_tip.add_tip("done");
+	spinner.stop();
+	setTimeout(function(){
+    $("#mask").css("visibility", "hidden");
+    $("#timeline-option-bar").css("visibility", "hidden");
+  }, 1000);
 }

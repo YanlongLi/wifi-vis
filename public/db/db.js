@@ -151,11 +151,12 @@ WFV_DB.prototype.init = function(cb){
 					}
 				});
 			}else{
+				loading_tip.add_tip("init records done");
+				console.log("init records done");
 				_compute_path();
 				_init_macid(cb);
 				// TODO
 				// _compute_records_of_floor();
-				console.log("init records done");
 			}
 		})(0);
 	}
@@ -172,6 +173,7 @@ WFV_DB.prototype.init = function(cb){
 					that.macIdByMac.set(m.mac, m.macid);
 				});
 				cb && cb(that);
+				loading_tip.add_tip("init macid done");
 				console.log("init macid done");
 			}
 		});
@@ -182,6 +184,7 @@ WFV_DB.prototype.init = function(cb){
 				that.pathByMac.set(o.key, o.values);
 				return o.values;
 			});
+		loading_tip.add_tip("compute paths done " + that.paths.length);
 		console.log("compute paths done", that.paths.length);
 	}
 	function _compute_records_of_floor(){
@@ -194,6 +197,7 @@ WFV_DB.prototype.init = function(cb){
 			}
 		});		
 		console.log("compute records of floor done");
+		loading_tip.add_tip("compute records of floor done");
 		console.log(that.recordsOfFloor.map(function(d){return d.length}).join(","));
 	}
 }
