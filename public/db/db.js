@@ -35,7 +35,7 @@ var loading_tip = (function(){
 	var loading_tip = {};
 	var tip_div = $("#loading-tip");
 	loading_tip.add_tip = function(str){
-		var p = "<div>"+str+"</div>";
+		var p = $("<div>"+str+"</div>");
 		tip_div.append(p);
 	};
 	return loading_tip;
