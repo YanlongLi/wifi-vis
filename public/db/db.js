@@ -1,3 +1,14 @@
+/* =============================================================================
+*     FileName: db.js
+*         Desc:  
+*       Author: YanlongLi
+*        Email: lansunlong@gmail.com
+*     HomePage: 
+*      Version: 0.0.1
+*   CreateTime: 2015-02-13 09:22:21
+*   LastChange: 2015-03-30 01:01:57
+*      History:
+============================================================================= */
 (function(){
 	Date.prototype.to_date = function(){
 		var format = d3.time.format("%Y-%m-%d");

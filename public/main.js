@@ -1,3 +1,14 @@
+/* =============================================================================
+*     FileName: main.js
+*         Desc:  
+*       Author: YanlongLi
+*        Email: lansunlong@gmail.com
+*     HomePage: 
+*      Version: 0.0.1
+*   CreateTime: 2015-02-27 01:06:08
+*   LastChange: 2015-03-30 00:58:09
+*      History:
+============================================================================= */
 var params = (function(){
 	var queryString = window.location.search.substring(1);
 	if(queryString.length < 16) return {}
@@ -76,8 +87,6 @@ db.init(function(){
 	tracer.init(records, apLst);
 	db_tl.init(db.dateFrom, db.dateTo, tracer, 10);
 	//
-	apStats = WFV.ApStats(timeFrom, timeTo);
-	//
 	init();
 });
  
@@ -86,20 +95,24 @@ function init(){
 	
 	floorDetail = WFV.FloorDetail();
 	timeline = WFV.Timeline([timeFrom, timeTo]);
-	// apGraph
-	apGraph = WifiVis.ApGraph();
-	apGraph.init();
-	apGraph.draw(); 
-	// deviceGrpah
-	deviceGraph = WifiVis.DeviceGraph();
-	deviceGraph.init();
-
-	deviceView = WFV.DeviceView();
-	// deviceView.draw();
-	apView = WFV.ApView();
-	//
-	deviceStats = WFV.DeviceStats();
-	//
+/*
+ *   // apGraph
+ *   apGraph = WifiVis.ApGraph();
+ *   apGraph.init();
+ *   apGraph.draw(); 
+ *   // deviceGrpah
+ *   deviceGraph = WifiVis.DeviceGraph();
+ *   deviceGraph.init();
+ * 
+ *   deviceView = WFV.DeviceView();
+ *   // deviceView.draw();
+ *   apView = WFV.ApView();
+ *   //
+ *   deviceStats = WFV.DeviceStats();
+ *   //
+ *   apStats = WFV.ApStats(timeFrom, timeTo);
+ *   //
+ */
 	EventManager.floorChange(1);
     controllerView = WFV.ControllerView();
     controllerView.init();

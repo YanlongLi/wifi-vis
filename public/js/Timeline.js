@@ -1,3 +1,14 @@
+/* =============================================================================
+*     FileName: Timeline.js
+*         Desc:  
+*       Author: YanlongLi
+*        Email: lansunlong@gmail.com
+*     HomePage: 
+*      Version: 0.0.1
+*   CreateTime: 2015-01-29 16:02:28
+*   LastChange: 2015-03-30 00:46:16
+*      History:
+============================================================================= */
 WFV.Timeline = function(_time_range){
 	function Timeline(){}
 	//

@@ -1,3 +1,14 @@
+/* =============================================================================
+*     FileName: floor-bar.css
+*         Desc:  
+*       Author: YanlongLi
+*        Email: lansunlong@gmail.com
+*     HomePage: 
+*      Version: 0.0.1
+*   CreateTime: 2015-02-27 16:22:05
+*   LastChange: 2015-03-30 01:03:45
+*      History:
+============================================================================= */
 /*
  * floor bar bars
  */
@@ -73,11 +84,6 @@
 .ap-tls-g .tl.selected path,
 .floor-tls-g .tl.selected path{
 	stroke-width: 1.5
-}
-
-.ap-tls-g .tl circle,
-.floor-tls-g .tl circle{
-	fill: #373737;
 }
 
 /*
