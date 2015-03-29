@@ -253,6 +253,12 @@ WifiVis.FloorDetail = function(){
 			.slider("option", "min", 0)
 			.slider("option", "values", [0, max]);
 		update_aps(aps);
+		//
+		var selAps = EventManager.selectedAps();
+		g.select("#aps-wrapper").selectAll("g.ap").filter(function(d){
+			return selAps.indexOf(d.apid) != -1;
+		}).attr("_selected", true).classed("selected", true);
+		//
 		update_device(aps);
 		update_links(links);
 		update_histogram_in_out(links);
@@ -298,9 +304,11 @@ WifiVis.FloorDetail = function(){
 		}).on("mousemove", function(d){
 			d3.select(this).classed("hover", true);
 			tip.show(d);
+			EventManager.apHover([d.apid], FloorDetail);
 		}).on("mouseout", function(d){
 			d3.select(this).classed("hover", false);
 			tip.hide(d);
+			EventManager.apDehover([d.apid], FloorDetail);
 		}).on("click", function(d){
 			var ele = d3.select(this);
 			if(ele.attr("selected")){

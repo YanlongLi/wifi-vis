@@ -285,14 +285,18 @@
 						</div>
 						<svg id="timeline-svg" width="100%" height="100%">
 							<g id="timeline-g">
-							<rect id="timeline-btn-scale" style="display: none;"></rect>
-							<!--<g id="timeline-basic"></g>-->
-							<g id="timeline-floor"></g>
-							<g id="timeline-ap"></g>
-							<g id="brush"></g>
-							<g id="x-axis"></g>
-							<g id="y-axis"></g>
-							<g id="popup-tip"></g>
+								<rect class="placeholder" width="100%" height="100%"></rect>
+								<!--<g id="timeline-basic"></g>-->
+								<g id="timeline-floor"></g>
+								<g id="timeline-ap"></g>
+								<g id="x-axis"></g>
+								<g id="y-axis"></g>
+								<!---->
+								<line class="h-line" style="stroke-width:1; stroke:black"></line>
+								<line class="v-line" style="stroke-width:1; stroke:black"></line>
+								<text class="value-text"></text>
+								<text class="time-text"></text>
+								<g id="brush"></g>
 							</g>
 						</svg>
 					</div>

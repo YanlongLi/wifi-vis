@@ -269,10 +269,9 @@ WFV.FloorBar = function(_time_range){
 			}).on("click", function(d){
 				onFloorClick.call(this, d.floor);
 			}).on("mouseenter",function(d){
-				if(isDraging) return;
-				onFloorHover(d.floor, true);
 			}).on("mousemove", function(d){
 				if(isDraging) return;
+				onFloorHover(d.floor, true);
 				var pos = d3.mouse(this);
 				var p = [pos[1] + 60, pos[0] - 10, d];
 				tipFloor.show(p, this);
@@ -289,7 +288,11 @@ WFV.FloorBar = function(_time_range){
 		g.selectAll(".floor-tls-g, .floor-bars-g").selectAll("g.tl, g.bar").filter(function(d){
 			return d.floor == floor;
 		}).classed("hover", f);
-		EventManager.floorHover([floor], FloorBar);
+		if(f){
+			EventManager.floorHover([floor], FloorBar);
+		}else{
+			EventManager.floorDehover([floor], FloorBar);
+		}
 	}
 	function onFloorClick(floor){
 		if(d3.select(this).attr("_selected")){
@@ -620,10 +623,9 @@ WFV.FloorBarFloorAps = function(timeFrom, timeTo){
 			}).on("click", function(d){
 				onApClick.call(this, d.apid);
 			}).on("mouseenter",function(d){
-				if(isDraging) return;
-				onApHover(d.apid, true);
 			}).on("mousemove", function(d){
 				if(isDraging) return;
+				onApHover(d.apid, true);
 				var pos = d3.mouse(this);
 				var p = [pos[1] - 10, pos[0] - 10, d];
 				tipAp.show(p, this);
@@ -954,10 +956,9 @@ WFV.FloorBarSelAps = function(){
 			}).on("click", function(d){
 				// onApClick.call(this, d.apid);
 			}).on("mouseenter",function(d){
-				if(isDraging) return;
-				onApHover(d.apid, true);
 			}).on("mousemove", function(d){
 				if(isDraging) return;
+				onApHover(d.apid, true);
 				var pos = d3.mouse(this);
 				var p = [pos[1] + 60, pos[0] - 10, d];
 				tipAp.show(p, this);
