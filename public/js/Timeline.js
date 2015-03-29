@@ -182,10 +182,24 @@ WFV.Timeline = function(_time_range){
 			if(x > 0 && x < size.width && y > 0 && y < size.height){
 				update_h_v_line(x,y);
 			}
-		})
+		}).on("mouseout", function(){
+			g.selectAll("line.h-line, line.v-line, text.value-text, text.time-text").style("opacity", 0);
+		});
 		// animation
 		$(document).on("click", "#timeline-btn-play", onBtnPlay);
 		$(document).on("click", "#timeline-btn-stop", onBtnStop);
+		function update_h_v_line(dx,dy){
+			var v = Math.floor(y.invert(dy)), t = x.invert(dx);
+			// if(t - time_range[0] > 0 && t - time_range[1] < 0){
+				// return;
+			// }
+			g.selectAll("line.h-line, line.v-line, text.value-text, text.time-text").style("opacity", isBrushing ? 0 : 1);
+			g.select("line.h-line").attr("x1", 0).attr("y1", dy).attr("x2", size.width).attr("y2",dy);
+			g.select("line.v-line").attr("x1", dx).attr("y1", 0).attr("x2", dx).attr("y2", size.height);
+			//
+			g.select("text.value-text").attr("x", dx + 3).attr("y", dy).text(v).attr("dy", -2);
+			g.select("text.time-text").attr("x", dx + 3).attr("y", dy).text(t.to_time_str()).attr("dy", 12);
+		}
 	}
 	/*
 	 * animation control
@@ -353,15 +367,6 @@ WFV.Timeline = function(_time_range){
 			});
 		yAxis.scale(y);
 		g.select("#y-axis").call(yAxis);
-	}
-	function update_h_v_line(dx,dy){
-		g.selectAll("line.h-line, line.v-line, text.value-text, text.time-text").style("opacity", isBrushing ? 0 : 1);
-		var v = Math.floor(y.invert(dy)), t = x.invert(dx);
-		g.select("line.h-line").attr("x1", 0).attr("y1", dy).attr("x2", size.width).attr("y2",dy);
-		g.select("line.v-line").attr("x1", dx).attr("y1", 0).attr("x2", dx).attr("y2", size.height);
-		//
-		g.select("text.value-text").attr("x", dx + 3).attr("y", dy).text(v).attr("dy", -2);
-		g.select("text.time-text").attr("x", dx + 3).attr("y", dy).text(t.to_time_str()).attr("dy", 12);
 	}
 	/*
 	 * brush event
