@@ -218,7 +218,7 @@ WFV.FloorBar = function(_time_range){
 		y_scale.range([per_height, 4]);
 		//
 		items.attr("floor", function(d){return d.floor})
-			.style("mouse", "move")
+			.style("cursor", "move")
 			.each(function(d){
 				var ele = d3.select(this);
 				ele.select("rect").style("fill", floor_color(d.floor))
@@ -257,7 +257,7 @@ WFV.FloorBar = function(_time_range){
 		})
 		//
 		items.attr("floor", function(d){return d.floor})
-			.style("mouse", "move")
+			.style("cursor", "move")
 			.each(function(d){
 				var ele = d3.select(this);
 				var cmax = d3.max(d.tl_data, function(d){return d.count});
@@ -568,7 +568,7 @@ WFV.FloorBarFloorAps = function(timeFrom, timeTo){
 		y_scale.range([per_height, 4]);
 		//
 		items.attr("apid", function(d){return d.apid})
-			.style("mouse", "move")
+			.style("cursor", "move")
 			.each(function(d){
 				var ele = d3.select(this);
 				ele.select("rect").style("fill", floor_color(d.floor))
@@ -611,7 +611,7 @@ WFV.FloorBarFloorAps = function(timeFrom, timeTo){
 		});
 		//
 		items.attr("apid", function(d){return d.apid})
-			.style("mouse", "move")
+			.style("cursor", "move")
 			.each(function(d){
 				var ele = d3.select(this);
 				var cmax = d3.max(d.tl_data, function(d){return d.count});

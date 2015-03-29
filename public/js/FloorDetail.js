@@ -446,7 +446,9 @@ WifiVis.FloorDetail = function(){
 		}).each("end", function(d){
 			d3.select(this).style("fill", "");
 		});
-		gDevice.exit().remove();
+		gDevice.exit().each(function(d){
+			d3.select(this).select("rect").style("fill","#7F8AC0")
+		}).transition().duration(800).remove();
 		// update with enter
 		gDevice.classed("selected", function(d){
 			return d.device.selected;

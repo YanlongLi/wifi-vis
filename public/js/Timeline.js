@@ -177,7 +177,6 @@ WFV.Timeline = function(_time_range){
 	function init_interaction(){
 		g.on("mousemove", function(){
 			var pos = d3.mouse(this);
-			console.log(pos);
 			var x = pos[0], y = pos[1];
 			if(x > 0 && x < size.width && y > 0 && y < size.height){
 				update_h_v_line(x,y);

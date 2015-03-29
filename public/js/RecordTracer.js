@@ -147,18 +147,53 @@ RecordTracer.prototype.gotoTime = function(time, cb){
 	}
 	cb && cb();
 }
+
 /*
  *
  */
-
 function DeviceCluster(apid){
 	this.apid = apid;
+	//
 	this.r = 4;
-	this.level = 10;
-	this.positions = square(this.r, this.level);
-	this.posFlag = this.positions.map(function(){return false});
-	this.deviceMap = d3.map();
+	this.level = 12;
+	//
+	this.O = {};
 	this.device_count = 0;
+	this.timeout = 120;
+}
+DeviceCluster.prototype.addDevice = function(device){
+	var mac = device.mac;
+	if(this.O[mac]){
+		console.warn("device already in cluster", this.apid, mac);
+	}else{
+		this.O[mac] = device;
+		this.device_count ++;
+	}
+}
+DeviceCluster.prototype.removeDevice = function(device){
+	var mac = device.mac;
+	if(!this.O[mac]){
+		console.warn("device niot in cluster", this.apid, mac);
+	}else{
+		delete this.O[mac];
+		this.device_count --;
+	}
+}
+
+DeviceCluster.prototype.count = function(time_point, timeout){
+	if(!time_point){
+		return this.device_count;
+	}
+	return this._filterDevice(time_point, timeout).length;
+}
+
+DeviceCluster.prototype.deviceLst = function(time_point, timeout){
+	var lst = this._filterDevice(time_point, timeout);
+	var positions = square(this.r, this.level).slice(0, lst.length);
+	lst.forEach(function(d,i){
+		positions[i].device = d;
+	});
+	return positions;
 	//
 	function square(r, level) {
 		var toReturn = [];
@@ -194,68 +229,37 @@ function DeviceCluster(apid){
 		}
 		return toReturn;
 	}
-}
-DeviceCluster.prototype.addDevice = function(device){
-	if(this.deviceMap.has(device.mac)){
-		console.warn("device already on cluster");
-		return;
+	function rectangle(r, _level){
+		var pi = Math.PI;
+		var level = _level + 2;
+		var ns = _.range(2, level).map(function(d){
+			return Math.pow(d, 2);
+		});
+		var dr = ns.map(function(d){return d * r / pi});
+		var pos = ns.map(function(d, index){
+			var pos = [];
+			var perRadius = 2 * pi / d;
+			for(var i = 0; i < d; i++){
+				var radius = i * perRadius;
+				var x = dr[index] * Math.cos(radius);
+				var y = -dr[index] * Math.sin(radius);
+				pos.push({x:x, y:y});
+			}
+			return pos;
+		});
+		return Array.prototype.concat.apply([], pos);
 	}
-	//console.log("add device to cluster begin", this.apid, device.mac);
-	var i = -1, len = this.positions.length;
-	while(++i < len){
-		if(this.posFlag[i]){
-			continue;
-		}
-		// add device to cluster
-		//console.log('succeed');
-		this.posFlag[i] = true;
-		this.positions[i].device = device;
-		this.deviceMap.set(device.mac, i);
-		this.device_count ++;
-		//console.log("add device to cluster end");
-		////console.log("cluster positions:", this.positions);
-		// update device position info
-		return;
-	}
-	if(i == len){
-		console.warn("cluster position overflow");
-	}
-}
-DeviceCluster.prototype.removeDevice = function(device){
-	if(!this.deviceMap.has(device.mac)){
-		console.warn("remove device not int cluster");
-		return;
-	}
-	//console.log("remove device from cluster begin", this.apid, device.mac);
-	var pos = this.deviceMap.get(device.mac);
-	// remove from cluster
-	if(!this.posFlag[pos] == true){
-		console.warn("remove device from empty position");
-		return;
-	}
-	this.posFlag[pos] = false;
-	delete this.positions[pos].device;
-	this.deviceMap.remove(device.mac);
-	this.device_count --;
-	//console.log("remove device from cluster end");
 }
 
-DeviceCluster.prototype.count = function(time_point){
-	if(!time_point){
-		return this.device_count;
+DeviceCluster.prototype._filterDevice = function(timePoint, _timeout){
+	var lst = [], timeout = _timeout || this.timeout;
+	for(mac in this.O){
+		lst.push(this.O[mac]);
 	}
-	return this.deviceLst(time_point).length;
-}
-
-DeviceCluster.prototype.deviceLst = function(time_point){
-	var res = this.positions.filter(function(p, i){
-		return p.device != null && p.device != undefined;
-		// return this.posFlag[i] === true;
-	});	
-	if(time_point){
-		res = res.filter(function(p, i){
-			return p.device.stayTime(time_point) / (1000 * 60) < 120;
+	if(timePoint){
+		lst = lst.filter(function(device){
+			return device.stayTime(timePoint) / (1000 * 60) < timeout;
 		});
 	}
-	return res;
+	return lst;
 }
