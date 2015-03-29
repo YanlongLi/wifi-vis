@@ -1,3 +1,14 @@
+/* =============================================================================
+*     FileName: WFV.js
+*         Desc:  
+*       Author: YanlongLi
+*        Email: lansunlong@gmail.com
+*     HomePage: 
+*      Version: 0.0.1
+*   CreateTime: 2015-02-27 01:06:08
+*   LastChange: 2015-03-30 00:57:02
+*      History:
+============================================================================= */
 var WFV = {};
 
 var WifiVis = WFV;

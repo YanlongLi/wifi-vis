@@ -1,9 +1,15 @@
+/* =============================================================================
+*     FileName: FloorDetail.js
+*         Desc:  
+*       Author: YanlongLi
+*        Email: lansunlong@gmail.com
+*     HomePage: 
+*      Version: 0.0.1
+*   CreateTime: 2015-01-29 16:02:28
+*   LastChange: 2015-03-30 00:45:14
+*      History:
+============================================================================= */
 
-/*
- * global variable required:
- * apLst:
- * apMap:
- */
 var floor_image_size = WFV.FLOOR_IMG_SIZE;
 
 WifiVis.FloorDetail = function(){

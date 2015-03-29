@@ -1,7 +1,14 @@
-
-/*
- *
- */
+/* =============================================================================
+*     FileName: RecordTracer.js
+*         Desc: using to trace device's location 
+*       Author: YanlongLi
+*        Email: lansunlong@gmail.com
+*     HomePage: 
+*      Version: 0.0.1
+*   CreateTime: 2015-02-09 23:03:11
+*   LastChange: 2015-03-30 00:46:51
+*      History:
+============================================================================= */
 function Device(mac, path){
 	this.mac = mac;
 	this.path = path;

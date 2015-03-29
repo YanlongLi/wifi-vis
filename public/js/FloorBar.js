@@ -1,3 +1,14 @@
+/* =============================================================================
+*     FileName: FloorBar.js
+*         Desc: FloorBar, FloorBarFloorAps, FloorBarSelAps
+*       Author: YanlongLi
+*        Email: lansunlong@gmail.com
+*     HomePage: 
+*      Version: 0.0.1
+*   CreateTime: 2015-03-01 01:31:00
+*   LastChange: 2015-03-30 00:44:22
+*      History:
+============================================================================= */
 WFV.FloorBar = function(_time_range){
 	function FloorBar(){}
 	var floor_color = ColorScheme.floor;

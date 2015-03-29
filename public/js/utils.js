@@ -1,3 +1,14 @@
+/* =============================================================================
+*     FileName: utils.js
+*         Desc:  
+*       Author: YanlongLi
+*        Email: lansunlong@gmail.com
+*     HomePage: 
+*      Version: 0.0.1
+*   CreateTime: 2015-01-29 16:02:28
+*   LastChange: 2015-03-30 00:53:48
+*      History:
+============================================================================= */
 var utils = utils ? utils : {};
 utils.getSize = function(sel){
 	var tc = $(sel);
