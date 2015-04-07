@@ -457,7 +457,8 @@ WifiVis.FloorDetail = function(){
 			var dy = y(d.y) + d.dy;
 			return "translate("+dx+","+dy+")";
 		}).selectAll("rect").transition().duration(800).each("start", function(d){
-			d3.select(this).style("fill", "red");
+			// d3.select(this).style("fill", "red");
+			d3.select(this).style("fill", "");
 		}).each("end", function(d){
 			d3.select(this).style("fill", "");
 		});

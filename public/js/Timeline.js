@@ -257,7 +257,6 @@ WFV.Timeline = function(_time_range){
 				g.select("#time-point-line").attr("d", line_time_point(time_point));
 				return;
 			}
-			console.log("goto time", from.to_time_str());
 			time_point = from;
 			EventManager.timePointChange(time_point);
 			g.select("#time-point-line").attr("d", line_time_point(time_point));
